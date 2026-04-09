@@ -16,7 +16,7 @@ export default function TabLayout() {
         name="games"
         options={{
           title: 'Games',
-          tabBarIcon: ({ color }) => <Ionicons name="basketball" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="football" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -31,13 +31,6 @@ export default function TabLayout() {
         options={{
           title: 'Stats',
           tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
         }}
       />
     </Tabs>
