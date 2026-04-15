@@ -15,27 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useRef, useEffect } from "react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Player = {
-  id: string;
-  name: string;
-  ovr: number;
-  position: string;
-  goals: number;
-  assists: number;
-  mvps: number;
-  isMvp?: boolean;
-  foot: "L" | "R";
-  form: "hot" | "cold" | "neutral";
-  pac: number;
-  sho: number;
-  pas: number;
-  dri: number;
-  def: number;
-  phy: number;
-};
+import {Player} from '../../types'
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
