@@ -10,6 +10,7 @@ export type GoalEvent = {
   playerName: string;
   team: "home" | "away";
   minute: number;
+  type: "goal" | "assist";
 };
 
 export type Game = {
@@ -24,10 +25,12 @@ export type Game = {
   homeColor: string;
   awayColor: string;
   location?: string;
+  date?: string;
   homeCaptain?: string;
   awayCaptain?: string;
   homePlayers?: GamePlayer[];
   awayPlayers?: GamePlayer[];
+  goalEvents?: GoalEvent[];
 };
 
 export type ExportMode = "options" | "result" | "preview" | "teamsheet";

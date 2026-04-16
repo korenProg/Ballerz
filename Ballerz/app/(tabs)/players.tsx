@@ -373,35 +373,51 @@ function ConfirmDialog({ visible, count, onConfirm, onCancel }: {
 
 // ─── MVP Card ─────────────────────────────────────────────────────────────────
 
-function MvpCard({ player }: { player: Player }) {
+function MvpCard({ player, onDismiss }: { player: Player; onDismiss: () => void }) {
   const tier     = ovrTier(player.ovr);
   const color    = TIER_COLOR[tier];
-  const bg       = TIER_BG[tier];
   const initials = player.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+
   return (
-    <LinearGradient colors={["#1a1400", "#0d0d00", "#000"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mvpCard}>
-      <View style={[styles.mvpGlowOuter, { backgroundColor: color }]} />
-      <View style={[styles.mvpGlowInner, { backgroundColor: color }]} />
-      <View style={styles.mvpTopRow}>
-        <Ionicons name="trophy" size={13} color={color} />
-        <Text style={[styles.mvpCardLabel, { color }]}>Last Match MVP</Text>
+    <View style={styles.mvpCard}>
+      {/* subtle glow */}
+      <View style={[styles.mvpGlow, { backgroundColor: color }]} />
+
+      {/* header row: label + dismiss */}
+      <View style={styles.mvpCardHeader}>
+        <View style={styles.mvpLabelRow}>
+          <Ionicons name="trophy" size={11} color={color} />
+          <Text style={[styles.mvpCardLabel, { color }]}>LAST MATCH MVP</Text>
+        </View>
+        <TouchableOpacity
+          onPress={onDismiss}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.mvpDismissBtn}
+        >
+          <Ionicons name="close" size={15} color="#444" />
+        </TouchableOpacity>
       </View>
-      <View style={[styles.mvpAvatar, { borderColor: color, shadowColor: color }]}>
-        <Text style={[styles.mvpAvatarText, { color }]}>{initials}</Text>
+
+      {/* body: avatar + info + OVR */}
+      <View style={styles.mvpCardBody}>
+        <View style={[styles.mvpAvatar, { borderColor: color + "66" }]}>
+          <Text style={[styles.mvpAvatarText, { color }]}>{initials}</Text>
+        </View>
+        <View style={styles.mvpCardInfo}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={styles.mvpCardName}>{player.name}</Text>
+            <FormBadge form={player.form} />
+          </View>
+          <Text style={styles.mvpCardSub}>
+            {player.position} · {player.goals}G · {player.assists}A · {player.mvps} MVPs
+          </Text>
+        </View>
+        <View style={[styles.mvpOvrBadge, { backgroundColor: ovrBg(player.ovr), borderColor: color + "55" }]}>
+          <Text style={[styles.mvpOvrText, { color }]}>{player.ovr}</Text>
+          <Text style={[styles.mvpOvrLabel, { color }]}>OVR</Text>
+        </View>
       </View>
-      <Text style={styles.mvpCardName}>{player.name}</Text>
-      <View style={styles.mvpStatsRow}>
-        <View style={styles.mvpStat}><Text style={[styles.mvpStatVal, { color }]}>{player.goals}</Text><Text style={styles.mvpStatLbl}>Goals</Text></View>
-        <View style={styles.mvpStatDivider} />
-        <View style={styles.mvpStat}><Text style={[styles.mvpStatVal, { color }]}>{player.assists}</Text><Text style={styles.mvpStatLbl}>Assists</Text></View>
-        <View style={styles.mvpStatDivider} />
-        <View style={styles.mvpStat}><Text style={[styles.mvpStatVal, { color }]}>{player.mvps}</Text><Text style={styles.mvpStatLbl}>MVPs</Text></View>
-      </View>
-      <View style={[styles.mvpOvrBadge, { backgroundColor: bg, borderColor: color }]}>
-        <Text style={[styles.mvpOvrText, { color }]}>{player.ovr}</Text>
-        <Text style={[styles.mvpOvrLabel, { color }]}>OVR</Text>
-      </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -490,6 +506,7 @@ export default function PlayersScreen() {
   const [sortMode, setSortMode]             = useState<SortMode>("ovr_desc");
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const [cardPlayer, setCardPlayer]         = useState<Player | null>(null);
+  const [mvpDismissed, setMvpDismissed]     = useState(false);
 
   const dropdownOpacity = useRef(new Animated.Value(0)).current;
   const dropdownY       = useRef(new Animated.Value(-8)).current;
@@ -532,10 +549,18 @@ export default function PlayersScreen() {
   };
 
   const handleScroll = (e: any) => {
-    const y     = e.nativeEvent.contentOffset.y;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const y = contentOffset.y;
+
+    // At the bottom of the list the rubber-band bounce briefly produces negative
+    // deltas even though the user hasn't scrolled up — ignore those frames.
+    const isAtBottom = y + layoutMeasurement.height >= contentSize.height - 24;
+    if (isAtBottom) return;
+
     const delta = y - lastScrollY.current;
     lastScrollY.current = y;
     if (Math.abs(delta) > 80) return;
+
     if (delta > 0) {
       scrollUpAccum.current = 0;
       if (y > 20 && !isSearchCollapsed.current) {
@@ -592,8 +617,7 @@ export default function PlayersScreen() {
   const cancelSelect = () => { setSelectMode(false); setSelectedIds(new Set()); };
 
   return (
-    <LinearGradient colors={["#000000", "#000000", "#00000060", "#000"]} style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
 
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
@@ -686,7 +710,9 @@ export default function PlayersScreen() {
 
         {/* ── List ── */}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
-          {mvpPlayer && !search && <MvpCard player={mvpPlayer} />}
+          {mvpPlayer && !search && !mvpDismissed && (
+            <MvpCard player={mvpPlayer} onDismiss={() => setMvpDismissed(true)} />
+          )}
           {sorted.map((player, index) => (
             <PlayerRow
               key={player.id}
@@ -703,15 +729,14 @@ export default function PlayersScreen() {
         <ConfirmDialog visible={confirmVisible} count={selectedIds.size} onConfirm={confirmDelete} onCancel={() => setConfirmVisible(false)} />
         <PlayerCardModal player={cardPlayer} visible={!!cardPlayer} onClose={() => setCardPlayer(null)} />
 
-      </SafeAreaView>
-    </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "#0a0a0a" },
   topBar:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, zIndex: 100 },
   topBarBtn: { minWidth: 40, alignItems: "center" },
   pageTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
@@ -740,22 +765,22 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
 
-  mvpCard:       { borderRadius: 20, marginBottom: 20, padding: 20, alignItems: "center", overflow: "hidden", borderWidth: 1, borderColor: "#2a2000" },
-  mvpGlowOuter:  { position: "absolute", width: 220, height: 220, borderRadius: 110, opacity: 0.05, top: -60, alignSelf: "center" },
-  mvpGlowInner:  { position: "absolute", width: 120, height: 120, borderRadius: 60, opacity: 0.08, top: -20, alignSelf: "center" },
-  mvpTopRow:     { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 14 },
-  mvpCardLabel:  { fontSize: 12, fontWeight: "700", letterSpacing: 1 },
-  mvpAvatar:     { width: 72, height: 72, borderRadius: 36, backgroundColor: "#111", borderWidth: 2, alignItems: "center", justifyContent: "center", marginBottom: 12, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 16, elevation: 10 },
-  mvpAvatarText: { fontSize: 24, fontWeight: "900" },
-  mvpCardName:   { color: "#fff", fontSize: 20, fontWeight: "900", marginBottom: 14, letterSpacing: 0.5 },
-  mvpStatsRow:   { flexDirection: "row", alignItems: "center", marginBottom: 14 },
-  mvpStat:       { alignItems: "center", paddingHorizontal: 20 },
-  mvpStatVal:    { fontSize: 20, fontWeight: "900" },
-  mvpStatLbl:    { color: "#555", fontSize: 11, fontWeight: "600", marginTop: 2 },
-  mvpStatDivider:{ width: 1, height: 30, backgroundColor: "#2a2a2a" },
-  mvpOvrBadge:   { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 20, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 5 },
-  mvpOvrText:    { fontSize: 16, fontWeight: "900" },
-  mvpOvrLabel:   { fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  // ── MVP card (compact horizontal)
+  mvpCard:       { backgroundColor: "#111", borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: "#1e1e1e", overflow: "hidden" },
+  mvpGlow:       { position: "absolute", width: 160, height: 160, borderRadius: 80, opacity: 0.05, top: -50, left: -20 },
+  mvpCardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingTop: 11, paddingBottom: 8 },
+  mvpLabelRow:   { flexDirection: "row", alignItems: "center", gap: 5 },
+  mvpCardLabel:  { fontSize: 10, fontWeight: "800", letterSpacing: 1.5 },
+  mvpDismissBtn: { padding: 2 },
+  mvpCardBody:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingBottom: 13, gap: 12 },
+  mvpAvatar:     { width: 44, height: 44, borderRadius: 22, backgroundColor: "#0a0a0a", borderWidth: 1.5, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  mvpAvatarText: { fontSize: 14, fontWeight: "900" },
+  mvpCardInfo:   { flex: 1 },
+  mvpCardName:   { color: "#fff", fontSize: 15, fontWeight: "800" },
+  mvpCardSub:    { color: "#444", fontSize: 11, marginTop: 3, fontWeight: "500" },
+  mvpOvrBadge:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, alignItems: "center", minWidth: 46, borderWidth: 1, flexShrink: 0 },
+  mvpOvrText:    { fontSize: 17, fontWeight: "900" },
+  mvpOvrLabel:   { fontSize: 8, fontWeight: "700", letterSpacing: 1, marginTop: 1 },
 
   row:         { flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 13, gap: 12 },
   rowSelected: { backgroundColor: "rgba(0,57,163,0.1)", borderRadius: 12 },

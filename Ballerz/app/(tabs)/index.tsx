@@ -3,447 +3,365 @@ import {
   Text,
   Image,
   StyleSheet,
-  Animated,
+  ScrollView,
   TouchableOpacity,
-  Easing,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useRef, useEffect } from "react";
+import React from "react";
 
-// ─── Data ───────────────────────────────────────────────────────────────────
+// ─── Static Data ──────────────────────────────────────────────────────────────
 
-const stats = [
-  { label: "Most MVPs", value: "Player1" },
-  { label: "Games", value: "16" },
-  { label: "Players", value: "21" },
-  { label: "Goals", value: "84" },
-  { label: "Assists", value: "37" },
+const SEASON = "2025–26";
+
+const appStats = [
+  { label: "Games",   value: "16", accent: "#4a9eff" },
+  { label: "Players", value: "21", accent: "#a78bfa" },
+  { label: "Goals",   value: "84", accent: "#f5c518" },
 ];
 
 const lastGame = {
-  league: "Ballerz League",
-  status: "FT",
-  homeTeam: "Barcelona FC",
-  awayTeam: "Real Madrid",
+  league:    "Ballerz League",
+  status:    "FT" as GameStatus,
+  homeTeam:  "Barcelona FC",
+  awayTeam:  "Real Madrid",
   homeScore: 3,
   awayScore: 2,
-  mvp: { name: "Neymar Jr", stat: "2 goals · 1 ast" },
+  homeColor: "#cc0000",
+  awayColor: "#0055cc",
+  date:      "Tue, Apr 8 · 21:00",
+  location:  "Camp Nou",
+  mvp:       { name: "Neymar Jr", stat: "2 goals · 1 ast" },
 };
 
-// ─── Carousel config ─────────────────────────────────────────────────────────
+const upcomingGame = {
+  homeTeam:  "PSG",
+  awayTeam:  "Bayern",
+  homeColor: "#0055cc",
+  awayColor: "#cc0000",
+  date:      "Thu, Apr 17",
+  time:      "21:00",
+  location:  "Parc des Princes",
+};
 
-const CARD_WIDTH = 160;
-const CARD_GAP = 12;
-const ITEM_WIDTH = CARD_WIDTH + CARD_GAP;
-const LOOP_WIDTH = ITEM_WIDTH * stats.length;
-const loopedStats = [...stats, ...stats];
+const lastMVP = {
+  name:     "Neymar Jr",
+  position: "FW",
+  stat:     "2 goals · 1 ast",
+};
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-function StatsCarousel({ translateX }: { translateX: Animated.Value }) {
+type GameStatus = "FT" | "Live" | "Pending";
+
+// ─── Status Badge ─────────────────────────────────────────────────────────────
+
+const STATUS_MAP: Record<GameStatus, { label: string; bg: string; color: string; live: boolean }> = {
+  FT:      { label: "FT",       bg: "#1c1c1c", color: "#666",    live: false },
+  Live:    { label: "LIVE",     bg: "#0a2010", color: "#00e676", live: true  },
+  Pending: { label: "UPCOMING", bg: "#1a1400", color: "#f5c518", live: false },
+};
+
+function StatusPill({ status }: { status: GameStatus }) {
+  const cfg = STATUS_MAP[status];
   return (
-    <View style={styles.carousel}>
-      <Animated.View style={[styles.row, { transform: [{ translateX }] }]}>
-        {loopedStats.map((stat, index) => (
-          <LinearGradient
-            key={index}
-            colors={["#e6e6e61c", "#00000031", "#0d1a6e73"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
-            <Text
-              style={styles.cardValue}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {stat.value}
-            </Text>
-            <Text style={styles.cardLabel}>{stat.label}</Text>
-          </LinearGradient>
-        ))}
-      </Animated.View>
+    <View style={[pill.wrap, { backgroundColor: cfg.bg }]}>
+      {cfg.live && <View style={pill.dot} />}
+      <Text style={[pill.text, { color: cfg.color }]}>{cfg.label}</Text>
     </View>
   );
 }
 
-function LastGameCard() {
+const pill = StyleSheet.create({
+  wrap: { flexDirection: "row", alignItems: "center", borderRadius: 7, paddingHorizontal: 9, paddingVertical: 4, gap: 5 },
+  dot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: "#00e676" },
+  text: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6 },
+});
+
+// ─── Match Card ───────────────────────────────────────────────────────────────
+
+function MatchCard() {
+  const g = lastGame;
   return (
-    <LinearGradient
-      colors={["#2d2d3560", "#101013", "#47485328"]}
-      start={{ x: 0, y: 2 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.lastGameCard}
-    >
-      <View style={styles.lastGameHeader}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name="football-outline" size={14} color="#aaa" />
-          <Text style={styles.lastGameLeague}>{lastGame.league}</Text>
+    <View style={s.matchCard}>
+      {/* Card header */}
+      <View style={s.cardRow}>
+        <View style={s.leagueRow}>
+          <Ionicons name="football-outline" size={12} color="#555" />
+          <Text style={s.leagueText}>{g.league}</Text>
         </View>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{lastGame.status}</Text>
+        <StatusPill status={g.status} />
+      </View>
+
+      <View style={s.hairline} />
+
+      {/* Score */}
+      <View style={s.scoreRow}>
+        <View style={s.teamCol}>
+          <View style={[s.teamBadge, { borderColor: g.homeColor, backgroundColor: g.homeColor + "1a" }]}>
+            <Ionicons name="shield" size={20} color={g.homeColor} />
+          </View>
+          <Text style={s.teamName} numberOfLines={2}>{g.homeTeam}</Text>
+        </View>
+
+        <View style={s.scoreCenter}>
+          <Text style={s.scoreNum}>{g.homeScore}</Text>
+          <Text style={s.scoreSep}>–</Text>
+          <Text style={s.scoreNum}>{g.awayScore}</Text>
+        </View>
+
+        <View style={s.teamCol}>
+          <View style={[s.teamBadge, { borderColor: g.awayColor, backgroundColor: g.awayColor + "1a" }]}>
+            <Ionicons name="shield" size={20} color={g.awayColor} />
+          </View>
+          <Text style={s.teamName} numberOfLines={2}>{g.awayTeam}</Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={s.hairline} />
 
-      <View style={styles.matchRow}>
-        <View
-          style={[
-            styles.teamBadge,
-            { backgroundColor: "#1a0000", borderColor: "#cc0000" },
-          ]}
-        >
-          <Ionicons name="shield" size={20} color="#cc0000" />
+      {/* Meta row */}
+      <View style={s.matchMeta}>
+        <View style={s.metaItem}>
+          <Ionicons name="location-outline" size={11} color="#3d3d3d" />
+          <Text style={s.metaText}>{g.location}</Text>
         </View>
-        <Text style={styles.teamName}>{lastGame.homeTeam}</Text>
-        <Text style={styles.score}>
-          {lastGame.homeScore} – {lastGame.awayScore}
-        </Text>
-        <Text style={styles.teamName}>{lastGame.awayTeam}</Text>
-        <View
-          style={[
-            styles.teamBadge,
-            { backgroundColor: "#00001a", borderColor: "#0055cc" },
-          ]}
-        >
-          <Ionicons name="shield" size={20} color="#0055cc" />
+        <View style={s.metaItem}>
+          <Ionicons name="time-outline" size={11} color="#3d3d3d" />
+          <Text style={s.metaText}>{g.date}</Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
-
-      <View style={styles.mvpRow}>
-        <Ionicons name="star" size={14} color="#f5c518" />
-        <Text style={styles.mvpLabel}>Match MVP</Text>
-        <Text style={styles.mvpName}>{lastGame.mvp.name}</Text>
-        <Text style={styles.mvpStat}>{lastGame.mvp.stat}</Text>
+      {/* MVP row */}
+      <View style={s.cardMvpRow}>
+        <Ionicons name="star" size={12} color="#f5c518" />
+        <Text style={s.cardMvpLabel}>MVP</Text>
+        <Text style={s.cardMvpName}>{g.mvp.name}</Text>
+        <Text style={s.cardMvpStat}>{g.mvp.stat}</Text>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
-function MVPSection() {
+// ─── MVP Hero Card ────────────────────────────────────────────────────────────
+
+function MVPHeroCard() {
   return (
-    <View style={styles.mvpCard}>
-      {/* Glow behind player */}
-      <View style={styles.mvpGlowOuter} />
-      <View style={styles.mvpGlowMid} />
-      <View style={styles.mvpGlowInner} />
+    <View style={s.mvpCard}>
+      {/* Glow layers */}
+      <View style={[s.mvpGlow, { width: 280, height: 280, borderRadius: 140, opacity: 0.04, top: -40 }]} />
+      <View style={[s.mvpGlow, { width: 190, height: 190, borderRadius: 95,  opacity: 0.07, top: 0   }]} />
+      <View style={[s.mvpGlow, { width: 110, height: 110, borderRadius: 55,  opacity: 0.12, top: 45  }]} />
 
       <Image
         source={require("@/assets/images/playerDefaultPic.png")}
-        style={styles.mvpImage}
+        style={s.mvpImage}
         resizeMode="contain"
       />
-      <LinearGradient
-        colors={["rgba(0,0,0,0.7)", "transparent"]}
-        style={styles.mvpTopFade}
-      />
-      <LinearGradient
-        colors={["transparent", "#000000"]}
-        style={styles.mvpBottomFade}
-      />
-      <View style={styles.mvpTopLabels}>
-        <Text style={styles.mvpTopTitle}>Last Match</Text>
-        <Text style={styles.mvpTopBadge}>MVP</Text>
+
+      <LinearGradient colors={["rgba(0,0,0,0.85)", "transparent"]} style={s.mvpFadeTop} />
+      <LinearGradient colors={["transparent", "#0a0a0a"]}          style={s.mvpFadeBottom} />
+
+      {/* Top labels */}
+      <View style={s.mvpTopLabels}>
+        <Text style={s.mvpSub}>Last Match</Text>
+        <Text style={s.mvpTitle}>MVP</Text>
       </View>
-      <Text style={styles.mvpBottomName}>{lastGame.mvp.name}</Text>
+
+      {/* Bottom info */}
+      <View style={s.mvpBottom}>
+        <Text style={s.mvpName}>{lastMVP.name}</Text>
+        <View style={s.mvpMetaRow}>
+          <View style={s.mvpPosBadge}>
+            <Text style={s.mvpPosText}>{lastMVP.position}</Text>
+          </View>
+          <Text style={s.mvpStatText}>{lastMVP.stat}</Text>
+        </View>
+      </View>
     </View>
   );
 }
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
+// ─── Upcoming Card ────────────────────────────────────────────────────────────
 
-export default function HomeScreen() {
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animate = () => {
-      translateX.setValue(0);
-      Animated.timing(translateX, {
-        toValue: -LOOP_WIDTH,
-        duration: stats.length * 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start(animate);
-    };
-    animate();
-  }, []);
-
+function UpcomingCard() {
+  const g = upcomingGame;
   return (
-    <LinearGradient
-      colors={["#000000", "#000000", "#00000060", "rgb(0,0,0)"]}
-      style={{ flex: 1 }}
-    >
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <Image
-          source={require("@/assets/images/ballerzWideLogo.png")}
-          style={styles.headerImage}
-          resizeMode="contain"
-        />
+    <View style={s.upcomingCard}>
+      <View style={s.upcomingHeader}>
+        <Text style={s.upcomingLabel}>NEXT MATCH</Text>
+        <View style={s.upcomingDateBadge}>
+          <Ionicons name="calendar-outline" size={11} color="#f5c518" />
+          <Text style={s.upcomingDateText}>{g.date} · {g.time}</Text>
+        </View>
+      </View>
 
-        <StatsCarousel translateX={translateX} />
+      <View style={s.upcomingTeams}>
+        <View style={s.teamCol}>
+          <View style={[s.teamBadge, { borderColor: g.homeColor, backgroundColor: g.homeColor + "1a" }]}>
+            <Ionicons name="shield" size={20} color={g.homeColor} />
+          </View>
+          <Text style={s.teamName} numberOfLines={1}>{g.homeTeam}</Text>
+        </View>
 
-        <Text style={styles.sectionTitle}>Last Game</Text>
-        <LastGameCard />
+        <Text style={s.vsText}>VS</Text>
 
-        <MVPSection />
+        <View style={s.teamCol}>
+          <View style={[s.teamBadge, { borderColor: g.awayColor, backgroundColor: g.awayColor + "1a" }]}>
+            <Ionicons name="shield" size={20} color={g.awayColor} />
+          </View>
+          <Text style={s.teamName} numberOfLines={1}>{g.awayTeam}</Text>
+        </View>
+      </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
-          <Text style={styles.buttonText}>Create Game</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    </LinearGradient>
+      <View style={s.upcomingFooter}>
+        <Ionicons name="location-outline" size={11} color="#3d3d3d" />
+        <Text style={s.metaText}>{g.location}</Text>
+      </View>
+    </View>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+export default function HomeScreen() {
+  return (
+    <SafeAreaView style={s.safe} edges={["top"]}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <View style={s.header}>
+          <Image
+            source={require("@/assets/images/ballerzWideLogo.png")}
+            style={s.logo}
+            resizeMode="contain"
+          />
+          <View style={s.seasonBadge}>
+            <Text style={s.seasonText}>{SEASON}</Text>
+          </View>
+        </View>
 
-  // Header
-  headerImage: {
-    width: "40%",
-    height: 60,
-    alignSelf: "center",
-    marginTop: 10,
-  },
+        {/* ── Stats Strip ─────────────────────────────────────────────────── */}
+        <View style={s.statsRow}>
+          {appStats.map((stat, i) => (
+            <View key={i} style={s.statChip}>
+              <Text style={[s.statValue, { color: stat.accent }]}>{stat.value}</Text>
+              <Text style={s.statLabel}>{stat.label}</Text>
+            </View>
+          ))}
+        </View>
 
-  // Carousel
-  carousel: {
-    overflow: "hidden",
-    marginTop: 15,
-  },
-  row: {
-    flexDirection: "row",
-    gap: CARD_GAP,
-  },
-  card: {
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    width: CARD_WIDTH,
-    height: 130,
-  },
-  cardValue: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  cardLabel: {
-    fontSize: 13,
-    color: "#8899cc",
-    marginTop: 6,
-    fontWeight: "600",
-  },
+        {/* ── Last Match ──────────────────────────────────────────────────── */}
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>LAST MATCH</Text>
+          <TouchableOpacity>
+            <Text style={s.sectionLink}>All games</Text>
+          </TouchableOpacity>
+        </View>
+        <MatchCard />
 
-  // Section title
-  sectionTitle: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-    marginTop: 24,
-    marginBottom: 7,
-    marginHorizontal: 16,
-  },
+        {/* ── MVP ─────────────────────────────────────────────────────────── */}
+        <Text style={[s.sectionTitle, s.mvpSectionTitle]}>LAST MVP</Text>
+        <MVPHeroCard />
 
-  // Last game card
-  lastGameCard: {
-    borderRadius: 16,
-    marginHorizontal: 16,
-    overflow: "hidden",
-  },
-  lastGameHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  lastGameLeague: {
-    color: "#aaa",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#2a2a2a",
-  },
-  matchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  statusBadge: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  statusText: {
-    color: "#aaa",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  teamName: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-    textAlign: "center",
-    flex: 1,
-  },
-  teamBadge: {
-    width: 35,
-    height: 35,
-    borderRadius: 22,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  score: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    minWidth: 80,
-    textAlign: "center",
-  },
-  mvpRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  mvpLabel: {
-    color: "#aaa",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  mvpName: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
-    flex: 1,
-  },
-  mvpStat: {
-    color: "#aaa",
-    fontSize: 12,
-  },
+        {/* ── Upcoming ────────────────────────────────────────────────────── */}
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>UPCOMING</Text>
+        </View>
+        <UpcomingCard />
 
-  // MVP section card
-  mvpCard: {
-    marginHorizontal: 16,
-    marginTop: 20,
-    borderRadius: 20,
-    overflow: "hidden",
-    height: 200,
-    backgroundColor: "#000",
-  },
-  mvpGlowOuter: {
-    position: "absolute",
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: "#f5c518",
-    opacity: 0.04,
-    alignSelf: "center",
-    top: -40,
-  },
-  mvpGlowMid: {
-    position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: "#f5c518",
-    opacity: 0.07,
-    alignSelf: "center",
-    top: 0,
-  },
-  mvpGlowInner: {
-    position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f5c518",
-    opacity: 0.13,
-    alignSelf: "center",
-    top: 40,
-  },
-  mvpImage: {
-    width: "50%",
-    height: "100%",
-    position: "absolute",
-    left: "25%", // centers a 50%-wide image
-  },
-  mvpTopFade: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-  },
-  mvpBottomFade: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 150,
-  },
-  mvpTopLabels: {
-    position: "absolute",
-    top: 14,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  mvpTopTitle: {
-    color: "#ccc",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  mvpTopBadge: {
-    color: "#f5c518",
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 2,
-    marginTop: 2,
-  },
-  mvpBottomName: {
-    position: "absolute",
-    bottom: 16,
-    left: 0,
-    right: 0,
-    textAlign: "center",
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
+        {/* ── CTA ─────────────────────────────────────────────────────────── */}
+        <TouchableOpacity style={s.cta} activeOpacity={0.85} onPress={() => {}}>
+          <Ionicons name="add-circle-outline" size={20} color="#fff" />
+          <Text style={s.ctaText}>Create Game</Text>
+        </TouchableOpacity>
 
-  // Button
-  button: {
-    position: "absolute",
-    bottom: 18,
-    left: 16,
-    right: 16,
-    backgroundColor: "#0039a3",
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+        <View style={{ height: 32 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  safe:    { flex: 1, backgroundColor: "#0a0a0a" },
+  scroll:  { flex: 1 },
+  content: { paddingBottom: 16 },
+
+  // ── Header
+  header:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6 },
+  logo:        { width: 130, height: 42 },
+  seasonBadge: { backgroundColor: "#161616", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#242424" },
+  seasonText:  { color: "#4a4a4a", fontSize: 11, fontWeight: "700", letterSpacing: 0.5 },
+
+  // ── Stats
+  statsRow:  { flexDirection: "row", marginHorizontal: 16, marginTop: 16, gap: 10 },
+  statChip:  { flex: 1, backgroundColor: "#111", borderRadius: 14, paddingVertical: 15, alignItems: "center", borderWidth: 1, borderColor: "#1a1a1a" },
+  statValue: { fontSize: 26, fontWeight: "800" },
+  statLabel: { fontSize: 10, color: "#4a4a4a", fontWeight: "600", marginTop: 3, letterSpacing: 0.5, textTransform: "uppercase" },
+
+  // ── Section headers
+  sectionHeader:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginHorizontal: 16, marginTop: 24, marginBottom: 10 },
+  sectionTitle:     { fontSize: 10, fontWeight: "700", color: "#4a4a4a", letterSpacing: 1.8, textTransform: "uppercase" },
+  sectionLink:      { fontSize: 12, color: "#4a9eff", fontWeight: "600" },
+  mvpSectionTitle:  { marginHorizontal: 16, marginTop: 24, marginBottom: 10 },
+
+  // ── Match card
+  matchCard: { marginHorizontal: 16, backgroundColor: "#111", borderRadius: 18, borderWidth: 1, borderColor: "#1a1a1a", overflow: "hidden" },
+  cardRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 12 },
+  leagueRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  leagueText:{ color: "#444", fontSize: 12, fontWeight: "600" },
+  hairline:  { height: 1, backgroundColor: "#181818" },
+
+  scoreRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 20 },
+  teamCol:    { flex: 1, alignItems: "center", gap: 9 },
+  teamBadge:  { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
+  teamName:   { color: "#aaa", fontSize: 12, fontWeight: "600", textAlign: "center" },
+  scoreCenter:{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8 },
+  scoreNum:   { color: "#fff", fontSize: 34, fontWeight: "900" },
+  scoreSep:   { color: "#2a2a2a", fontSize: 26, fontWeight: "300" },
+
+  matchMeta: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingTop: 9, paddingBottom: 4 },
+  metaItem:  { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText:  { color: "#3d3d3d", fontSize: 11 },
+
+  cardMvpRow:  { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 11, gap: 7, borderTopWidth: 1, borderTopColor: "#181818", marginTop: 4 },
+  cardMvpLabel:{ color: "#444", fontSize: 11, fontWeight: "600" },
+  cardMvpName: { color: "#fff", fontSize: 12, fontWeight: "700", flex: 1 },
+  cardMvpStat: { color: "#444", fontSize: 11 },
+
+  // ── MVP hero card
+  mvpCard:       { marginHorizontal: 16, borderRadius: 20, overflow: "hidden", height: 215, backgroundColor: "#0a0a0a", borderWidth: 1, borderColor: "#1a1a1a" },
+  mvpGlow:       { position: "absolute", backgroundColor: "#f5c518", alignSelf: "center" },
+  mvpImage:      { position: "absolute", width: "55%", height: "100%", left: "22.5%" },
+  mvpFadeTop:    { position: "absolute", top: 0,    left: 0, right: 0, height: 80  },
+  mvpFadeBottom: { position: "absolute", bottom: 0, left: 0, right: 0, height: 140 },
+  mvpTopLabels:  { position: "absolute", top: 14, left: 0, right: 0, alignItems: "center" },
+  mvpSub:        { color: "#555", fontSize: 11, fontWeight: "600", letterSpacing: 1.2 },
+  mvpTitle:      { color: "#f5c518", fontSize: 16, fontWeight: "900", letterSpacing: 3.5, marginTop: 2 },
+  mvpBottom:     { position: "absolute", bottom: 14, left: 0, right: 0, alignItems: "center", gap: 7 },
+  mvpName:       { color: "#fff", fontSize: 22, fontWeight: "900", letterSpacing: 0.3 },
+  mvpMetaRow:    { flexDirection: "row", alignItems: "center", gap: 9 },
+  mvpPosBadge:   { backgroundColor: "#1e1e1e", borderRadius: 5, paddingHorizontal: 7, paddingVertical: 3 },
+  mvpPosText:    { color: "#555", fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
+  mvpStatText:   { color: "#444", fontSize: 12 },
+
+  // ── Upcoming card
+  upcomingCard:    { marginHorizontal: 16, backgroundColor: "#111", borderRadius: 18, borderWidth: 1, borderColor: "#1a1a1a", padding: 16 },
+  upcomingHeader:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
+  upcomingLabel:   { color: "#4a4a4a", fontSize: 10, fontWeight: "700", letterSpacing: 1.8 },
+  upcomingDateBadge:{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#1a1400", borderRadius: 7, paddingHorizontal: 9, paddingVertical: 5 },
+  upcomingDateText:{ color: "#f5c518", fontSize: 11, fontWeight: "600" },
+  upcomingTeams:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 8 },
+  vsText:          { color: "#2a2a2a", fontSize: 14, fontWeight: "800", letterSpacing: 1.5 },
+  upcomingFooter:  { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 14 },
+
+  // ── CTA
+  cta:     { marginHorizontal: 16, marginTop: 24, backgroundColor: "#0039a3", borderRadius: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 },
+  ctaText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

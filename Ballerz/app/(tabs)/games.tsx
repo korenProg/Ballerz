@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
-import {GoalEvent, GamePlayer, Game, ExportMode} from '../../types'
+import { GoalEvent, GamePlayer, Game, ExportMode } from "../../types";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -35,8 +35,73 @@ const initialGames: Game[] = [
     homeColor: "#cc0000",
     awayColor: "#0055cc",
     location: "Camp Nou",
+    date: "Tue, Apr 8 · 21:00",
     homeCaptain: "Neymar Jr",
     awayCaptain: "Vinicius Jr",
+    homePlayers: [
+      { id: "h1b", name: "Neymar Jr", position: "FW" },
+      { id: "h2b", name: "Lewandowski", position: "FW" },
+      { id: "h3b", name: "Pedri", position: "MF" },
+      { id: "h4b", name: "Kounde", position: "DF" },
+      { id: "h5b", name: "Ter Stegen", position: "GK" },
+    ],
+    awayPlayers: [
+      { id: "a1b", name: "Vinicius Jr", position: "FW" },
+      { id: "a2b", name: "Bellingham", position: "MF" },
+      { id: "a3b", name: "Valverde", position: "MF" },
+      { id: "a4b", name: "Militao", position: "DF" },
+      { id: "a5b", name: "Courtois", position: "GK" },
+    ],
+    goalEvents: [
+      {
+        id: "e1",
+        playerId: "h1b",
+        playerName: "Neymar Jr",
+        team: "home",
+        minute: 12,
+        type: "goal",
+      },
+      {
+        id: "e2",
+        playerId: "h3b",
+        playerName: "Pedri",
+        team: "home",
+        minute: 12,
+        type: "assist",
+      },
+      {
+        id: "e3",
+        playerId: "a1b",
+        playerName: "Vinicius Jr",
+        team: "away",
+        minute: 29,
+        type: "goal",
+      },
+      {
+        id: "e4",
+        playerId: "h1b",
+        playerName: "Neymar Jr",
+        team: "home",
+        minute: 55,
+        type: "goal",
+      },
+      {
+        id: "e5",
+        playerId: "a2b",
+        playerName: "Bellingham",
+        team: "away",
+        minute: 63,
+        type: "goal",
+      },
+      {
+        id: "e6",
+        playerId: "h2b",
+        playerName: "Lewandowski",
+        team: "home",
+        minute: 78,
+        type: "goal",
+      },
+    ],
   },
   {
     id: "2",
@@ -50,6 +115,7 @@ const initialGames: Game[] = [
     homeColor: "#55aaff",
     awayColor: "#cc0000",
     location: "Etihad Stadium",
+    date: "Fri, Apr 18 · 20:00",
     homeCaptain: "Rodri",
     awayCaptain: "Saka",
     homePlayers: [
@@ -75,12 +141,69 @@ const initialGames: Game[] = [
     awayTeam: "Bayern",
     homeScore: 2,
     awayScore: 2,
-    mvp: { name: "Mbappe", stat: "2 goals · 3 chances" },
+    mvp: { name: "Mbappe", stat: "2 goals" },
     homeColor: "#0055cc",
     awayColor: "#cc0000",
     location: "Parc des Princes",
+    date: "Wed, Apr 9 · 21:00",
     homeCaptain: "Mbappe",
     awayCaptain: "Pedri",
+    homePlayers: [
+      { id: "hp3a", name: "Mbappe", position: "FW" },
+      { id: "hp3b", name: "Asensio", position: "MF" },
+      { id: "hp3c", name: "Vitinha", position: "MF" },
+      { id: "hp3d", name: "Marquinhos", position: "DF" },
+      { id: "hp3e", name: "Donnarumma", position: "GK" },
+    ],
+    awayPlayers: [
+      { id: "ap3a", name: "Kane", position: "FW" },
+      { id: "ap3b", name: "Muller", position: "MF" },
+      { id: "ap3c", name: "Kimmich", position: "MF" },
+      { id: "ap3d", name: "Upamecano", position: "DF" },
+      { id: "ap3e", name: "Neuer", position: "GK" },
+    ],
+    goalEvents: [
+      {
+        id: "f1",
+        playerId: "hp3a",
+        playerName: "Mbappe",
+        team: "home",
+        minute: 18,
+        type: "goal",
+      },
+      {
+        id: "f2",
+        playerId: "ap3a",
+        playerName: "Kane",
+        team: "away",
+        minute: 34,
+        type: "goal",
+      },
+      {
+        id: "f3",
+        playerId: "ap3b",
+        playerName: "Muller",
+        team: "away",
+        minute: 34,
+        type: "assist",
+      },
+      {
+        id: "f4",
+        playerId: "hp3a",
+        playerName: "Mbappe",
+        team: "home",
+        minute: 71,
+        type: "goal",
+      },
+      {
+        id: "f5",
+        playerId: "ap3a",
+        playerName: "Kane",
+        team: "away",
+        minute: 88,
+        type: "goal",
+      },
+    ],
   },
   {
     id: "4",
@@ -94,6 +217,7 @@ const initialGames: Game[] = [
     homeColor: "#cc0000",
     awayColor: "#0055cc",
     location: "Emirates Stadium",
+    date: "Today · 20:45",
     homeCaptain: "Saka",
     awayCaptain: "Palmer",
     homePlayers: [
@@ -196,6 +320,100 @@ function buildShareText(
     .filter(Boolean)
     .join("\n");
 }
+
+// ─── Filter Tabs ─────────────────────────────────────────────────────────────
+
+type FilterKey = "All" | "Live" | "Upcoming" | "FT";
+const FILTERS: FilterKey[] = ["All", "Live", "Upcoming", "FT"];
+
+function FilterTabs({
+  active,
+  onChange,
+  counts,
+}: {
+  active: FilterKey;
+  onChange: (f: FilterKey) => void;
+  counts: Record<FilterKey, number>;
+}) {
+  return (
+    // Wrapping View owns the vertical space; the inner ScrollView is unconstrained
+    // in height so it never fights paddingVertical.
+    <View style={ft.bar}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={ft.content}
+      >
+        {FILTERS.map((f) => {
+          const isActive = f === active;
+          const dot =
+            f === "Live" ? "#00e676" : f === "Upcoming" ? "#f5c518" : undefined;
+          return (
+            <TouchableOpacity
+              key={f}
+              onPress={() => onChange(f)}
+              activeOpacity={0.75}
+              style={[ft.pill, isActive && ft.pillActive]}
+            >
+              {dot && <View style={[ft.dot, { backgroundColor: dot }]} />}
+              <Text style={[ft.label, isActive && ft.labelActive]}>{f}</Text>
+              {counts[f] > 0 && (
+                <View style={[ft.badge, isActive && ft.badgeActive]}>
+                  <Text style={[ft.badgeTxt, isActive && ft.badgeTxtActive]}>
+                    {counts[f]}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+const ft = StyleSheet.create({
+  // Fixed-height container — the ScrollView inside is not height-constrained
+  bar: {
+    height: 48,
+    justifyContent: "center",
+  },
+  content: {
+    paddingHorizontal: 16,
+    gap: 8,
+    alignItems: "center",
+  },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#111",
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+  },
+  pillActive: {
+    backgroundColor: "#0039a3",
+    borderColor: "#0039a3",
+  },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  label: { color: "#555", fontSize: 13, fontWeight: "700" },
+  labelActive: { color: "#fff" },
+  badge: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 8,
+    minWidth: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  badgeActive: { backgroundColor: "#ffffff22" },
+  badgeTxt: { color: "#444", fontSize: 10, fontWeight: "800" },
+  badgeTxtActive: { color: "#ffffffcc" },
+});
 
 // ─── Export Cards ─────────────────────────────────────────────────────────────
 // These are rendered inside the export sheet and captured as images.
@@ -537,7 +755,7 @@ function TeamSheetExportCard({
   cardRef,
 }: {
   game: Game;
-  cardRef: React.RefObject<View>;
+  cardRef: React.RefObject<View | null>;
 }) {
   const home = game.homePlayers || [];
   const away = game.awayPlayers || [];
@@ -1285,15 +1503,19 @@ function LiveDot() {
 function PlayerScoreRow({
   player,
   goals,
+  assists,
   teamColor,
   isCaptain,
   onGoal,
+  onAssist,
 }: {
   player: GamePlayer;
   goals: number;
+  assists: number;
   teamColor: string;
   isCaptain: boolean;
   onGoal: () => void;
+  onAssist: () => void;
 }) {
   const flashAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -1304,7 +1526,7 @@ function PlayerScoreRow({
     .slice(0, 2)
     .toUpperCase();
 
-  const handlePress = () => {
+  const handleGoal = () => {
     onGoal();
     scaleAnim.setValue(1.05);
     flashAnim.setValue(1);
@@ -1337,11 +1559,7 @@ function PlayerScoreRow({
           },
         ]}
       />
-      <TouchableOpacity
-        style={tracker.playerRow}
-        onPress={handlePress}
-        activeOpacity={0.65}
-      >
+      <View style={tracker.playerRow}>
         <View style={[tracker.avatar, { borderColor: teamColor + "55" }]}>
           <Text style={[tracker.avatarTxt, { color: teamColor }]}>
             {initials}
@@ -1358,21 +1576,64 @@ function PlayerScoreRow({
               </View>
             )}
           </View>
-          <Text style={tracker.playerPos}>{player.position}</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 2,
+            }}
+          >
+            <Text style={tracker.playerPos}>{player.position}</Text>
+            {goals > 0 && (
+              <View style={tracker.statChip}>
+                <Ionicons name="football" size={8} color={teamColor} />
+                <Text style={[tracker.statChipTxt, { color: teamColor }]}>
+                  {goals}
+                </Text>
+              </View>
+            )}
+            {assists > 0 && (
+              <View style={tracker.statChip}>
+                <Ionicons
+                  name="footsteps-outline"
+                  size={8}
+                  color={teamColor + "aa"}
+                />
+                <Text
+                  style={[tracker.statChipTxt, { color: teamColor + "aa" }]}
+                >
+                  {assists}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
         <View style={tracker.playerRight}>
-          {goals > 0 && (
-            <Text style={[tracker.goalCount, { color: teamColor }]}>
-              {goals}
-            </Text>
-          )}
-          <Ionicons
-            name="add-circle"
-            size={24}
-            color={goals > 0 ? teamColor : "#252525"}
-          />
+          <TouchableOpacity
+            onPress={onAssist}
+            activeOpacity={0.65}
+            style={[tracker.actionBtn, { borderColor: teamColor + "33" }]}
+          >
+            <Ionicons
+              name="footsteps-outline"
+              size={16}
+              color={assists > 0 ? teamColor + "aa" : "#2a2a2a"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleGoal}
+            activeOpacity={0.65}
+            style={[tracker.actionBtn, { borderColor: teamColor + "55" }]}
+          >
+            <Ionicons
+              name="add-circle"
+              size={24}
+              color={goals > 0 ? teamColor : "#252525"}
+            />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 }
@@ -1406,8 +1667,26 @@ const tracker = StyleSheet.create({
     paddingVertical: 1,
   },
   cBadgeTxt: { fontSize: 9, fontWeight: "900" },
-  playerRight: { flexDirection: "row", alignItems: "center", gap: 4 },
+  playerRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   goalCount: { fontSize: 16, fontWeight: "900" },
+  statChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  statChipTxt: { fontSize: 9, fontWeight: "800" },
+  actionBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 // ─── MVP Picker Sheet ─────────────────────────────────────────────────────────
@@ -1619,11 +1898,13 @@ function LiveTrackerModal({
     awayScore: number,
     mvpName: string,
     mvpStat: string,
+    goalEvents: GoalEvent[],
   ) => void;
 }) {
   const [homeScore, setHomeScore] = useState(0);
   const [awayScore, setAwayScore] = useState(0);
   const [goalMap, setGoalMap] = useState<Record<string, number>>({});
+  const [assistMap, setAssistMap] = useState<Record<string, number>>({});
   const [events, setEvents] = useState<GoalEvent[]>([]);
   const [mvpOpen, setMvpOpen] = useState(false);
 
@@ -1637,6 +1918,7 @@ function LiveTrackerModal({
       setHomeScore(game.homeScore);
       setAwayScore(game.awayScore);
       setGoalMap({});
+      setAssistMap({});
       setEvents([]);
       minuteRef.current = 1;
     }
@@ -1669,6 +1951,26 @@ function LiveTrackerModal({
         playerName: player.name,
         team,
         minute: minuteRef.current++,
+        type: "goal" as const,
+      },
+    ]);
+    setTimeout(
+      () => eventsScrollRef.current?.scrollToEnd({ animated: true }),
+      80,
+    );
+  }, []);
+
+  const addAssist = useCallback((player: GamePlayer, team: "home" | "away") => {
+    setAssistMap((m) => ({ ...m, [player.id]: (m[player.id] || 0) + 1 }));
+    setEvents((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString() + "a",
+        playerId: player.id,
+        playerName: player.name,
+        team,
+        minute: minuteRef.current - 1 || 1,
+        type: "assist" as const,
       },
     ]);
     setTimeout(
@@ -1680,24 +1982,31 @@ function LiveTrackerModal({
   const undoLast = () => {
     if (events.length === 0) return;
     const last = events[events.length - 1];
-    if (last.team === "home") setHomeScore((s) => Math.max(0, s - 1));
-    else setAwayScore((s) => Math.max(0, s - 1));
-    setGoalMap((m) => ({
-      ...m,
-      [last.playerId]: Math.max(0, (m[last.playerId] || 1) - 1),
-    }));
+    if (last.type === "goal") {
+      if (last.team === "home") setHomeScore((s) => Math.max(0, s - 1));
+      else setAwayScore((s) => Math.max(0, s - 1));
+      setGoalMap((m) => ({
+        ...m,
+        [last.playerId]: Math.max(0, (m[last.playerId] || 1) - 1),
+      }));
+      minuteRef.current = Math.max(1, minuteRef.current - 1);
+    } else {
+      setAssistMap((m) => ({
+        ...m,
+        [last.playerId]: Math.max(0, (m[last.playerId] || 1) - 1),
+      }));
+    }
     setEvents((e) => e.slice(0, -1));
-    minuteRef.current = Math.max(1, minuteRef.current - 1);
   };
 
   const handleSelectMvp = (player: GamePlayer) => {
     const g = goalMap[player.id] || 0;
-    onFinish(
-      homeScore,
-      awayScore,
-      player.name,
-      `${g} goal${g !== 1 ? "s" : ""}`,
-    );
+    const a = assistMap[player.id] || 0;
+    const stat =
+      [g > 0 ? `${g} goal${g !== 1 ? "s" : ""}` : "", a > 0 ? `${a} ast` : ""]
+        .filter(Boolean)
+        .join(" · ") || "—";
+    onFinish(homeScore, awayScore, player.name, stat, events);
     setMvpOpen(false);
   };
 
@@ -1847,9 +2156,11 @@ function LiveTrackerModal({
                       key={p.id}
                       player={p}
                       goals={goalMap[p.id] || 0}
+                      assists={assistMap[p.id] || 0}
                       teamColor={game.homeColor}
                       isCaptain={p.name === game.homeCaptain}
                       onGoal={() => addGoal(p, "home")}
+                      onAssist={() => addAssist(p, "home")}
                     />
                   ))}
                 </View>
@@ -1873,9 +2184,11 @@ function LiveTrackerModal({
                       key={p.id}
                       player={p}
                       goals={goalMap[p.id] || 0}
+                      assists={assistMap[p.id] || 0}
                       teamColor={game.awayColor}
                       isCaptain={p.name === game.awayCaptain}
                       onGoal={() => addGoal(p, "away")}
+                      onAssist={() => addAssist(p, "away")}
                     />
                   ))}
                 </View>
@@ -2001,6 +2314,10 @@ const lt = StyleSheet.create({
 
 // ─── Game Card ────────────────────────────────────────────────────────────────
 
+const STATUS_BG:  Record<Game["status"], string> = { FT: "#1c1c1c", Live: "#0a1f0a", Pending: "#1a1400" };
+const STATUS_FG:  Record<Game["status"], string> = { FT: "#555",    Live: "#00e676", Pending: "#f5c518" };
+const STATUS_LBL: Record<Game["status"], string> = { FT: "FT",      Live: "LIVE",    Pending: "UPCOMING" };
+
 function GameCard({
   game,
   selectable,
@@ -2029,147 +2346,123 @@ function GameCard({
         isLive && !selectable && styles.cardLive,
       ]}
     >
-      {/* Header */}
+      {/* ── Card header ─────────────────────────────────────────────────── */}
       <View style={styles.cardHeader}>
         {selectable && (
           <View style={styles.checkbox}>
             {selected ? (
               <Ionicons name="checkmark-circle" size={20} color="#0039a3" />
             ) : (
-              <Ionicons name="ellipse-outline" size={20} color="#555" />
+              <Ionicons name="ellipse-outline" size={20} color="#333" />
             )}
           </View>
         )}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 5,
-            flex: 1,
-          }}
-        >
-          <Ionicons name="football-outline" size={13} color="#555" />
+
+        {/* League + location */}
+        <View style={styles.cardHeaderMeta}>
+          <Ionicons name="football-outline" size={12} color="#3d3d3d" />
           <Text style={styles.leagueText}>{game.league}</Text>
           {game.location && (
             <>
               <Text style={styles.dotSep}>·</Text>
-              <Ionicons name="location-outline" size={11} color="#444" />
               <Text style={styles.locationText} numberOfLines={1}>
                 {game.location}
               </Text>
             </>
           )}
         </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: statusBg(game.status) },
-          ]}
-        >
+
+        {/* Status pill */}
+        <View style={[styles.statusBadge, { backgroundColor: STATUS_BG[game.status] }]}>
           {isLive && <LiveDot />}
-          <Text style={[styles.statusText, { color: statusFg(game.status) }]}>
-            {game.status}
+          <Text style={[styles.statusText, { color: STATUS_FG[game.status] }]}>
+            {STATUS_LBL[game.status]}
           </Text>
         </View>
-        {/* Share icon — always visible, never in select mode */}
+
         {!selectable && (
           <TouchableOpacity
             onPress={onExport}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={styles.shareIconBtn}
           >
-            <Ionicons name="share-outline" size={15} color="#444" />
+            <Ionicons name="share-outline" size={15} color="#3d3d3d" />
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.divider} />
 
-      {/* Match row */}
-      <View style={styles.matchRow}>
-        <View
-          style={[
-            styles.teamBadge,
-            { backgroundColor: "#1a0000", borderColor: game.homeColor },
-          ]}
-        >
-          <Ionicons name="shield" size={18} color={game.homeColor} />
-        </View>
+      {/* ── Score row ───────────────────────────────────────────────────── */}
+      <View style={styles.scoreRow}>
+
+        {/* Home — badge left, text right */}
         <View style={styles.teamBlock}>
-          <Text style={styles.teamName}>{game.homeTeam}</Text>
-          {game.homeCaptain && (
-            <View style={styles.captainRow}>
-              <View
-                style={[styles.cBadge, { borderColor: game.homeColor + "55" }]}
-              >
-                <Text style={[styles.cBadgeTxt, { color: game.homeColor }]}>
-                  C
-                </Text>
-              </View>
-              <Text style={styles.captainName} numberOfLines={1}>
-                {game.homeCaptain}
-              </Text>
+          <View style={styles.teamNameRow}>
+            <View style={[styles.teamCircle, { borderColor: game.homeColor, backgroundColor: game.homeColor + "1a" }]}>
+              <Ionicons name="shield" size={16} color={game.homeColor} />
             </View>
+            <Text style={styles.teamName} numberOfLines={2}>{game.homeTeam}</Text>
+          </View>
+        </View>
+
+        {/* Score / VS */}
+        <View style={styles.scoreCenter}>
+          {game.status === "Pending" ? (
+            <Text style={styles.vsText}>VS</Text>
+          ) : (
+            <>
+              <Text style={styles.scoreNum}>{game.homeScore}</Text>
+              <Text style={styles.scoreSep}>–</Text>
+              <Text style={styles.scoreNum}>{game.awayScore}</Text>
+            </>
           )}
         </View>
-        <Text style={styles.score}>
-          {game.status === "Pending"
-            ? "vs"
-            : `${game.homeScore} – ${game.awayScore}`}
-        </Text>
+
+        {/* Away — text left, badge right (mirror of home) */}
         <View style={[styles.teamBlock, { alignItems: "flex-end" }]}>
-          <Text style={[styles.teamName, { textAlign: "right" }]}>
-            {game.awayTeam}
-          </Text>
-          {game.awayCaptain && (
-            <View style={[styles.captainRow, { flexDirection: "row-reverse" }]}>
-              <View
-                style={[styles.cBadge, { borderColor: game.awayColor + "55" }]}
-              >
-                <Text style={[styles.cBadgeTxt, { color: game.awayColor }]}>
-                  C
-                </Text>
-              </View>
-              <Text
-                style={[styles.captainName, { textAlign: "right" }]}
-                numberOfLines={1}
-              >
-                {game.awayCaptain}
-              </Text>
+          <View style={[styles.teamNameRow, { flexDirection: "row-reverse" }]}>
+            <View style={[styles.teamCircle, { borderColor: game.awayColor, backgroundColor: game.awayColor + "1a" }]}>
+              <Ionicons name="shield" size={16} color={game.awayColor} />
             </View>
-          )}
+            <Text style={[styles.teamName, { textAlign: "right" }]} numberOfLines={2}>{game.awayTeam}</Text>
+          </View>
         </View>
-        <View
-          style={[
-            styles.teamBadge,
-            { backgroundColor: "#00001a", borderColor: game.awayColor },
-          ]}
-        >
-          <Ionicons name="shield" size={18} color={game.awayColor} />
-        </View>
+
       </View>
 
-      {/* MVP row */}
+      {/* ── MVP row (FT) ────────────────────────────────────────────────── */}
       {game.status === "FT" && (
         <>
           <View style={styles.divider} />
           <View style={styles.mvpRow}>
-            <Ionicons name="star" size={13} color="#f5c518" />
-            <Text style={styles.mvpLabel}>Match MVP</Text>
+            <Ionicons name="star" size={12} color="#f5c518" />
+            <Text style={styles.mvpLabel}>MVP</Text>
             <Text style={styles.mvpName}>{game.mvp.name}</Text>
             <Text style={styles.mvpStat}>{game.mvp.stat}</Text>
           </View>
         </>
       )}
 
-      {/* Live CTA */}
+      {/* ── Date row (Pending) ──────────────────────────────────────────── */}
+      {game.status === "Pending" && game.date && (
+        <>
+          <View style={styles.divider} />
+          <View style={styles.dateRow}>
+            <Ionicons name="calendar-outline" size={11} color="#3d3d3d" />
+            <Text style={styles.dateTxt}>{game.date}</Text>
+          </View>
+        </>
+      )}
+
+      {/* ── Live CTA ────────────────────────────────────────────────────── */}
       {isLive && !selectable && (
         <>
           <View style={styles.divider} />
           <View style={styles.liveCta}>
-            <Ionicons name="radio-outline" size={13} color="#55cc00" />
+            <Ionicons name="radio-outline" size={12} color="#00e676" />
             <Text style={styles.liveCtaText}>Tap to track score</Text>
-            <Ionicons name="chevron-forward" size={13} color="#55cc00" />
+            <Ionicons name="chevron-forward" size={12} color="#00e676" />
           </View>
         </>
       )}
@@ -2186,7 +2479,24 @@ export default function GamesScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [trackerGame, setTrackerGame] = useState<Game | null>(null);
-  const [exportGame, setExportGame] = useState<Game | null>(null); // NEW
+  const [exportGame, setExportGame] = useState<Game | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("All");
+  const listRef = useRef<ScrollView>(null);
+
+  const filterCounts: Record<FilterKey, number> = {
+    All: games.length,
+    Live: games.filter((g) => g.status === "Live").length,
+    Upcoming: games.filter((g) => g.status === "Pending").length,
+    FT: games.filter((g) => g.status === "FT").length,
+  };
+
+  const visibleGames = games.filter((g) => {
+    if (activeFilter === "All") return true;
+    if (activeFilter === "Live") return g.status === "Live";
+    if (activeFilter === "Upcoming") return g.status === "Pending";
+    if (activeFilter === "FT") return g.status === "FT";
+    return true;
+  });
 
   const dropdownOpacity = useRef(new Animated.Value(0)).current;
   const dropdownY = useRef(new Animated.Value(-8)).current;
@@ -2249,11 +2559,18 @@ export default function GamesScreen() {
     setSelectedIds(new Set());
   };
 
+  const handleFilterChange = (f: FilterKey) => {
+    setActiveFilter(f);
+    // Scroll to top without remounting — fixes the layout-jump bug caused by key={activeFilter}
+    listRef.current?.scrollTo({ y: 0, animated: false });
+  };
+
   const handleTrackerFinish = (
     homeScore: number,
     awayScore: number,
     mvpName: string,
     mvpStat: string,
+    goalEvents: GoalEvent[],
   ) => {
     if (!trackerGame) return;
     setGames((prev) =>
@@ -2265,6 +2582,7 @@ export default function GamesScreen() {
               homeScore,
               awayScore,
               mvp: { name: mvpName, stat: mvpStat },
+              goalEvents,
             }
           : g,
       ),
@@ -2273,101 +2591,113 @@ export default function GamesScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={["#000000", "#000000", "#00000060", "rgb(0,0,0)"]}
-      style={{ flex: 1 }}
-    >
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* Top bar */}
-        <View style={styles.topBar}>
-          {selectMode ? (
-            <TouchableOpacity onPress={cancelSelect} style={styles.topBarBtn}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={openMenu} style={styles.topBarBtn}>
-              <Ionicons name="ellipsis-horizontal" size={22} color="#fff" />
-            </TouchableOpacity>
-          )}
-          <Text style={styles.pageTitle}>Games</Text>
-          {selectMode ? (
-            <TouchableOpacity
-              onPress={() => selectedIds.size > 0 && setConfirmVisible(true)}
-              style={styles.topBarBtn}
-              disabled={selectedIds.size === 0}
-            >
-              <View
-                style={[
-                  styles.trashBtn,
-                  selectedIds.size === 0 && { opacity: 0.3 },
-                ]}
-              >
-                <Ionicons name="trash-outline" size={20} color="#cc0000" />
-                {selectedIds.size > 0 && (
-                  <View style={styles.trashBadge}>
-                    <Text style={styles.trashBadgeText}>
-                      {selectedIds.size}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.topBarBtn} onPress={() => {}}>
-              <Ionicons name="add" size={26} color="#fff" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Dropdown */}
-        {menuVisible && (
-          <View style={styles.dropdownContainer}>
-            <TouchableWithoutFeedback onPress={closeMenu}>
-              <View style={styles.dropdownOverlay} />
-            </TouchableWithoutFeedback>
-            <Animated.View
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Top bar */}
+      <View style={styles.topBar}>
+        {selectMode ? (
+          <TouchableOpacity onPress={cancelSelect} style={styles.topBarBtn}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={openMenu} style={styles.topBarBtn}>
+            <Ionicons name="ellipsis-horizontal" size={22} color="#555" />
+          </TouchableOpacity>
+        )}
+        <Text style={styles.pageTitle}>Games</Text>
+        {selectMode ? (
+          <TouchableOpacity
+            onPress={() => selectedIds.size > 0 && setConfirmVisible(true)}
+            style={styles.topBarBtn}
+            disabled={selectedIds.size === 0}
+          >
+            <View
               style={[
-                styles.dropdown,
-                {
-                  opacity: dropdownOpacity,
-                  transform: [{ translateY: dropdownY }],
-                },
+                styles.trashBtn,
+                selectedIds.size === 0 && { opacity: 0.3 },
               ]}
             >
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setSelectMode(true);
-                  closeMenu();
-                }}
-              >
-                <Ionicons name="checkbox-outline" size={16} color="#fff" />
-                <Text style={styles.dropdownText}>Select Games</Text>
-              </TouchableOpacity>
-              <View style={styles.dropdownDivider} />
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={markAllFinished}
-              >
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={16}
-                  color="#55cc00"
-                />
-                <Text style={[styles.dropdownText, { color: "#55cc00" }]}>
-                  Mark All Finished
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
+              <Ionicons name="trash-outline" size={20} color="#cc0000" />
+              {selectedIds.size > 0 && (
+                <View style={styles.trashBadge}>
+                  <Text style={styles.trashBadgeText}>
+                    {selectedIds.size}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.topBarBtn} onPress={() => {}}>
+            <Ionicons name="add" size={26} color="#fff" />
+          </TouchableOpacity>
         )}
+      </View>
 
-        {/* List */}
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {games.map((game) => (
+      {/* Dropdown */}
+      {menuVisible && (
+        <View style={styles.dropdownContainer}>
+          <TouchableWithoutFeedback onPress={closeMenu}>
+            <View style={styles.dropdownOverlay} />
+          </TouchableWithoutFeedback>
+          <Animated.View
+            style={[
+              styles.dropdown,
+              {
+                opacity: dropdownOpacity,
+                transform: [{ translateY: dropdownY }],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => {
+                setSelectMode(true);
+                closeMenu();
+              }}
+            >
+              <Ionicons name="checkbox-outline" size={16} color="#fff" />
+              <Text style={styles.dropdownText}>Select Games</Text>
+            </TouchableOpacity>
+            <View style={styles.dropdownDivider} />
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={markAllFinished}
+            >
+              <Ionicons
+                name="checkmark-done-outline"
+                size={16}
+                color="#00e676"
+              />
+              <Text style={[styles.dropdownText, { color: "#00e676" }]}>
+                Mark All Finished
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      )}
+
+      {/* Filter tabs — no key on the list below, scroll-to-top handles reset */}
+      {!selectMode && (
+        <FilterTabs
+          active={activeFilter}
+          onChange={handleFilterChange}
+          counts={filterCounts}
+        />
+      )}
+
+      {/* List — no key prop, avoids remount flash on filter change */}
+      <ScrollView
+        ref={listRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {visibleGames.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="football-outline" size={36} color="#2a2a2a" />
+            <Text style={styles.emptyText}>No games here</Text>
+          </View>
+        ) : (
+          visibleGames.map((game) => (
             <GameCard
               key={game.id}
               game={game}
@@ -2377,16 +2707,16 @@ export default function GamesScreen() {
               onTap={() => setTrackerGame(game)}
               onExport={() => setExportGame(game)}
             />
-          ))}
-        </ScrollView>
+          ))
+        )}
+      </ScrollView>
 
-        <ConfirmDialog
-          visible={confirmVisible}
-          count={selectedIds.size}
-          onConfirm={confirmDelete}
-          onCancel={() => setConfirmVisible(false)}
-        />
-      </SafeAreaView>
+      <ConfirmDialog
+        visible={confirmVisible}
+        count={selectedIds.size}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmVisible(false)}
+      />
 
       {/* Live tracker */}
       <LiveTrackerModal
@@ -2396,21 +2726,22 @@ export default function GamesScreen() {
         onFinish={handleTrackerFinish}
       />
 
-      {/* Export sheet — NEW */}
+      {/* Export sheet */}
       <GameExportSheet
         game={exportGame}
         visible={!!exportGame}
         onClose={() => setExportGame(null)}
       />
-    </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "#0a0a0a" },
 
+  // ── Top bar
   topBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -2421,7 +2752,7 @@ const styles = StyleSheet.create({
   },
   topBarBtn: { minWidth: 40, alignItems: "center" },
   pageTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
-  cancelText: { color: "#aaa", fontSize: 14, fontWeight: "600" },
+  cancelText: { color: "#666", fontSize: 14, fontWeight: "600" },
 
   trashBtn: { alignItems: "center", justifyContent: "center" },
   trashBadge: {
@@ -2438,116 +2769,97 @@ const styles = StyleSheet.create({
   },
   trashBadgeText: { color: "#fff", fontSize: 10, fontWeight: "800" },
 
+  // ── Dropdown
   dropdownContainer: { ...StyleSheet.absoluteFillObject, zIndex: 200 },
   dropdownOverlay: { ...StyleSheet.absoluteFillObject },
   dropdown: {
     position: "absolute",
     top: 56,
     left: 16,
-    backgroundColor: "#1e1e1e",
-    borderRadius: 12,
+    backgroundColor: "#161616",
+    borderRadius: 14,
     width: 210,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#242424",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 14,
   },
   dropdownItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  dropdownDivider: { height: 1, backgroundColor: "#2a2a2a" },
-  dropdownText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  dropdownDivider: { height: 1, backgroundColor: "#1e1e1e" },
+  dropdownText: { color: "#ddd", fontSize: 14, fontWeight: "600" },
 
-  scrollContent: { paddingHorizontal: 16, gap: 12, paddingBottom: 40 },
+  // ── List
+  scrollContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 40 },
 
-  card: { backgroundColor: "#181818", borderRadius: 16, overflow: "hidden" },
-  cardSelected: { borderWidth: 1.5, borderColor: "#0039a3" },
-  cardLive: { borderWidth: 1, borderColor: "#55cc0022" },
-  checkbox: { marginRight: 8 },
+  // ── Empty state
+  emptyState: { alignItems: "center", paddingTop: 60, gap: 12 },
+  emptyText:  { color: "#333", fontSize: 14, fontWeight: "600" },
+
+  // ── Game card
+  card:         { backgroundColor: "#111", borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "#1a1a1a" },
+  cardSelected: { borderColor: "#0039a3", borderWidth: 1.5 },
+  cardLive:     { borderColor: "#00e67622", borderWidth: 1 },
+  checkbox:     { marginRight: 6 },
 
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    gap: 5,
-  },
-  leagueText: { color: "#555", fontSize: 12, fontWeight: "600" },
-  dotSep: { color: "#333", fontSize: 12 },
-  locationText: { color: "#444", fontSize: 11, fontWeight: "500", flex: 1 },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  statusText: { fontSize: 11, fontWeight: "700" },
-  shareIconBtn: { paddingLeft: 8, paddingRight: 2, paddingVertical: 4 }, // NEW
-
-  divider: { height: 1, backgroundColor: "#222" },
-
-  matchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  teamBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  teamBlock: { flex: 1, gap: 3 },
-  teamName: { color: "#fff", fontSize: 12, fontWeight: "700" },
-  captainRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  cBadge: {
-    borderRadius: 4,
-    borderWidth: 1,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-  },
-  cBadgeTxt: { fontSize: 9, fontWeight: "900" },
-  captainName: { color: "#555", fontSize: 10, fontWeight: "500", flex: 1 },
-  score: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    minWidth: 72,
-    textAlign: "center",
-  },
-
-  mvpRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
     paddingVertical: 11,
-    gap: 8,
-  },
-  mvpLabel: { color: "#555", fontSize: 12, fontWeight: "600" },
-  mvpName: { color: "#fff", fontSize: 12, fontWeight: "700", flex: 1 },
-  mvpStat: { color: "#555", fontSize: 12 },
-
-  liveCta: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
     gap: 6,
   },
-  liveCtaText: { color: "#55cc00", fontSize: 12, fontWeight: "600" },
+  cardHeaderMeta: { flexDirection: "row", alignItems: "center", gap: 5, flex: 1 },
+  leagueText:     { color: "#3d3d3d", fontSize: 11, fontWeight: "600" },
+  dotSep:         { color: "#2a2a2a", fontSize: 11 },
+  locationText:   { color: "#3d3d3d", fontSize: 11, fontWeight: "500", flex: 1 },
+  statusBadge:    { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
+  statusText:     { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
+  shareIconBtn:   { paddingLeft: 8, paddingRight: 2 },
 
+  divider: { height: 1, backgroundColor: "#161616" },
+
+  // Score row
+  scoreRow:    { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 16, gap: 8 },
+  // teamBlock stacks nameRow + captainRow vertically; alignItems is overridden per-side via inline style
+  teamBlock:   { flex: 1, gap: 6 },
+  // badge + name on the same horizontal line
+  teamNameRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  teamCircle:  { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  teamName:    { color: "#ccc", fontSize: 12, fontWeight: "700", flexShrink: 1 },
+  scoreCenter: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8 },
+  scoreNum:    { color: "#fff", fontSize: 28, fontWeight: "900" },
+  scoreSep:    { color: "#252525", fontSize: 22, fontWeight: "300" },
+  vsText:      { color: "#333", fontSize: 16, fontWeight: "800", letterSpacing: 1.5, paddingHorizontal: 12 },
+
+  // MVP row
+  mvpRow:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 11, gap: 7 },
+  mvpLabel: { color: "#3d3d3d", fontSize: 11, fontWeight: "600" },
+  mvpName:  { color: "#fff", fontSize: 12, fontWeight: "700", flex: 1 },
+  mvpStat:  { color: "#3d3d3d", fontSize: 11 },
+
+  // Date row
+  dateRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
+  dateTxt: { color: "#3d3d3d", fontSize: 11, fontWeight: "600" },
+
+  // Live CTA
+  liveCta:     { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 11, gap: 6 },
+  liveCtaText: { color: "#00e676", fontSize: 12, fontWeight: "600" },
+
+  // ── Pulsing live dot (used by LiveDot component)
+  livePulseDot: { position: "absolute", width: 10, height: 10, borderRadius: 5, backgroundColor: "#00e676", opacity: 0.35 },
+  liveSolidDot: { position: "absolute", width: 6,  height: 6,  borderRadius: 3, backgroundColor: "#00e676" },
+
+  // ── Confirm dialog
   dialogOverlay: {
     flex: 1,
     alignItems: "center",
@@ -2555,11 +2867,13 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   dialog: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 20,
+    backgroundColor: "#161616",
+    borderRadius: 22,
     width: "100%",
     overflow: "hidden",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#242424",
   },
   dialogIconWrap: {
     marginTop: 24,
@@ -2586,18 +2900,4 @@ const styles = StyleSheet.create({
   dialogConfirm: { flex: 1, paddingVertical: 16, alignItems: "center" },
   dialogConfirmText: { color: "#cc0000", fontSize: 15, fontWeight: "700" },
 
-  livePulseDot: {
-    position: "absolute",
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#55cc00",
-    opacity: 0.3,
-  },
-  liveSolidDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#55cc00",
-  },
 });
