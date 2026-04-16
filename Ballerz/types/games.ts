@@ -14,6 +14,7 @@ export type GoalEvent = {
 
 export type Game = {
   id: string;
+  date?: string;
   league: string;
   status: "FT" | "Live" | "Pending";
   homeTeam: string;

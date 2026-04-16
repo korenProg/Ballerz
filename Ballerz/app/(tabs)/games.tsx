@@ -537,7 +537,7 @@ function TeamSheetExportCard({
   cardRef,
 }: {
   game: Game;
-  cardRef: React.RefObject<View>;
+  cardRef: React.RefObject<View | null>;
 }) {
   const home = game.homePlayers || [];
   const away = game.awayPlayers || [];
