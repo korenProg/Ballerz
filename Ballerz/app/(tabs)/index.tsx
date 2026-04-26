@@ -11,38 +11,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useEffect } from "react";
-
-// ─── Data ───────────────────────────────────────────────────────────────────
-
-const stats = [
-  { label: "Most MVPs", value: "Player1" },
-  { label: "Games", value: "16" },
-  { label: "Players", value: "21" },
-  { label: "Goals", value: "84" },
-  { label: "Assists", value: "37" },
-];
-
-const lastGame = {
-  league: "Ballerz League",
-  status: "FT",
-  homeTeam: "Barcelona FC",
-  awayTeam: "Real Madrid",
-  homeScore: 3,
-  awayScore: 2,
-  mvp: { name: "Neymar Jr", stat: "2 goals · 1 ast" },
-};
+import { useLastGame, useMvpPlayer, useAppStats } from "../../store/selectors";
+import type { Game } from "../../types/games";
 
 // ─── Carousel config ─────────────────────────────────────────────────────────
 
 const CARD_WIDTH = 160;
 const CARD_GAP = 12;
 const ITEM_WIDTH = CARD_WIDTH + CARD_GAP;
-const LOOP_WIDTH = ITEM_WIDTH * stats.length;
-const loopedStats = [...stats, ...stats];
+const STATS_COUNT = 3;
+const LOOP_WIDTH = ITEM_WIDTH * STATS_COUNT;
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function StatsCarousel({ translateX }: { translateX: Animated.Value }) {
+function StatsCarousel({
+  translateX,
+  stats,
+}: {
+  translateX: Animated.Value;
+  stats: { label: string; value: string }[];
+}) {
+  const loopedStats = [...stats, ...stats];
   return (
     <View style={styles.carousel}>
       <Animated.View style={[styles.row, { transform: [{ translateX }] }]}>
@@ -69,7 +58,7 @@ function StatsCarousel({ translateX }: { translateX: Animated.Value }) {
   );
 }
 
-function LastGameCard() {
+function LastGameCard({ g }: { g: Game }) {
   return (
     <LinearGradient
       colors={["#2d2d3560", "#101013", "#47485328"]}
@@ -80,10 +69,10 @@ function LastGameCard() {
       <View style={styles.lastGameHeader}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Ionicons name="football-outline" size={14} color="#aaa" />
-          <Text style={styles.lastGameLeague}>{lastGame.league}</Text>
+          <Text style={styles.lastGameLeague}>{g.league}</Text>
         </View>
         <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{lastGame.status}</Text>
+          <Text style={styles.statusText}>{g.status}</Text>
         </View>
       </View>
 
@@ -93,23 +82,23 @@ function LastGameCard() {
         <View
           style={[
             styles.teamBadge,
-            { backgroundColor: "#1a0000", borderColor: "#cc0000" },
+            { backgroundColor: "#1a0000", borderColor: g.homeColor ?? "#cc0000" },
           ]}
         >
-          <Ionicons name="shield" size={20} color="#cc0000" />
+          <Ionicons name="shield" size={20} color={g.homeColor ?? "#cc0000"} />
         </View>
-        <Text style={styles.teamName}>{lastGame.homeTeam}</Text>
+        <Text style={styles.teamName}>{g.homeTeam}</Text>
         <Text style={styles.score}>
-          {lastGame.homeScore} – {lastGame.awayScore}
+          {g.homeScore} – {g.awayScore}
         </Text>
-        <Text style={styles.teamName}>{lastGame.awayTeam}</Text>
+        <Text style={styles.teamName}>{g.awayTeam}</Text>
         <View
           style={[
             styles.teamBadge,
-            { backgroundColor: "#00001a", borderColor: "#0055cc" },
+            { backgroundColor: "#00001a", borderColor: g.awayColor ?? "#0055cc" },
           ]}
         >
-          <Ionicons name="shield" size={20} color="#0055cc" />
+          <Ionicons name="shield" size={20} color={g.awayColor ?? "#0055cc"} />
         </View>
       </View>
 
@@ -118,14 +107,14 @@ function LastGameCard() {
       <View style={styles.mvpRow}>
         <Ionicons name="star" size={14} color="#f5c518" />
         <Text style={styles.mvpLabel}>Match MVP</Text>
-        <Text style={styles.mvpName}>{lastGame.mvp.name}</Text>
-        <Text style={styles.mvpStat}>{lastGame.mvp.stat}</Text>
+        <Text style={styles.mvpName}>{g.mvp.name}</Text>
+        <Text style={styles.mvpStat}>{g.mvp.stat}</Text>
       </View>
     </LinearGradient>
   );
 }
 
-function MVPSection() {
+function MVPSection({ mvpName }: { mvpName: string }) {
   return (
     <View style={styles.mvpCard}>
       {/* Glow behind player */}
@@ -150,7 +139,7 @@ function MVPSection() {
         <Text style={styles.mvpTopTitle}>Last Match</Text>
         <Text style={styles.mvpTopBadge}>MVP</Text>
       </View>
-      <Text style={styles.mvpBottomName}>{lastGame.mvp.name}</Text>
+      <Text style={styles.mvpBottomName}>{mvpName}</Text>
     </View>
   );
 }
@@ -159,13 +148,22 @@ function MVPSection() {
 
 export default function HomeScreen() {
   const translateX = useRef(new Animated.Value(0)).current;
+  const lastGame = useLastGame();
+  const mvpPlayer = useMvpPlayer();
+  const { gamesCount, playersCount, totalGoals } = useAppStats();
+
+  const stats = [
+    { label: "Games", value: String(gamesCount) },
+    { label: "Players", value: String(playersCount) },
+    { label: "Goals", value: String(totalGoals) },
+  ];
 
   useEffect(() => {
     const animate = () => {
       translateX.setValue(0);
       Animated.timing(translateX, {
         toValue: -LOOP_WIDTH,
-        duration: stats.length * 2000,
+        duration: STATS_COUNT * 2000,
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(animate);
@@ -185,12 +183,18 @@ export default function HomeScreen() {
           resizeMode="contain"
         />
 
-        <StatsCarousel translateX={translateX} />
+        <StatsCarousel translateX={translateX} stats={stats} />
 
-        <Text style={styles.sectionTitle}>Last Game</Text>
-        <LastGameCard />
+        {lastGame && (
+          <>
+            <Text style={styles.sectionTitle}>Last Game</Text>
+            <LastGameCard g={lastGame} />
+          </>
+        )}
 
-        <MVPSection />
+        {lastGame && mvpPlayer && (
+          <MVPSection mvpName={mvpPlayer.name} />
+        )}
 
         <TouchableOpacity style={styles.button} onPress={() => {}}>
           <Text style={styles.buttonText}>Create Game</Text>
