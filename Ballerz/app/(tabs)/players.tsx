@@ -16,19 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useRef, useEffect } from "react";
 import {Player} from '../../types'
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const initialPlayers: Player[] = [
-  { id: "1", name: "Neymar Jr",   ovr: 92, position: "FW", goals: 18, assists: 11, mvps: 7, isMvp: true, foot: "R", form: "hot",     pac: 91, sho: 87, pas: 84, dri: 95, def: 37, phy: 68 },
-  { id: "2", name: "Mbappe",      ovr: 88, position: "FW", goals: 22, assists: 6,  mvps: 5,              foot: "R", form: "hot",     pac: 96, sho: 90, pas: 78, dri: 92, def: 36, phy: 76 },
-  { id: "3", name: "Saka",        ovr: 84, position: "MF", goals: 10, assists: 14, mvps: 3,              foot: "L", form: "hot",     pac: 82, sho: 78, pas: 82, dri: 86, def: 61, phy: 66 },
-  { id: "4", name: "Pedri",       ovr: 87, position: "MF", goals: 7,  assists: 13, mvps: 4,              foot: "R", form: "neutral", pac: 77, sho: 75, pas: 88, dri: 90, def: 65, phy: 64 },
-  { id: "5", name: "Rüdiger",     ovr: 75, position: "DF", goals: 3,  assists: 2,  mvps: 1,              foot: "R", form: "cold",    pac: 78, sho: 42, pas: 60, dri: 58, def: 86, phy: 87 },
-  { id: "6", name: "Alisson",     ovr: 63, position: "GK", goals: 0,  assists: 1,  mvps: 2,              foot: "R", form: "neutral", pac: 50, sho: 20, pas: 65, dri: 42, def: 88, phy: 78 },
-  { id: "7", name: "Vinicius Jr", ovr: 90, position: "FW", goals: 20, assists: 9,  mvps: 6,              foot: "L", form: "hot",     pac: 93, sho: 84, pas: 77, dri: 94, def: 30, phy: 68 },
-  { id: "8", name: "Rodri",       ovr: 82, position: "MF", goals: 5,  assists: 8,  mvps: 2,              foot: "R", form: "neutral", pac: 72, sho: 65, pas: 85, dri: 80, def: 82, phy: 85 },
-];
+import { useStore } from "../../store";
 
 type SortMode = "ovr_desc" | "ovr_asc" | "goals" | "mvps";
 
@@ -497,7 +485,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function PlayersScreen() {
-  const [players, setPlayers]               = useState<Player[]>(initialPlayers);
+  const { players, deletePlayer }           = useStore();
   const [menuVisible, setMenuVisible]       = useState(false);
   const [selectMode, setSelectMode]         = useState(false);
   const [selectedIds, setSelectedIds]       = useState<Set<string>>(new Set());
@@ -611,7 +599,7 @@ export default function PlayersScreen() {
     });
   };
   const confirmDelete = () => {
-    setPlayers(prev => prev.filter(p => !selectedIds.has(p.id)));
+    selectedIds.forEach((id) => deletePlayer(id));
     setSelectedIds(new Set()); setSelectMode(false); setConfirmVisible(false);
   };
   const cancelSelect = () => { setSelectMode(false); setSelectedIds(new Set()); };

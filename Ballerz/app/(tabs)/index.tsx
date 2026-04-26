@@ -10,48 +10,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-
-// ─── Static Data ──────────────────────────────────────────────────────────────
-
-const SEASON = "2025–26";
-
-const appStats = [
-  { label: "Games",   value: "16", accent: "#4a9eff" },
-  { label: "Players", value: "21", accent: "#a78bfa" },
-  { label: "Goals",   value: "84", accent: "#f5c518" },
-];
-
-const lastGame = {
-  league:    "Ballerz League",
-  status:    "FT" as GameStatus,
-  homeTeam:  "Barcelona FC",
-  awayTeam:  "Real Madrid",
-  homeScore: 3,
-  awayScore: 2,
-  homeColor: "#cc0000",
-  awayColor: "#0055cc",
-  date:      "Tue, Apr 8 · 21:00",
-  location:  "Camp Nou",
-  mvp:       { name: "Neymar Jr", stat: "2 goals · 1 ast" },
-};
-
-const upcomingGame = {
-  homeTeam:  "PSG",
-  awayTeam:  "Bayern",
-  homeColor: "#0055cc",
-  awayColor: "#cc0000",
-  date:      "Thu, Apr 17",
-  time:      "21:00",
-  location:  "Parc des Princes",
-};
-
-const lastMVP = {
-  name:     "Neymar Jr",
-  position: "FW",
-  stat:     "2 goals · 1 ast",
-};
+import { useStore } from "../../store";
+import { useLastGame, useMvpPlayer, useAppStats } from "../../store/selectors";
+import type { Game } from "../../types/games";
+import type { Player } from "../../types/players";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+const SEASON = "2025–26";
 
 type GameStatus = "FT" | "Live" | "Pending";
 
@@ -81,8 +47,7 @@ const pill = StyleSheet.create({
 
 // ─── Match Card ───────────────────────────────────────────────────────────────
 
-function MatchCard() {
-  const g = lastGame;
+function MatchCard({ g }: { g: Game }) {
   return (
     <View style={s.matchCard}>
       {/* Card header */}
@@ -123,14 +88,18 @@ function MatchCard() {
 
       {/* Meta row */}
       <View style={s.matchMeta}>
-        <View style={s.metaItem}>
-          <Ionicons name="location-outline" size={11} color="#3d3d3d" />
-          <Text style={s.metaText}>{g.location}</Text>
-        </View>
-        <View style={s.metaItem}>
-          <Ionicons name="time-outline" size={11} color="#3d3d3d" />
-          <Text style={s.metaText}>{g.date}</Text>
-        </View>
+        {g.location && (
+          <View style={s.metaItem}>
+            <Ionicons name="location-outline" size={11} color="#3d3d3d" />
+            <Text style={s.metaText}>{g.location}</Text>
+          </View>
+        )}
+        {g.date && (
+          <View style={s.metaItem}>
+            <Ionicons name="time-outline" size={11} color="#3d3d3d" />
+            <Text style={s.metaText}>{g.date}</Text>
+          </View>
+        )}
       </View>
 
       {/* MVP row */}
@@ -146,7 +115,7 @@ function MatchCard() {
 
 // ─── MVP Hero Card ────────────────────────────────────────────────────────────
 
-function MVPHeroCard() {
+function MVPHeroCard({ player, mvpStat }: { player: Player; mvpStat: string }) {
   return (
     <View style={s.mvpCard}>
       {/* Glow layers */}
@@ -171,12 +140,12 @@ function MVPHeroCard() {
 
       {/* Bottom info */}
       <View style={s.mvpBottom}>
-        <Text style={s.mvpName}>{lastMVP.name}</Text>
+        <Text style={s.mvpName}>{player.name}</Text>
         <View style={s.mvpMetaRow}>
           <View style={s.mvpPosBadge}>
-            <Text style={s.mvpPosText}>{lastMVP.position}</Text>
+            <Text style={s.mvpPosText}>{player.position}</Text>
           </View>
-          <Text style={s.mvpStatText}>{lastMVP.stat}</Text>
+          <Text style={s.mvpStatText}>{mvpStat}</Text>
         </View>
       </View>
     </View>
@@ -185,15 +154,14 @@ function MVPHeroCard() {
 
 // ─── Upcoming Card ────────────────────────────────────────────────────────────
 
-function UpcomingCard() {
-  const g = upcomingGame;
+function UpcomingCard({ g }: { g: Game }) {
   return (
     <View style={s.upcomingCard}>
       <View style={s.upcomingHeader}>
         <Text style={s.upcomingLabel}>NEXT MATCH</Text>
         <View style={s.upcomingDateBadge}>
           <Ionicons name="calendar-outline" size={11} color="#f5c518" />
-          <Text style={s.upcomingDateText}>{g.date} · {g.time}</Text>
+          <Text style={s.upcomingDateText}>{g.date}</Text>
         </View>
       </View>
 
@@ -215,10 +183,12 @@ function UpcomingCard() {
         </View>
       </View>
 
-      <View style={s.upcomingFooter}>
-        <Ionicons name="location-outline" size={11} color="#3d3d3d" />
-        <Text style={s.metaText}>{g.location}</Text>
-      </View>
+      {g.location && (
+        <View style={s.upcomingFooter}>
+          <Ionicons name="location-outline" size={11} color="#3d3d3d" />
+          <Text style={s.metaText}>{g.location}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -226,6 +196,18 @@ function UpcomingCard() {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const lastGame  = useLastGame();
+  const mvpPlayer = useMvpPlayer();
+  const { gamesCount, playersCount, totalGoals } = useAppStats();
+  const games     = useStore((s) => s.games);
+  const nextGame  = games.find((g) => g.status === "Pending") ?? null;
+
+  const appStats = [
+    { label: "Games",   value: String(gamesCount),   accent: "#4a9eff" },
+    { label: "Players", value: String(playersCount),  accent: "#a78bfa" },
+    { label: "Goals",   value: String(totalGoals),    accent: "#f5c518" },
+  ];
+
   return (
     <SafeAreaView style={s.safe} edges={["top"]}>
       <ScrollView
@@ -256,23 +238,35 @@ export default function HomeScreen() {
         </View>
 
         {/* ── Last Match ──────────────────────────────────────────────────── */}
-        <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>LAST MATCH</Text>
-          <TouchableOpacity>
-            <Text style={s.sectionLink}>All games</Text>
-          </TouchableOpacity>
-        </View>
-        <MatchCard />
+        {lastGame && (
+          <>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>LAST MATCH</Text>
+              <TouchableOpacity>
+                <Text style={s.sectionLink}>All games</Text>
+              </TouchableOpacity>
+            </View>
+            <MatchCard g={lastGame} />
+          </>
+        )}
 
         {/* ── MVP ─────────────────────────────────────────────────────────── */}
-        <Text style={[s.sectionTitle, s.mvpSectionTitle]}>LAST MVP</Text>
-        <MVPHeroCard />
+        {lastGame && mvpPlayer && (
+          <>
+            <Text style={[s.sectionTitle, s.mvpSectionTitle]}>LAST MVP</Text>
+            <MVPHeroCard player={mvpPlayer} mvpStat={lastGame.mvp.stat} />
+          </>
+        )}
 
         {/* ── Upcoming ────────────────────────────────────────────────────── */}
-        <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>UPCOMING</Text>
-        </View>
-        <UpcomingCard />
+        {nextGame && (
+          <>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>UPCOMING</Text>
+            </View>
+            <UpcomingCard g={nextGame} />
+          </>
+        )}
 
         {/* ── CTA ─────────────────────────────────────────────────────────── */}
         <TouchableOpacity style={s.cta} activeOpacity={0.85} onPress={() => {}}>

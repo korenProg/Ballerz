@@ -1,5 +1,6 @@
 export type Player = {
   id: string;
+  photo?: string;
   name: string;
   ovr: number;
   position: string;

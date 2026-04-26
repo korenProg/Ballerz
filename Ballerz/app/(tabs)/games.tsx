@@ -19,223 +19,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 import { GoalEvent, GamePlayer, Game, ExportMode } from "../../types";
+import { useStore } from "../../store";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const initialGames: Game[] = [
-  {
-    id: "1",
-    league: "Ballerz League",
-    status: "FT",
-    homeTeam: "Barcelona FC",
-    awayTeam: "Real Madrid",
-    homeScore: 3,
-    awayScore: 2,
-    mvp: { name: "Neymar Jr", stat: "2 goals · 1 ast" },
-    homeColor: "#cc0000",
-    awayColor: "#0055cc",
-    location: "Camp Nou",
-    date: "Tue, Apr 8 · 21:00",
-    homeCaptain: "Neymar Jr",
-    awayCaptain: "Vinicius Jr",
-    homePlayers: [
-      { id: "h1b", name: "Neymar Jr", position: "FW" },
-      { id: "h2b", name: "Lewandowski", position: "FW" },
-      { id: "h3b", name: "Pedri", position: "MF" },
-      { id: "h4b", name: "Kounde", position: "DF" },
-      { id: "h5b", name: "Ter Stegen", position: "GK" },
-    ],
-    awayPlayers: [
-      { id: "a1b", name: "Vinicius Jr", position: "FW" },
-      { id: "a2b", name: "Bellingham", position: "MF" },
-      { id: "a3b", name: "Valverde", position: "MF" },
-      { id: "a4b", name: "Militao", position: "DF" },
-      { id: "a5b", name: "Courtois", position: "GK" },
-    ],
-    goalEvents: [
-      {
-        id: "e1",
-        playerId: "h1b",
-        playerName: "Neymar Jr",
-        team: "home",
-        minute: 12,
-        type: "goal",
-      },
-      {
-        id: "e2",
-        playerId: "h3b",
-        playerName: "Pedri",
-        team: "home",
-        minute: 12,
-        type: "assist",
-      },
-      {
-        id: "e3",
-        playerId: "a1b",
-        playerName: "Vinicius Jr",
-        team: "away",
-        minute: 29,
-        type: "goal",
-      },
-      {
-        id: "e4",
-        playerId: "h1b",
-        playerName: "Neymar Jr",
-        team: "home",
-        minute: 55,
-        type: "goal",
-      },
-      {
-        id: "e5",
-        playerId: "a2b",
-        playerName: "Bellingham",
-        team: "away",
-        minute: 63,
-        type: "goal",
-      },
-      {
-        id: "e6",
-        playerId: "h2b",
-        playerName: "Lewandowski",
-        team: "home",
-        minute: 78,
-        type: "goal",
-      },
-    ],
-  },
-  {
-    id: "2",
-    league: "Ballerz League",
-    status: "Pending",
-    homeTeam: "Man City",
-    awayTeam: "Liverpool",
-    homeScore: 0,
-    awayScore: 0,
-    mvp: { name: "—", stat: "—" },
-    homeColor: "#55aaff",
-    awayColor: "#cc0000",
-    location: "Etihad Stadium",
-    date: "Fri, Apr 18 · 20:00",
-    homeCaptain: "Rodri",
-    awayCaptain: "Saka",
-    homePlayers: [
-      { id: "h1", name: "Rodri", position: "MF" },
-      { id: "h2", name: "De Bruyne", position: "MF" },
-      { id: "h3", name: "Haaland", position: "FW" },
-      { id: "h4", name: "Walker", position: "DF" },
-      { id: "h5", name: "Ederson", position: "GK" },
-    ],
-    awayPlayers: [
-      { id: "a1", name: "Saka", position: "MF" },
-      { id: "a2", name: "Salah", position: "FW" },
-      { id: "a3", name: "Van Dijk", position: "DF" },
-      { id: "a4", name: "Alexander-Arnold", position: "DF" },
-      { id: "a5", name: "Alisson", position: "GK" },
-    ],
-  },
-  {
-    id: "3",
-    league: "Ballerz League",
-    status: "FT",
-    homeTeam: "PSG",
-    awayTeam: "Bayern",
-    homeScore: 2,
-    awayScore: 2,
-    mvp: { name: "Mbappe", stat: "2 goals" },
-    homeColor: "#0055cc",
-    awayColor: "#cc0000",
-    location: "Parc des Princes",
-    date: "Wed, Apr 9 · 21:00",
-    homeCaptain: "Mbappe",
-    awayCaptain: "Pedri",
-    homePlayers: [
-      { id: "hp3a", name: "Mbappe", position: "FW" },
-      { id: "hp3b", name: "Asensio", position: "MF" },
-      { id: "hp3c", name: "Vitinha", position: "MF" },
-      { id: "hp3d", name: "Marquinhos", position: "DF" },
-      { id: "hp3e", name: "Donnarumma", position: "GK" },
-    ],
-    awayPlayers: [
-      { id: "ap3a", name: "Kane", position: "FW" },
-      { id: "ap3b", name: "Muller", position: "MF" },
-      { id: "ap3c", name: "Kimmich", position: "MF" },
-      { id: "ap3d", name: "Upamecano", position: "DF" },
-      { id: "ap3e", name: "Neuer", position: "GK" },
-    ],
-    goalEvents: [
-      {
-        id: "f1",
-        playerId: "hp3a",
-        playerName: "Mbappe",
-        team: "home",
-        minute: 18,
-        type: "goal",
-      },
-      {
-        id: "f2",
-        playerId: "ap3a",
-        playerName: "Kane",
-        team: "away",
-        minute: 34,
-        type: "goal",
-      },
-      {
-        id: "f3",
-        playerId: "ap3b",
-        playerName: "Muller",
-        team: "away",
-        minute: 34,
-        type: "assist",
-      },
-      {
-        id: "f4",
-        playerId: "hp3a",
-        playerName: "Mbappe",
-        team: "home",
-        minute: 71,
-        type: "goal",
-      },
-      {
-        id: "f5",
-        playerId: "ap3a",
-        playerName: "Kane",
-        team: "away",
-        minute: 88,
-        type: "goal",
-      },
-    ],
-  },
-  {
-    id: "4",
-    league: "Ballerz League",
-    status: "Live",
-    homeTeam: "Arsenal",
-    awayTeam: "Chelsea",
-    homeScore: 1,
-    awayScore: 0,
-    mvp: { name: "—", stat: "—" },
-    homeColor: "#cc0000",
-    awayColor: "#0055cc",
-    location: "Emirates Stadium",
-    date: "Today · 20:45",
-    homeCaptain: "Saka",
-    awayCaptain: "Palmer",
-    homePlayers: [
-      { id: "hp1", name: "Saka", position: "MF" },
-      { id: "hp2", name: "Odegaard", position: "MF" },
-      { id: "hp3", name: "Havertz", position: "FW" },
-      { id: "hp4", name: "White", position: "DF" },
-      { id: "hp5", name: "Raya", position: "GK" },
-    ],
-    awayPlayers: [
-      { id: "ap1", name: "Palmer", position: "MF" },
-      { id: "ap2", name: "Jackson", position: "FW" },
-      { id: "ap3", name: "Gallagher", position: "MF" },
-      { id: "ap4", name: "James", position: "DF" },
-      { id: "ap5", name: "Sanchez", position: "GK" },
-    ],
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -2473,7 +2258,7 @@ function GameCard({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function GamesScreen() {
-  const [games, setGames] = useState<Game[]>(initialGames);
+  const { games, updateGame, deleteGame } = useStore();
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -2543,14 +2328,14 @@ export default function GamesScreen() {
   };
 
   const confirmDelete = () => {
-    setGames((prev) => prev.filter((g) => !selectedIds.has(g.id)));
+    selectedIds.forEach((id) => deleteGame(id));
     setSelectedIds(new Set());
     setSelectMode(false);
     setConfirmVisible(false);
   };
 
   const markAllFinished = () => {
-    setGames((prev) => prev.map((g) => ({ ...g, status: "FT" as const })));
+    games.filter((g) => g.status !== "FT").forEach((g) => updateGame(g.id, { status: "FT" }));
     closeMenu();
   };
 
@@ -2573,20 +2358,13 @@ export default function GamesScreen() {
     goalEvents: GoalEvent[],
   ) => {
     if (!trackerGame) return;
-    setGames((prev) =>
-      prev.map((g) =>
-        g.id === trackerGame.id
-          ? {
-              ...g,
-              status: "FT" as const,
-              homeScore,
-              awayScore,
-              mvp: { name: mvpName, stat: mvpStat },
-              goalEvents,
-            }
-          : g,
-      ),
-    );
+    updateGame(trackerGame.id, {
+      status: "FT",
+      homeScore,
+      awayScore,
+      mvp: { name: mvpName, stat: mvpStat },
+      goalEvents,
+    });
     setTrackerGame(null);
   };
 

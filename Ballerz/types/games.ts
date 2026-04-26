@@ -15,6 +15,7 @@ export type GoalEvent = {
 
 export type Game = {
   id: string;
+  date?: string;
   league: string;
   status: "FT" | "Live" | "Pending";
   homeTeam: string;
@@ -25,7 +26,6 @@ export type Game = {
   homeColor: string;
   awayColor: string;
   location?: string;
-  date?: string;
   homeCaptain?: string;
   awayCaptain?: string;
   homePlayers?: GamePlayer[];
