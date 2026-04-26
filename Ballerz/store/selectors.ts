@@ -1,3 +1,4 @@
+import { useShallow } from "zustand/react/shallow";
 import { useStore } from "./index";
 
 export const useLastGame = () =>
@@ -13,11 +14,13 @@ export const useMvpPlayer = () =>
   useStore((s) => s.players.find((p) => p.isMvp) ?? null);
 
 export const useAppStats = () =>
-  useStore((s) => ({
-    gamesCount: s.games.length,
-    playersCount: s.players.length,
-    totalGoals: s.games.reduce(
-      (sum, g) => sum + (g.homeScore ?? 0) + (g.awayScore ?? 0),
-      0
-    ),
-  }));
+  useStore(
+    useShallow((s) => ({
+      gamesCount: s.games.length,
+      playersCount: s.players.length,
+      totalGoals: s.games.reduce(
+        (sum, g) => sum + (g.homeScore ?? 0) + (g.awayScore ?? 0),
+        0
+      ),
+    }))
+  );

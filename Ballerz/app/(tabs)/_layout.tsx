@@ -33,6 +33,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="league"
+        options={{
+          title: 'League',
+          tabBarIcon: ({ color }) => <Ionicons name="trophy" size={24} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
