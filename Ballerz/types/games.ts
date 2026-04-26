@@ -26,8 +26,6 @@ export type Game = {
   homeColor: string;
   awayColor: string;
   location?: string;
-  homeCaptain?: string;
-  awayCaptain?: string;
   homePlayers?: GamePlayer[];
   awayPlayers?: GamePlayer[];
   goalEvents?: GoalEvent[];

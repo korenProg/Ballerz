@@ -68,9 +68,6 @@ function buildShareText(
       `${game.homeTeam}  vs  ${game.awayTeam}`,
       `⚽ ${game.league}`,
       game.location ? `📍 ${game.location}` : "",
-      game.homeCaptain && game.awayCaptain
-        ? `👑 Caps: ${game.homeCaptain} & ${game.awayCaptain}`
-        : "",
       `━━━━━━━━━━━━━━━━━━`,
       `via Ballerz`,
     ]
@@ -81,13 +78,13 @@ function buildShareText(
   const homeList = (game.homePlayers || [])
     .map(
       (p) =>
-        `  ${p.name.padEnd(20)} ${p.position}${p.name === game.homeCaptain ? " ©" : ""}`,
+        `  ${p.name.padEnd(20)} ${p.position}`,
     )
     .join("\n");
   const awayList = (game.awayPlayers || [])
     .map(
       (p) =>
-        `  ${p.name.padEnd(20)} ${p.position}${p.name === game.awayCaptain ? " ©" : ""}`,
+        `  ${p.name.padEnd(20)} ${p.position}`,
     )
     .join("\n");
   return [
@@ -270,11 +267,6 @@ function ResultExportCard({
           <Text style={expCard.teamName} numberOfLines={2}>
             {game.homeTeam}
           </Text>
-          {game.homeCaptain && (
-            <Text style={expCard.captainTxt} numberOfLines={1}>
-              © {game.homeCaptain}
-            </Text>
-          )}
         </View>
 
         {/* Score */}
@@ -333,14 +325,6 @@ function ResultExportCard({
           >
             {game.awayTeam}
           </Text>
-          {game.awayCaptain && (
-            <Text
-              style={[expCard.captainTxt, { textAlign: "right" }]}
-              numberOfLines={1}
-            >
-              © {game.awayCaptain}
-            </Text>
-          )}
         </View>
       </View>
 
@@ -444,18 +428,6 @@ function PreviewExportCard({
           <Text style={expCard.teamName} numberOfLines={2}>
             {game.homeTeam}
           </Text>
-          {game.homeCaptain && (
-            <View
-              style={[expCard.capPill, { borderColor: game.homeColor + "40" }]}
-            >
-              <Text style={[expCard.capPillTxt, { color: game.homeColor }]}>
-                C
-              </Text>
-              <Text style={expCard.capPillName}>
-                {game.homeCaptain.split(" ").pop()}
-              </Text>
-            </View>
-          )}
         </View>
 
         <Text style={expCard.vsText}>vs</Text>
@@ -478,24 +450,6 @@ function PreviewExportCard({
           >
             {game.awayTeam}
           </Text>
-          {game.awayCaptain && (
-            <View
-              style={[
-                expCard.capPill,
-                {
-                  borderColor: game.awayColor + "40",
-                  flexDirection: "row-reverse",
-                },
-              ]}
-            >
-              <Text style={[expCard.capPillTxt, { color: game.awayColor }]}>
-                C
-              </Text>
-              <Text style={expCard.capPillName}>
-                {game.awayCaptain.split(" ").pop()}
-              </Text>
-            </View>
-          )}
         </View>
       </View>
 
@@ -637,18 +591,6 @@ function TeamSheetExportCard({
                 </Text>
                 <Text style={expCard.playerRowPos}>{p.position}</Text>
               </View>
-              {p.name === game.homeCaptain && (
-                <View
-                  style={[
-                    expCard.cBadge,
-                    { borderColor: game.homeColor + "50" },
-                  ]}
-                >
-                  <Text style={[expCard.cBadgeTxt, { color: game.homeColor }]}>
-                    C
-                  </Text>
-                </View>
-              )}
             </View>
           ))}
         </View>
@@ -705,18 +647,6 @@ function TeamSheetExportCard({
                 </Text>
                 <Text style={expCard.playerRowPos}>{p.position}</Text>
               </View>
-              {p.name === game.awayCaptain && (
-                <View
-                  style={[
-                    expCard.cBadge,
-                    { borderColor: game.awayColor + "50" },
-                  ]}
-                >
-                  <Text style={[expCard.cBadgeTxt, { color: game.awayColor }]}>
-                    C
-                  </Text>
-                </View>
-              )}
             </View>
           ))}
         </View>
@@ -1943,7 +1873,7 @@ function LiveTrackerModal({
                       goals={goalMap[p.id] || 0}
                       assists={assistMap[p.id] || 0}
                       teamColor={game.homeColor}
-                      isCaptain={p.name === game.homeCaptain}
+                      isCaptain={false}
                       onGoal={() => addGoal(p, "home")}
                       onAssist={() => addAssist(p, "home")}
                     />
@@ -1971,7 +1901,7 @@ function LiveTrackerModal({
                       goals={goalMap[p.id] || 0}
                       assists={assistMap[p.id] || 0}
                       teamColor={game.awayColor}
-                      isCaptain={p.name === game.awayCaptain}
+                      isCaptain={false}
                       onGoal={() => addGoal(p, "away")}
                       onAssist={() => addAssist(p, "away")}
                     />

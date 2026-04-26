@@ -38,8 +38,6 @@ const GAMES: Game[] = [
     awayColor: "#0055cc",
     location: "Camp Nou",
     date: "Tue, Apr 8 · 21:00",
-    homeCaptain: "Neymar Jr",
-    awayCaptain: "Vinicius Jr",
     homePlayers: [
       { id: "h1b", name: "Neymar Jr",    position: "FW" },
       { id: "h2b", name: "Lewandowski",  position: "FW" },
@@ -76,8 +74,6 @@ const GAMES: Game[] = [
     awayColor: "#cc0000",
     location: "Parc des Princes",
     date: "Wed, Apr 9 · 21:00",
-    homeCaptain: "Mbappe",
-    awayCaptain: "Kane",
     homePlayers: [
       { id: "hp1", name: "Mbappe",      position: "FW" },
       { id: "hp2", name: "Asensio",     position: "MF" },
@@ -113,8 +109,6 @@ const GAMES: Game[] = [
     awayColor: "#cc0000",
     location: "Santiago Bernabéu",
     date: "Sat, Mar 29 · 21:00",
-    homeCaptain: "Vinicius Jr",
-    awayCaptain: "Neymar Jr",
     homePlayers: [
       { id: "r1", name: "Vinicius Jr", position: "FW" },
       { id: "r2", name: "Bellingham",  position: "MF" },
@@ -150,8 +144,6 @@ const GAMES: Game[] = [
     awayColor: "#cccccc",
     location: "Parc des Princes",
     date: "Tue, Apr 1 · 21:00",
-    homeCaptain: "Mbappe",
-    awayCaptain: "Bellingham",
     homePlayers: [
       { id: "pp1", name: "Mbappe",      position: "FW" },
       { id: "pp2", name: "Asensio",     position: "MF" },
