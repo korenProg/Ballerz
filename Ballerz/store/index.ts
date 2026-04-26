@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Player } from "../types/players";
 import type { Game } from "../types/games";
+import type { League } from "../types/league";
 
 const genId = () =>
   Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -10,6 +11,8 @@ const genId = () =>
 interface BallerzStore {
   players: Player[];
   games: Game[];
+  league: League;
+  hasOnboarded: boolean;
 
   addPlayer: (player: Omit<Player, "id">) => void;
   updatePlayer: (id: string, updates: Partial<Player>) => void;
@@ -26,6 +29,9 @@ interface BallerzStore {
     mvpName: string,
     mvpStat: string
   ) => void;
+
+  setLeague: (updates: Partial<League>) => void;
+  completeOnboarding: () => void;
 }
 
 export const useStore = create<BallerzStore>()(
@@ -33,6 +39,15 @@ export const useStore = create<BallerzStore>()(
     (set) => ({
       players: [],
       games: [],
+      league: {
+        name: "",
+        logoUri: null,
+        color: "#0039a3",
+        defaultLocation: "",
+        defaultTeamSize: 5,
+        adminName: "",
+      },
+      hasOnboarded: false,
 
       addPlayer: (player) =>
         set((s) => ({
@@ -86,6 +101,11 @@ export const useStore = create<BallerzStore>()(
               : g
           ),
         })),
+
+      setLeague: (updates) =>
+        set((s) => ({ league: { ...s.league, ...updates } })),
+
+      completeOnboarding: () => set({ hasOnboarded: true }),
     }),
     {
       name: "ballerz-store",
