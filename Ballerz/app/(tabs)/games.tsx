@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
+import { useRouter } from "expo-router";
 import { GoalEvent, GamePlayer, Game, ExportMode } from "../../types";
 import { useStore } from "../../store";
 
@@ -2188,6 +2189,7 @@ function GameCard({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function GamesScreen() {
+  const router = useRouter();
   const { games, updateGame, deleteGame } = useStore();
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
@@ -2335,7 +2337,7 @@ export default function GamesScreen() {
             </View>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.topBarBtn} onPress={() => {}}>
+          <TouchableOpacity style={styles.topBarBtn} onPress={() => router.push("/create-game")}>
             <Ionicons name="add" size={26} color="#fff" />
           </TouchableOpacity>
         )}

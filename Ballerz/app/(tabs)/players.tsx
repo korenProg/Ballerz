@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "expo-router";
 import {Player} from '../../types'
 import { useStore } from "../../store";
 
@@ -485,6 +486,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function PlayersScreen() {
+  const router = useRouter();
   const { players, deletePlayer }           = useStore();
   const [menuVisible, setMenuVisible]       = useState(false);
   const [selectMode, setSelectMode]         = useState(false);
@@ -629,7 +631,7 @@ export default function PlayersScreen() {
               </View>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.topBarBtn} onPress={() => {}}>
+            <TouchableOpacity style={styles.topBarBtn} onPress={() => router.push("/create-player")}>
               <Ionicons name="add" size={26} color="#fff" />
             </TouchableOpacity>
           )}
