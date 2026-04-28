@@ -90,7 +90,8 @@ No team-color glows or gradient bleeds on cards.
 - Header with `+` button → `/create-player` (unchanged)
 - FlatList of player cards (2-column grid)
 - Each card: player photo (or initials avatar), name, position, OVR badge (amber)
-- Tap → Player Detail screen (stack): name, photo, position, 6-stat grid (PAC/SHO/PAS/DRI/DEF/PHY), OVR
+- Tap → Player Detail screen (stack): name, photo, position, 6-stat grid (PAC/SHO/PAS/DRI/DEF/PHY), OVR + Edit button
+- Edit button → opens the same `create-player` modal pre-filled with existing player data. Save calls `updatePlayer()` in store.
 
 ---
 
@@ -132,6 +133,7 @@ No functional changes. Visual pass only — apply new design tokens (background,
 - `LiveTrackerModal` component and all associated state
 
 ### Add
+- `updatePlayer(id, partial)` store action — merges updated fields into the existing player record
 - `game.homeScore: number` and `game.awayScore: number` — recorded after the fact via Result Sheet
 - `game.mvpPlayerId: string` — ID of the player selected as MVP
 - `game.status: 'upcoming' | 'completed'` — derived: `completed` when `homeScore !== undefined`, `upcoming` otherwise. No explicit status field stored.
