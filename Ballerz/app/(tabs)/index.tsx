@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { Redirect, useRouter } from "expo-router";
 import { useStore } from "../../store";
 import { useLastGame, useMvpPlayer, useAppStats } from "../../store/selectors";
 import type { Game } from "../../types/games";
@@ -196,11 +197,15 @@ function UpcomingCard({ g }: { g: Game }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const router    = useRouter();
+  const hasOnboarded = useStore((s) => s.hasOnboarded);
   const lastGame  = useLastGame();
   const mvpPlayer = useMvpPlayer();
   const { gamesCount, playersCount, totalGoals } = useAppStats();
   const games     = useStore((s) => s.games);
   const nextGame  = games.find((g) => g.status === "Pending") ?? null;
+
+  if (!hasOnboarded) return <Redirect href="/onboarding" />;
 
   const appStats = [
     { label: "Games",   value: String(gamesCount),   accent: "#4a9eff" },
@@ -269,7 +274,7 @@ export default function HomeScreen() {
         )}
 
         {/* ── CTA ─────────────────────────────────────────────────────────── */}
-        <TouchableOpacity style={s.cta} activeOpacity={0.85} onPress={() => {}}>
+        <TouchableOpacity style={s.cta} activeOpacity={0.85} onPress={() => router.push("/create-game")}>
           <Ionicons name="add-circle-outline" size={20} color="#fff" />
           <Text style={s.ctaText}>Create Game</Text>
         </TouchableOpacity>
