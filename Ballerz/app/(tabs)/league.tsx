@@ -14,8 +14,16 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useStore } from "../../store";
+import { useAppStats } from "../../store/selectors";
 
-const PRESET_COLORS = ["#f5c518", "#0039a3", "#cc0000", "#1a7a1a", "#7b2fbe", "#e0e0e0"];
+const PRESET_COLORS = [
+  "#f5c518",
+  "#0039a3",
+  "#cc0000",
+  "#1a7a1a",
+  "#7b2fbe",
+  "#e0e0e0",
+];
 const TEAM_SIZES = [5, 7, 11];
 
 export default function LeagueScreen() {
@@ -25,8 +33,12 @@ export default function LeagueScreen() {
   const [logoUri, setLogoUri] = useState<string | null>(league.logoUri);
   const [color, setColor] = useState(league.color);
   const [adminName, setAdminName] = useState(league.adminName);
-  const [defaultLocation, setDefaultLocation] = useState(league.defaultLocation);
-  const [defaultTeamSize, setDefaultTeamSize] = useState(league.defaultTeamSize);
+  const [defaultLocation, setDefaultLocation] = useState(
+    league.defaultLocation,
+  );
+  const [defaultTeamSize, setDefaultTeamSize] = useState(
+    league.defaultTeamSize,
+  );
 
   async function pickLogo() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -56,18 +68,23 @@ export default function LeagueScreen() {
     Alert.alert("Saved", "League settings updated.");
   }
 
+  const { gamesCount, playersCount, totalGoals } = useAppStats();
+
+  const appStats = [
+    { label: "Games", value: String(gamesCount), accent: "#ffffff" },
+    { label: "Players", value: String(playersCount), accent: "#ffffff" },
+    { label: "Goals", value: String(totalGoals), accent: "#ffffff" },
+  ];
+
   return (
     <SafeAreaView style={s.safe}>
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
-
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Profile card */}
-        <View style={s.card}>
-          <LinearGradient
-            colors={[color, "#0a0a0a"]}
-            style={s.banner}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
+        <View style = {s.profileCard}>
+          <LinearGradient>
           <View style={s.cardBody}>
             <TouchableOpacity onPress={pickLogo}>
               {logoUri ? (
@@ -79,16 +96,35 @@ export default function LeagueScreen() {
               )}
             </TouchableOpacity>
             <Text style={s.leagueName}>{league.name || "Your League"}</Text>
-            {league.adminName ? <Text style={s.adminName}>{league.adminName}</Text> : null}
-            <Text style={s.gameCount}>{games.length} game{games.length !== 1 ? "s" : ""}</Text>
+            {league.adminName ? (
+              <Text style={s.adminName}>{league.adminName}</Text>
+            ) : null}
           </View>
+          </LinearGradient>
+        </View>
+
+        {/* ── Stats Strip ─────────────────────────────────────────────────── */}
+        <View style={s.statsRow}>
+          {appStats.map((stat, i) => (
+            <View key={i} style={s.statChip}>
+              <Text style={[s.statValue, { color: stat.accent }]}>
+                {stat.value}
+              </Text>
+              <Text style={s.statLabel}>{stat.label}</Text>
+            </View>
+          ))}
         </View>
 
         {/* Edit form */}
-        <Text style={s.sectionTitle}>Edit League</Text>
 
         <Text style={s.label}>League name</Text>
-        <TextInput style={s.input} value={name} onChangeText={setName} placeholderTextColor="#555" placeholder="Sunday League" />
+        <TextInput
+          style={s.input}
+          value={name}
+          onChangeText={setName}
+          placeholderTextColor="#555"
+          placeholder="Sunday League"
+        />
 
         <Text style={s.label}>League logo</Text>
         <TouchableOpacity style={s.logoPicker} onPress={pickLogo}>
@@ -97,7 +133,9 @@ export default function LeagueScreen() {
           ) : (
             <Ionicons name="image-outline" size={22} color="#888" />
           )}
-          <Text style={s.logoPickerText}>{logoUri ? "Change logo" : "Pick logo image"}</Text>
+          <Text style={s.logoPickerText}>
+            {logoUri ? "Change logo" : "Pick logo image"}
+          </Text>
           <Ionicons name="chevron-forward" size={18} color="#555" />
         </TouchableOpacity>
 
@@ -106,17 +144,33 @@ export default function LeagueScreen() {
           {PRESET_COLORS.map((c) => (
             <TouchableOpacity
               key={c}
-              style={[s.swatch, { backgroundColor: c }, color === c && s.swatchSelected]}
+              style={[
+                s.swatch,
+                { backgroundColor: c },
+                color === c && s.swatchSelected,
+              ]}
               onPress={() => setColor(c)}
             />
           ))}
         </View>
 
         <Text style={s.label}>Admin name</Text>
-        <TextInput style={s.input} value={adminName} onChangeText={setAdminName} placeholderTextColor="#555" placeholder="Your name" />
+        <TextInput
+          style={s.input}
+          value={adminName}
+          onChangeText={setAdminName}
+          placeholderTextColor="#555"
+          placeholder="Your name"
+        />
 
         <Text style={s.label}>Default location</Text>
-        <TextInput style={s.input} value={defaultLocation} onChangeText={setDefaultLocation} placeholderTextColor="#555" placeholder="e.g. The Cage" />
+        <TextInput
+          style={s.input}
+          value={defaultLocation}
+          onChangeText={setDefaultLocation}
+          placeholderTextColor="#555"
+          placeholder="e.g. The Cage"
+        />
 
         <Text style={s.label}>Default team size</Text>
         <View style={s.pills}>
@@ -126,7 +180,11 @@ export default function LeagueScreen() {
               style={[s.pill, defaultTeamSize === n && s.pillActive]}
               onPress={() => setDefaultTeamSize(n)}
             >
-              <Text style={[s.pillText, defaultTeamSize === n && s.pillTextActive]}>{n}v{n}</Text>
+              <Text
+                style={[s.pillText, defaultTeamSize === n && s.pillTextActive]}
+              >
+                {n}v{n}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -134,7 +192,6 @@ export default function LeagueScreen() {
         <TouchableOpacity style={s.saveBtn} onPress={save}>
           <Text style={s.saveBtnText}>Save Changes</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -143,10 +200,9 @@ export default function LeagueScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#0a0a0a" },
   scroll: { padding: 16, gap: 12, paddingBottom: 40 },
-  card: { borderRadius: 16, overflow: "hidden", backgroundColor: "#111", marginBottom: 8 },
-  banner: { height: 70 },
   cardBody: { alignItems: "center", paddingBottom: 20, gap: 4 },
-  logo: { width: 72, height: 72, borderRadius: 36, marginTop: -36 },
+  profileCard: { marginTop: 25 },
+  logo: { width: 92, height: 92, borderRadius: 50, marginTop: -36, borderColor:"#383838", borderWidth:1},
   logoPlaceholder: {
     backgroundColor: "#1a1a1a",
     alignItems: "center",
@@ -155,11 +211,49 @@ const s = StyleSheet.create({
     borderColor: "#333",
     marginTop: -36,
   },
+
   leagueName: { fontSize: 20, fontWeight: "700", color: "#fff", marginTop: 8 },
   adminName: { fontSize: 13, color: "#aaa" },
   gameCount: { fontSize: 12, color: "#555", marginTop: 2 },
-  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#fff", marginTop: 8 },
-  label: { fontSize: 12, fontWeight: "600", color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 },
+
+  // ── Stats
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  statChip: {
+    backgroundColor: "#181818",
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    width: 110,
+    marginVertical: 10,
+  },
+  statValue: { fontSize: 26, fontWeight: "800" },
+  statLabel: {
+    fontSize: 10,
+    color: "#4a4a4a",
+    fontWeight: "600",
+    marginTop: 3,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    marginTop: 8,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#aaa",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   input: {
     backgroundColor: "#1a1a1a",
     borderRadius: 10,
