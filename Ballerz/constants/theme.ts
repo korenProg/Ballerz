@@ -1,3 +1,17 @@
+export const T = {
+  bg: "#07080f",
+  surface: "rgba(255,255,255,0.04)",
+  border: "rgba(255,255,255,0.07)",
+  accent: "#f59e0b",
+  accentMuted: "rgba(245,158,11,0.12)",
+  accentBorder: "rgba(245,158,11,0.2)",
+  textPrimary: "#ffffff",
+  textSecondary: "#c8ccd8",
+  textMuted: "#3a3d52",
+  scoreSize: 28,
+  radius: { card: 22, pill: 14, badge: 8 },
+} as const;
+
 /**
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.

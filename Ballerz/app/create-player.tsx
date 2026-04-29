@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "../store";
@@ -31,15 +31,23 @@ const STAT_LABELS: Record<StatKey, string> = {
 
 export default function CreatePlayer() {
   const router = useRouter();
-  const { addPlayer } = useStore();
+  const { playerId } = useLocalSearchParams<{ playerId?: string }>();
+  const { addPlayer, updatePlayer, players } = useStore();
+  const existingPlayer = playerId ? players.find((p) => p.id === playerId) ?? null : null;
+  const isEditing = !!existingPlayer;
 
-  const [photo, setPhoto] = useState<string | undefined>(undefined);
-  const [name, setName] = useState("");
-  const [position, setPosition] = useState<string>("MF");
-  const [foot, setFoot] = useState<"L" | "R">("R");
-  const [form, setForm] = useState<"hot" | "cold" | "neutral">("neutral");
+  const [photo, setPhoto] = useState<string | undefined>(existingPlayer?.photo);
+  const [name, setName] = useState(existingPlayer?.name ?? "");
+  const [position, setPosition] = useState<string>(existingPlayer?.position ?? "MF");
+  const [foot, setFoot] = useState<"L" | "R">(existingPlayer?.foot ?? "R");
+  const [form, setForm] = useState<"hot" | "cold" | "neutral">(existingPlayer?.form ?? "neutral");
   const [stats, setStats] = useState<Record<StatKey, string>>({
-    pac: "", sho: "", pas: "", dri: "", def: "", phy: "",
+    pac: existingPlayer ? String(existingPlayer.pac) : "",
+    sho: existingPlayer ? String(existingPlayer.sho) : "",
+    pas: existingPlayer ? String(existingPlayer.pas) : "",
+    dri: existingPlayer ? String(existingPlayer.dri) : "",
+    def: existingPlayer ? String(existingPlayer.def) : "",
+    phy: existingPlayer ? String(existingPlayer.phy) : "",
   });
 
   async function pickPhoto() {
@@ -79,7 +87,7 @@ export default function CreatePlayer() {
       Alert.alert("Missing info", "Enter a name and at least one stat.");
       return;
     }
-    addPlayer({
+    const data = {
       name: name.trim(),
       photo,
       position,
@@ -87,11 +95,16 @@ export default function CreatePlayer() {
       form,
       ovr,
       ...parsedStats,
-      goals: 0,
-      assists: 0,
-      mvps: 0,
-      isMvp: false,
-    });
+      goals: existingPlayer?.goals ?? 0,
+      assists: existingPlayer?.assists ?? 0,
+      mvps: existingPlayer?.mvps ?? 0,
+      isMvp: existingPlayer?.isMvp ?? false,
+    };
+    if (isEditing && existingPlayer) {
+      updatePlayer(existingPlayer.id, data);
+    } else {
+      addPlayer(data);
+    }
     router.back();
   }
 
@@ -101,7 +114,7 @@ export default function CreatePlayer() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="close" size={26} color="#aaa" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Add Player</Text>
+        <Text style={s.headerTitle}>{isEditing ? "Edit Player" : "Add Player"}</Text>
         <View style={{ width: 26 }} />
       </View>
 
@@ -195,7 +208,7 @@ export default function CreatePlayer() {
           onPress={save}
           disabled={!canSave}
         >
-          <Text style={s.saveBtnText}>Add Player</Text>
+          <Text style={s.saveBtnText}>{isEditing ? "Save Changes" : "Add Player"}</Text>
         </TouchableOpacity>
 
       </ScrollView>

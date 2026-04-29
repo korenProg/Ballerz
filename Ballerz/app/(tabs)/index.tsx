@@ -1,331 +1,145 @@
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Redirect, useRouter } from "expo-router";
 import { useStore } from "../../store";
-import { useLastGame, useMvpPlayer, useAppStats } from "../../store/selectors";
+import { useLastGame, useAppStats } from "../../store/selectors";
+import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
-import type { Player } from "../../types/players";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type GameStatus = "FT" | "Live" | "Pending";
-
-// ─── Status Badge ─────────────────────────────────────────────────────────────
-
-const STATUS_MAP: Record<
-  GameStatus,
-  { label: string; bg: string; color: string; live: boolean }
-> = {
-  FT: { label: "FT", bg: "#1c1c1c", color: "#666", live: false },
-  Live: { label: "LIVE", bg: "#0a2010", color: "#00e676", live: true },
-  Pending: { label: "UPCOMING", bg: "#1a1400", color: "#f5c518", live: false },
-};
-
-function StatusPill({ status }: { status: GameStatus }) {
-  const cfg = STATUS_MAP[status];
+function StatPill({ value, label, color }: { value: string; label: string; color: string }) {
   return (
-    <View style={[pill.wrap, { backgroundColor: cfg.bg }]}>
-      {cfg.live && <View style={pill.dot} />}
-      <Text style={[pill.text, { color: cfg.color }]}>{cfg.label}</Text>
+    <View style={s.statPill}>
+      <Text style={[s.statVal, { color }]}>{value}</Text>
+      <Text style={s.statLbl}>{label}</Text>
     </View>
   );
 }
 
-const pill = StyleSheet.create({
-  wrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 7,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    gap: 5,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#00e676" },
-  text: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6 },
-});
-
-// ─── Match Card ───────────────────────────────────────────────────────────────
-
-function MatchCard({ g }: { g: Game }) {
+function LastMatchCard({ g }: { g: Game }) {
+  const isCompleted = g.status === "FT";
   return (
-    <View style={s.matchCard}>
-      {/* Card header */}
-      <View style={s.cardRow}>
+    <View style={s.card}>
+      <View style={s.cardTop}>
         <View style={s.leagueRow}>
-          <Ionicons name="football-outline" size={12} color="#555" />
-          <Text style={s.leagueText}>{g.league}</Text>
+          <Ionicons name="football-outline" size={11} color={T.textMuted} />
+          <Text style={s.leagueTxt}>{g.league}</Text>
         </View>
-        <StatusPill status={g.status} />
+        <View style={s.ftPill}>
+          <Text style={s.ftTxt}>FT</Text>
+        </View>
       </View>
 
-      <View style={s.hairline} />
-
-      {/* Score */}
       <View style={s.scoreRow}>
-        <View style={s.teamCol}>
-          <View
-            style={[
-              s.teamBadge,
-              { borderColor: g.homeColor, backgroundColor: g.homeColor + "1a" },
-            ]}
-          >
-            <Ionicons name="shield" size={20} color={g.homeColor} />
-          </View>
-          <Text style={s.teamName} numberOfLines={2}>
-            {g.homeTeam}
-          </Text>
+        <View style={s.teamSide}>
+          <View style={[s.teamDot, { backgroundColor: g.homeColor }]} />
+          <Text style={s.teamName}>{g.homeTeam}</Text>
         </View>
-
-        <View style={s.scoreCenter}>
-          <Text style={s.scoreNum}>{g.homeScore}</Text>
-          <Text style={s.scoreSep}>–</Text>
-          <Text style={s.scoreNum}>{g.awayScore}</Text>
-        </View>
-
-        <View style={s.teamCol}>
-          <View
-            style={[
-              s.teamBadge,
-              { borderColor: g.awayColor, backgroundColor: g.awayColor + "1a" },
-            ]}
-          >
-            <Ionicons name="shield" size={20} color={g.awayColor} />
-          </View>
-          <Text style={s.teamName} numberOfLines={2}>
-            {g.awayTeam}
-          </Text>
+        <Text style={s.scoreText}>
+          {isCompleted ? `${g.homeScore}` : "–"}
+          <Text style={s.scoreSep}> – </Text>
+          {isCompleted ? `${g.awayScore}` : "–"}
+        </Text>
+        <View style={[s.teamSide, { alignItems: "flex-end" }]}>
+          <View style={[s.teamDot, { backgroundColor: g.awayColor }]} />
+          <Text style={[s.teamName, { textAlign: "right" }]}>{g.awayTeam}</Text>
         </View>
       </View>
 
-      <View style={s.hairline} />
-
-      {/* Meta row */}
-      <View style={s.matchMeta}>
-        {g.location && (
-          <View style={s.metaItem}>
-            <Ionicons name="location-outline" size={11} color="#3d3d3d" />
-            <Text style={s.metaText}>{g.location}</Text>
+      {g.mvp.name !== "—" && (
+        <View style={s.cardFooter}>
+          <View style={s.mvpRow}>
+            <View style={s.mvpBadge}>
+              <Text style={s.mvpBadgeTxt}>MVP</Text>
+            </View>
+            <Text style={s.mvpNameTxt}>{g.mvp.name}</Text>
           </View>
-        )}
-        {g.date && (
-          <View style={s.metaItem}>
-            <Ionicons name="time-outline" size={11} color="#3d3d3d" />
-            <Text style={s.metaText}>{g.date}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* MVP row */}
-      <View style={s.cardMvpRow}>
-        <Ionicons name="star" size={12} color="#f5c518" />
-        <Text style={s.cardMvpLabel}>MVP</Text>
-        <Text style={s.cardMvpName}>{g.mvp.name}</Text>
-        <Text style={s.cardMvpStat}>{g.mvp.stat}</Text>
-      </View>
-    </View>
-  );
-}
-
-// ─── MVP Hero Card ────────────────────────────────────────────────────────────
-
-function MVPHeroCard({ player, mvpStat }: { player: Player; mvpStat: string }) {
-  return (
-    <View style={s.mvpCard}>
-      {/* Glow layers */}
-      <View
-        style={[
-          s.mvpGlow,
-          {
-            width: 280,
-            height: 280,
-            borderRadius: 140,
-            opacity: 0.04,
-            top: -40,
-          },
-        ]}
-      />
-      <View
-        style={[
-          s.mvpGlow,
-          { width: 190, height: 190, borderRadius: 95, opacity: 0.07, top: 0 },
-        ]}
-      />
-      <View
-        style={[
-          s.mvpGlow,
-          { width: 110, height: 110, borderRadius: 55, opacity: 0.12, top: 45 },
-        ]}
-      />
-
-      <Image
-        source={require("@/assets/images/playerDefaultPic.png")}
-        style={s.mvpImage}
-        resizeMode="contain"
-      />
-
-      <LinearGradient
-        colors={["rgba(0,0,0,0.85)", "transparent"]}
-        style={s.mvpFadeTop}
-      />
-      <LinearGradient
-        colors={["transparent", "#0a0a0a"]}
-        style={s.mvpFadeBottom}
-      />
-
-      {/* Top labels */}
-      <View style={s.mvpTopLabels}>
-        <Text style={s.mvpSub}>Last Match</Text>
-        <Text style={s.mvpTitle}>MVP</Text>
-      </View>
-
-      {/* Bottom info */}
-      <View style={s.mvpBottom}>
-        <Text style={s.mvpName}>{player.name}</Text>
-        <View style={s.mvpMetaRow}>
-          <View style={s.mvpPosBadge}>
-            <Text style={s.mvpPosText}>{player.position}</Text>
-          </View>
-          <Text style={s.mvpStatText}>{mvpStat}</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// ─── Upcoming Card ────────────────────────────────────────────────────────────
-
-function UpcomingCard({ g }: { g: Game }) {
-  return (
-    <View style={s.upcomingCard}>
-      <View style={s.upcomingHeader}>
-        <Text style={s.upcomingLabel}>NEXT MATCH</Text>
-        <View style={s.upcomingDateBadge}>
-          <Ionicons name="calendar-outline" size={11} color="#f5c518" />
-          <Text style={s.upcomingDateText}>{g.date}</Text>
-        </View>
-      </View>
-
-      <View style={s.upcomingTeams}>
-        <View style={s.teamCol}>
-          <View
-            style={[
-              s.teamBadge,
-              { borderColor: g.homeColor, backgroundColor: g.homeColor + "1a" },
-            ]}
-          >
-            <Ionicons name="shield" size={20} color={g.homeColor} />
-          </View>
-          <Text style={s.teamName} numberOfLines={1}>
-            {g.homeTeam}
-          </Text>
-        </View>
-
-        <Text style={s.vsText}>VS</Text>
-
-        <View style={s.teamCol}>
-          <View
-            style={[
-              s.teamBadge,
-              { borderColor: g.awayColor, backgroundColor: g.awayColor + "1a" },
-            ]}
-          >
-            <Ionicons name="shield" size={20} color={g.awayColor} />
-          </View>
-          <Text style={s.teamName} numberOfLines={1}>
-            {g.awayTeam}
-          </Text>
-        </View>
-      </View>
-
-      {g.location && (
-        <View style={s.upcomingFooter}>
-          <Ionicons name="location-outline" size={11} color="#3d3d3d" />
-          <Text style={s.metaText}>{g.location}</Text>
+          {g.location ? (
+            <View style={s.locationRow}>
+              <Ionicons name="location-outline" size={10} color={T.textMuted} />
+              <Text style={s.locationTxt}>{g.location}</Text>
+            </View>
+          ) : null}
         </View>
       )}
     </View>
   );
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+function UpcomingCard({ g }: { g: Game }) {
+  return (
+    <View style={[s.card, s.upcomingCard]}>
+      <View style={s.cardTop}>
+        <Text style={s.sectionEyebrow}>UPCOMING</Text>
+        {g.date ? (
+          <View style={s.dateBadge}>
+            <Text style={s.dateBadgeTxt}>{g.date}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={s.upcomingTeams}>
+        <Text style={s.upcomingTeamName}>{g.homeTeam}</Text>
+        <Text style={s.upcomingVs}>vs</Text>
+        <Text style={[s.upcomingTeamName, { textAlign: "right" }]}>{g.awayTeam}</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
   const hasOnboarded = useStore((s) => s.hasOnboarded);
   const lastGame = useLastGame();
-  const mvpPlayer = useMvpPlayer();
+  const { gamesCount, playersCount, totalGoals } = useAppStats();
   const games = useStore((s) => s.games);
   const nextGame = games.find((g) => g.status === "Pending") ?? null;
 
   if (!hasOnboarded) return <Redirect href="/onboarding" />;
 
-
-
   return (
     <SafeAreaView style={s.safe} edges={["top"]}>
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Header ──────────────────────────────────────────────────────── */}
+      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+
         <View style={s.header}>
-          <Image
-            source={require("@/assets/images/ballerzWideLogo.png")}
-            style={s.logo}
-            resizeMode="contain"
-          />
+          <Text style={s.logo}>BALLER<Text style={s.logoAccent}>Z</Text></Text>
+          <TouchableOpacity style={s.headerBtn} onPress={() => router.push("/create-game")}>
+            <Ionicons name="add" size={20} color={T.textPrimary} />
+          </TouchableOpacity>
         </View>
 
-        {/* ── Last Match ──────────────────────────────────────────────────── */}
+        <View style={s.statsRow}>
+          <StatPill value={String(gamesCount)}   label="GAMES"   color="#60a5fa" />
+          <StatPill value={String(playersCount)}  label="PLAYERS" color="#a78bfa" />
+          <StatPill value={String(totalGoals)}    label="GOALS"   color={T.accent} />
+        </View>
+
         {lastGame && (
           <>
-            <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle}>LAST MATCH</Text>
-              <TouchableOpacity>
-                <Text style={s.sectionLink}>All games</Text>
-              </TouchableOpacity>
-            </View>
-            <MatchCard g={lastGame} />
+            <Text style={[s.sectionEyebrow, { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8 }]}>
+              LAST RESULT
+            </Text>
+            <LastMatchCard g={lastGame} />
           </>
         )}
 
-        {/* ── MVP ─────────────────────────────────────────────────────────── */}
-        {lastGame && mvpPlayer && (
-          <>
-            <Text style={[s.sectionTitle, s.mvpSectionTitle]}>LAST MVP</Text>
-            <MVPHeroCard player={mvpPlayer} mvpStat={lastGame.mvp.stat} />
-          </>
-        )}
-
-        {/* ── Upcoming ────────────────────────────────────────────────────── */}
         {nextGame && (
           <>
-            <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle}>UPCOMING</Text>
-            </View>
+            <Text style={[s.sectionEyebrow, { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }]}>
+              UPCOMING
+            </Text>
             <UpcomingCard g={nextGame} />
           </>
         )}
 
-        {/* ── CTA ─────────────────────────────────────────────────────────── */}
-        <TouchableOpacity
-          style={s.cta}
-          activeOpacity={0.85}
-          onPress={() => router.push("/create-game")}
-        >
-          <Ionicons name="add-circle-outline" size={20} color="#fff" />
-          <Text style={s.ctaText}>Create Game</Text>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push("/create-game")} style={s.ctaWrap}>
+          <LinearGradient colors={["#f59e0b", "#d97706"]} style={s.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <Ionicons name="add-circle-outline" size={18} color="#000" />
+            <Text style={s.ctaTxt}>Create Game</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <View style={{ height: 32 }} />
@@ -334,259 +148,53 @@ export default function HomeScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#5a0f0f" },
+  safe:   { flex: 1, backgroundColor: T.bg },
   scroll: { flex: 1 },
-  content: { paddingBottom: 16, backgroundColor: "black" },
+  content:{ paddingBottom: 16 },
 
-  // ── Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#5a0f0f",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 6,
-  },
-  logo: { width: 130, height: 42 },
+  header:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
+  logo:      { color: T.textPrimary, fontSize: 22, fontWeight: "900", letterSpacing: -1 },
+  logoAccent:{ color: T.accent },
+  headerBtn: { width: 36, height: 36, borderRadius: T.radius.badge, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center" },
 
+  statsRow:  { flexDirection: "row", marginHorizontal: 16, gap: 8 },
+  statPill:  { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius.pill, paddingVertical: 14, alignItems: "center" },
+  statVal:   { fontSize: 22, fontWeight: "800" },
+  statLbl:   { fontSize: 8, color: T.textMuted, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
 
-  // ── Section headers
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#4a4a4a",
-    letterSpacing: 1.8,
-    textTransform: "uppercase",
-  },
-  sectionLink: { fontSize: 12, color: "#4a9eff", fontWeight: "600" },
-  mvpSectionTitle: { marginHorizontal: 16, marginTop: 24, marginBottom: 10 },
+  sectionEyebrow: { fontSize: 9, fontWeight: "800", letterSpacing: 2, color: T.textMuted, textTransform: "uppercase" },
 
-  // ── Match card
-  matchCard: {
-    marginHorizontal: 16,
-    backgroundColor: "#111",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#1a1a1a",
-    overflow: "hidden",
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  leagueRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  leagueText: { color: "#444", fontSize: 12, fontWeight: "600" },
-  hairline: { height: 1, backgroundColor: "#181818" },
+  card:       { marginHorizontal: 16, backgroundColor: T.surface, borderRadius: T.radius.card, borderWidth: 1, borderColor: T.border, padding: 14 },
+  upcomingCard:{ marginTop: 0 },
+  cardTop:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  leagueRow:  { flexDirection: "row", alignItems: "center", gap: 5 },
+  leagueTxt:  { color: T.textMuted, fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
+  ftPill:     { backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  ftTxt:      { color: T.textMuted, fontSize: 9, fontWeight: "800", letterSpacing: 1 },
 
-  scoreRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  teamCol: { flex: 1, alignItems: "center", gap: 9 },
-  teamBadge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 1.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  teamName: {
-    color: "#aaa",
-    fontSize: 12,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  scoreCenter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 8,
-  },
-  scoreNum: { color: "#fff", fontSize: 34, fontWeight: "900" },
-  scoreSep: { color: "#2a2a2a", fontSize: 26, fontWeight: "300" },
+  scoreRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  teamSide:   { flex: 1 },
+  teamDot:    { width: 8, height: 8, borderRadius: 4, marginBottom: 6 },
+  teamName:   { color: T.textSecondary, fontSize: 13, fontWeight: "700" },
+  scoreText:  { color: T.textPrimary, fontSize: T.scoreSize, fontWeight: "900", letterSpacing: -1 },
+  scoreSep:   { color: T.textMuted, fontWeight: "300" },
 
-  matchMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingTop: 9,
-    paddingBottom: 4,
-  },
-  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: "#3d3d3d", fontSize: 11 },
+  cardFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTopWidth: 1, borderTopColor: T.border },
+  mvpRow:     { flexDirection: "row", alignItems: "center", gap: 8 },
+  mvpBadge:   { backgroundColor: T.accentMuted, borderWidth: 1, borderColor: T.accentBorder, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
+  mvpBadgeTxt:{ color: T.accent, fontSize: 9, fontWeight: "800" },
+  mvpNameTxt: { color: T.textSecondary, fontSize: 12, fontWeight: "700" },
+  locationRow:{ flexDirection: "row", alignItems: "center", gap: 4 },
+  locationTxt:{ color: T.textMuted, fontSize: 10 },
 
-  cardMvpRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    gap: 7,
-    borderTopWidth: 1,
-    borderTopColor: "#181818",
-    marginTop: 4,
-  },
-  cardMvpLabel: { color: "#444", fontSize: 11, fontWeight: "600" },
-  cardMvpName: { color: "#fff", fontSize: 12, fontWeight: "700", flex: 1 },
-  cardMvpStat: { color: "#444", fontSize: 11 },
+  dateBadge:       { backgroundColor: T.accentMuted, borderWidth: 1, borderColor: T.accentBorder, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  dateBadgeTxt:    { color: T.accent, fontSize: 9, fontWeight: "800" },
+  upcomingTeams:   { flexDirection: "row", alignItems: "center" },
+  upcomingTeamName:{ flex: 1, color: T.textPrimary, fontSize: 15, fontWeight: "800" },
+  upcomingVs:      { color: T.textMuted, fontSize: 11, fontWeight: "700", paddingHorizontal: 12 },
 
-  // ── MVP hero card
-  mvpCard: {
-    marginHorizontal: 16,
-    borderRadius: 20,
-    overflow: "hidden",
-    height: 215,
-    backgroundColor: "#0a0a0a",
-    borderWidth: 1,
-    borderColor: "#1a1a1a",
-  },
-  mvpGlow: {
-    position: "absolute",
-    backgroundColor: "#f5c518",
-    alignSelf: "center",
-  },
-  mvpImage: {
-    position: "absolute",
-    width: "55%",
-    height: "100%",
-    left: "22.5%",
-  },
-  mvpFadeTop: { position: "absolute", top: 0, left: 0, right: 0, height: 80 },
-  mvpFadeBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 140,
-  },
-  mvpTopLabels: {
-    position: "absolute",
-    top: 14,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  mvpSub: {
-    color: "#555",
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 1.2,
-  },
-  mvpTitle: {
-    color: "#f5c518",
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 3.5,
-    marginTop: 2,
-  },
-  mvpBottom: {
-    position: "absolute",
-    bottom: 14,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    gap: 7,
-  },
-  mvpName: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "900",
-    letterSpacing: 0.3,
-  },
-  mvpMetaRow: { flexDirection: "row", alignItems: "center", gap: 9 },
-  mvpPosBadge: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 5,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  mvpPosText: {
-    color: "#555",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  mvpStatText: { color: "#444", fontSize: 12 },
-
-  // ── Upcoming card
-  upcomingCard: {
-    marginHorizontal: 16,
-    backgroundColor: "#111",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#1a1a1a",
-    padding: 16,
-  },
-  upcomingHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  upcomingLabel: {
-    color: "#4a4a4a",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1.8,
-  },
-  upcomingDateBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "#1a1400",
-    borderRadius: 7,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-  },
-  upcomingDateText: { color: "#f5c518", fontSize: 11, fontWeight: "600" },
-  upcomingTeams: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-  },
-  vsText: {
-    color: "#2a2a2a",
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
-  upcomingFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 14,
-  },
-
-  // ── CTA
-  cta: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    backgroundColor: "#0039a3",
-    borderRadius: 16,
-    paddingVertical: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-  },
-  ctaText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  ctaWrap: { marginHorizontal: 16, marginTop: 20, borderRadius: T.radius.pill, overflow: "hidden" },
+  cta:     { paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  ctaTxt:  { color: "#000", fontSize: 15, fontWeight: "800" },
 });

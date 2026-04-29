@@ -4,15 +4,6 @@ export type GamePlayer = {
   position: string;
 };
 
-export type GoalEvent = {
-  id: string;
-  playerId: string;
-  playerName: string;
-  team: "home" | "away";
-  minute: number;
-  type: "goal" | "assist";
-};
-
 export type Game = {
   id: string;
   date?: string;
@@ -28,7 +19,6 @@ export type Game = {
   location?: string;
   homePlayers?: GamePlayer[];
   awayPlayers?: GamePlayer[];
-  goalEvents?: GoalEvent[];
 };
 
 export type ExportMode = "options" | "result" | "preview" | "teamsheet";

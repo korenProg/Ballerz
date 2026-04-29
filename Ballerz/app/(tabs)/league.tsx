@@ -1,20 +1,21 @@
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
-  SafeAreaView,
+  View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useStore } from "../../store";
 import { useAppStats } from "../../store/selectors";
+import { T } from "../../constants/theme";
 
 const PRESET_COLORS = [
   "#f5c518",
@@ -83,23 +84,28 @@ export default function LeagueScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Profile card */}
-        <View style = {s.profileCard}>
-          <LinearGradient>
-          <View style={s.cardBody}>
-            <TouchableOpacity onPress={pickLogo}>
-              {logoUri ? (
-                <Image source={{ uri: logoUri }} style={s.logo} />
-              ) : (
-                <View style={[s.logo, s.logoPlaceholder]}>
-                  <Ionicons name="trophy" size={28} color="#555" />
-                </View>
-              )}
-            </TouchableOpacity>
-            <Text style={s.leagueName}>{league.name || "Your League"}</Text>
-            {league.adminName ? (
-              <Text style={s.adminName}>{league.adminName}</Text>
-            ) : null}
-          </View>
+        <View style={s.profileCard}>
+          <LinearGradient
+            colors={[color, "#192f6a00"]} // 1. Array of colors (Required)
+            start={{ x: 0, y: 0 }} // 2. Starting point {x, y}
+            end={{ x: 0, y: 1 }} // 3. Ending point {x, y}
+            locations={[0, 0.5, 1]} // 4. Color stop positions
+          >
+            <View style={s.cardBody}>
+              <TouchableOpacity onPress={pickLogo}>
+                {logoUri ? (
+                  <Image source={{ uri: logoUri }} style={s.logo} />
+                ) : (
+                  <View style={[s.logo, s.logoPlaceholder]}>
+                    <Ionicons name="trophy" size={28} color="#555" />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={s.leagueName}>{league.name || "Your League"}</Text>
+              {league.adminName ? (
+                <Text style={s.adminName}>{league.adminName}</Text>
+              ) : null}
+            </View>
           </LinearGradient>
         </View>
 
@@ -125,19 +131,6 @@ export default function LeagueScreen() {
           placeholderTextColor="#555"
           placeholder="Sunday League"
         />
-
-        <Text style={s.label}>League logo</Text>
-        <TouchableOpacity style={s.logoPicker} onPress={pickLogo}>
-          {logoUri ? (
-            <Image source={{ uri: logoUri }} style={s.logoThumb} />
-          ) : (
-            <Ionicons name="image-outline" size={22} color="#888" />
-          )}
-          <Text style={s.logoPickerText}>
-            {logoUri ? "Change logo" : "Pick logo image"}
-          </Text>
-          <Ionicons name="chevron-forward" size={18} color="#555" />
-        </TouchableOpacity>
 
         <Text style={s.label}>League color</Text>
         <View style={s.swatches}>
@@ -198,37 +191,55 @@ export default function LeagueScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0a0a0a" },
+  safe: { flex: 1, backgroundColor: T.bg },
   scroll: { padding: 16, gap: 12, paddingBottom: 40 },
-  cardBody: { alignItems: "center", paddingBottom: 20, gap: 4 },
-  profileCard: { marginTop: 25 },
-  logo: { width: 92, height: 92, borderRadius: 50, marginTop: -36, borderColor:"#383838", borderWidth:1},
+  cardBody: {
+    alignItems: "center",
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  profileCard: { borderRadius: 16, overflow: "hidden" },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderColor: "#383838",
+    borderWidth: 2,
+  },
   logoPlaceholder: {
     backgroundColor: "#1a1a1a",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
     borderColor: "#333",
-    marginTop: -36,
   },
 
-  leagueName: { fontSize: 20, fontWeight: "700", color: "#fff", marginTop: 8 },
-  adminName: { fontSize: 13, color: "#aaa" },
+  leagueName: { fontSize: 22, fontWeight: "700", color: "#fff", marginTop: 4 },
+  adminName: {
+    fontSize: 12,
+    color: "#bbb",
+    backgroundColor: "#44444488",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
   gameCount: { fontSize: 12, color: "#555", marginTop: 2 },
 
   // ── Stats
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 8,
   },
   statChip: {
-    backgroundColor: "#181818",
-    borderRadius: 14,
-    paddingVertical: 15,
+    flex: 1,
+    backgroundColor: T.surface,
+    borderRadius: T.radius.pill,
+    paddingVertical: 12,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#1a1a1a",
-    width: 110,
+    borderColor: T.border,
     marginVertical: 10,
   },
   statValue: { fontSize: 26, fontWeight: "800" },
@@ -240,28 +251,22 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 8,
-  },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
     color: "#aaa",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: T.surface,
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
     color: "#fff",
     borderWidth: 1,
-    borderColor: "#2a2a2a",
+    borderColor: T.border,
+    marginTop: -6,
   },
   logoPicker: {
     flexDirection: "row",
@@ -283,17 +288,17 @@ const s = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: "#2a2a2a",
+    borderColor: T.border,
     alignItems: "center",
   },
-  pillActive: { backgroundColor: "#f5c518", borderColor: "#f5c518" },
+  pillActive: { backgroundColor: T.accent, borderColor: T.accent },
   pillText: { color: "#aaa", fontWeight: "600", fontSize: 15 },
   pillTextActive: { color: "#000" },
   saveBtn: {
-    backgroundColor: "#f5c518",
-    borderRadius: 12,
+    backgroundColor: T.accent,
+    borderRadius: T.radius.pill,
     paddingVertical: 16,
     alignItems: "center",
     marginTop: 8,

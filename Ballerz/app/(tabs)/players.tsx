@@ -72,7 +72,13 @@ const ATTRS: { key: keyof Pick<Player, "pac"|"sho"|"pas"|"dri"|"def"|"phy">; lab
 
 function FormBadge({ form }: { form: Player["form"] }) {
   if (form === "neutral") return null;
-  return <Text style={{ fontSize: 13, lineHeight: 16 }}>{form === "hot" ? "🔥" : "❄️"}</Text>;
+  return (
+    <Ionicons
+      name={form === "hot" ? "flame-outline" : "snow-outline"}
+      size={13}
+      color={form === "hot" ? "#f97316" : "#60a5fa"}
+    />
+  );
 }
 
 // ─── Card Front ───────────────────────────────────────────────────────────────
@@ -271,6 +277,8 @@ function PlayerCardModal({ player, visible, onClose }: {
 
   if (!player) return null;
 
+  const router = useRouter();
+
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}>
@@ -305,15 +313,26 @@ function PlayerCardModal({ player, visible, onClose }: {
           <Ionicons name="share-social-outline" size={18} color="#fff" />
           <Text style={ms.exportText}>Share Card</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[ms.exportBtn, ms.editBtn]}
+          onPress={() => {
+            onClose();
+            setTimeout(() => router.push(`/create-player?playerId=${player.id}`), 300);
+          }}
+        >
+          <Ionicons name="create-outline" size={18} color="#aaa" />
+          <Text style={[ms.exportText, { color: "#aaa" }]}>Edit Player</Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
 }
 
 const ms = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", gap: 28 },
+  container: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
   closeBtn:  { position: "absolute", top: 60, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: "#ffffff14", alignItems: "center", justifyContent: "center" },
   exportBtn: { flexDirection: "row", alignItems: "center", gap: 9, backgroundColor: "#0039a3", borderRadius: 14, paddingHorizontal: 30, paddingVertical: 14 },
+  editBtn:   { backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   exportText:{ color: "#fff", fontSize: 15, fontWeight: "700" },
 });
 

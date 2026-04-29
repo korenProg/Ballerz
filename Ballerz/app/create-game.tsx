@@ -72,7 +72,6 @@ export default function CreateGame() {
       mvp: { name: "", stat: "" },
       homePlayers,
       awayPlayers,
-      goalEvents: [],
     });
     router.replace("/(tabs)/games");
   }

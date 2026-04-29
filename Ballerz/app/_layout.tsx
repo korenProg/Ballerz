@@ -28,6 +28,10 @@ export default function RootLayout() {
           name="create-game"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="record-result"
+          options={{ presentation: 'modal', headerShown: false }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
