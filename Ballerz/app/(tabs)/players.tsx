@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
 import {Player} from '../../types'
 import { useStore } from "../../store";
+import { TopBar } from "@/components/TopBar";
 
 type SortMode = "ovr_desc" | "ovr_asc" | "goals" | "mvps";
 
@@ -462,7 +462,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
   return (
     <>
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         onPress={selectable ? onSelect : onTap}
         style={[styles.row, selected && styles.rowSelected]}
       >
@@ -626,35 +626,26 @@ export default function PlayersScreen() {
   const cancelSelect = () => { setSelectMode(false); setSelectedIds(new Set()); };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.container}>
 
-        {/* ── Top bar ── */}
-        <View style={styles.topBar}>
-          {selectMode ? (
-            <TouchableOpacity onPress={cancelSelect} style={styles.topBarBtn}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={openMenu} style={styles.topBarBtn}>
-              <Ionicons name="ellipsis-horizontal" size={22} color="#fff" />
-            </TouchableOpacity>
-          )}
-          <Text style={styles.pageTitle}>Players</Text>
-          {selectMode ? (
-            <TouchableOpacity onPress={() => selectedIds.size > 0 && setConfirmVisible(true)} style={styles.topBarBtn} disabled={selectedIds.size === 0}>
-              <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
-                <Ionicons name="trash-outline" size={20} color="#cc0000" />
-                {selectedIds.size > 0 && (
-                  <View style={styles.trashBadge}><Text style={styles.trashBadgeText}>{selectedIds.size}</Text></View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.topBarBtn} onPress={() => router.push("/create-player")}>
-              <Ionicons name="add" size={26} color="#fff" />
-            </TouchableOpacity>
-          )}
-        </View>
+        <TopBar
+          title="Players"
+          left={
+            selectMode
+              ? <TouchableOpacity onPress={cancelSelect}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
+              : <TouchableOpacity onPress={openMenu}><Ionicons name="ellipsis-horizontal" size={22} color="#fff" /></TouchableOpacity>
+          }
+          right={
+            selectMode
+              ? <TouchableOpacity onPress={() => selectedIds.size > 0 && setConfirmVisible(true)} disabled={selectedIds.size === 0}>
+                  <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
+                    <Ionicons name="trash-outline" size={20} color="#cc0000" />
+                    {selectedIds.size > 0 && <View style={styles.trashBadge}><Text style={styles.trashBadgeText}>{selectedIds.size}</Text></View>}
+                  </View>
+                </TouchableOpacity>
+              : <TouchableOpacity onPress={() => router.push("/create-player")}><Ionicons name="add" size={26} color="#fff" /></TouchableOpacity>
+          }
+        />
 
         {/* ── Search + sort ── */}
         <Animated.View style={[styles.searchRow, { height: searchHeight, opacity: searchOpacity, marginBottom: searchMargin }]}>
@@ -678,7 +669,7 @@ export default function PlayersScreen() {
             <Ionicons name="people-outline" size={13} color="#aaa" />
             <Text style={styles.summaryText}>{players.length} Players</Text>
           </View>
-          <View style={styles.summaryPill}>
+          <View style={[styles.summaryPill, { borderLeftWidth: 2, borderLeftColor: T.accent }]}>
             <Ionicons name="stats-chart-outline" size={13} color="#aaa" />
             <Text style={styles.summaryText}>
               Avg {players.length > 0 ? Math.round(players.reduce((s, p) => s + p.ovr, 0) / players.length) : "—"} OVR
@@ -722,6 +713,18 @@ export default function PlayersScreen() {
           {mvpPlayer && !search && !mvpDismissed && (
             <MvpCard player={mvpPlayer} onDismiss={() => setMvpDismissed(true)} />
           )}
+          {sorted.length === 0 && (
+            <View style={styles.emptyCard}>
+              <Ionicons name="person-outline" size={32} color={T.textMuted} />
+              <Text style={styles.emptyTitle}>{search ? "No players found" : "No players yet"}</Text>
+              {!search && <Text style={styles.emptySubtitle}>Add your first player to get started</Text>}
+              {!search && (
+                <TouchableOpacity onPress={() => router.push("/create-player")} style={styles.emptyBtn} activeOpacity={0.85}>
+                  <Text style={styles.emptyBtnTxt}>Add Player</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
           {sorted.map((player, index) => (
             <PlayerRow
               key={player.id}
@@ -738,7 +741,7 @@ export default function PlayersScreen() {
         <ConfirmDialog visible={confirmVisible} count={selectedIds.size} onConfirm={confirmDelete} onCancel={() => setConfirmVisible(false)} />
         <PlayerCardModal player={cardPlayer} visible={!!cardPlayer} onClose={() => setCardPlayer(null)} />
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -746,9 +749,6 @@ export default function PlayersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0a0a0a" },
-  topBar:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, zIndex: 100 },
-  topBarBtn: { minWidth: 40, alignItems: "center" },
-  pageTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
   cancelText:{ color: "#aaa", fontSize: 14, fontWeight: "600" },
 
   trashBtn:       { alignItems: "center", justifyContent: "center" },
@@ -817,4 +817,10 @@ const styles = StyleSheet.create({
   dialogCancelText:     { color: "#aaa", fontSize: 15, fontWeight: "600" },
   dialogConfirm:        { flex: 1, paddingVertical: 16, alignItems: "center" },
   dialogConfirmText:    { color: "#cc0000", fontSize: 15, fontWeight: "700" },
+
+  emptyCard: { marginTop: 24, backgroundColor: T.surface, borderRadius: T.radius.card, borderWidth: 1, borderColor: T.border, padding: 28, alignItems: "center", gap: 10 },
+  emptyTitle: { color: T.textPrimary, fontSize: 15, fontWeight: "800" },
+  emptySubtitle: { color: T.textMuted, fontSize: 13, textAlign: "center" },
+  emptyBtn: { marginTop: 4, backgroundColor: T.accent, borderRadius: T.radius.pill, paddingHorizontal: 24, paddingVertical: 11 },
+  emptyBtnTxt: { color: "#000", fontSize: 14, fontWeight: "800" },
 });
