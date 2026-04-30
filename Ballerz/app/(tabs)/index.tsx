@@ -1,91 +1,121 @@
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect, router, useRouter } from "expo-router";
 import { useStore } from "../../store";
-import { useLastGame, useAppStats } from "../../store/selectors";
+import { useAppStats } from "../../store/selectors";
 import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
+import { Leaderboard } from "@/components/Leaderboard";
 
-function StatPill({ value, label, color }: { value: string; label: string; color: string }) {
+function HeroContent({
+  leagueName,
+  logoUri,
+  color,
+  adminName,
+  gamesCount,
+  playersCount,
+}: {
+  leagueName: string;
+  logoUri: string | null;
+  color: string;
+  adminName: string;
+  gamesCount: number;
+  playersCount: number;
+}) {
   return (
-    <View style={s.statPill}>
-      <Text style={[s.statVal, { color }]}>{value}</Text>
-      <Text style={s.statLbl}>{label}</Text>
+    <View style={s.heroInner}>
+      <TouchableOpacity style={s.logoWrap} activeOpacity={0.8}>
+        {logoUri ? (
+          <Image source={{ uri: logoUri }} style={s.heroLogo} />
+        ) : (
+          <View style={s.heroLogoFallback}>
+            <Ionicons name="trophy" size={44} color={color} />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <Text style={s.heroName} numberOfLines={1}>
+        {leagueName || "My League"}
+      </Text>
+      {adminName ? <Text style={s.heroAdmin}>{adminName}</Text> : null}
+
+      <View style={s.heroStats}>
+        <View style={s.heroStatItem}>
+          <Text style={s.heroStatVal}>{playersCount}</Text>
+          <Text style={s.heroStatLbl}>PLAYERS</Text>
+        </View>
+        <View style={s.heroStatDivider} />
+        <View style={s.heroStatItem}>
+          <Text style={s.heroStatVal}>{gamesCount}</Text>
+          <Text style={s.heroStatLbl}>GAMES</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => router.push("/(tabs)/league")}
+        style={s.heroCtaWrap}
+      >
+        <LinearGradient
+          colors={["#f59e0b", "#d97706"]}
+          style={s.heroCta}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Text style={s.heroCtaTxt}>Manage League</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
 
-function LastMatchCard({ g }: { g: Game }) {
-  const isCompleted = g.status === "FT";
+
+function GameCard({ g }: { g: Game }) {
   return (
-    <View style={s.card}>
-      <View style={s.cardTop}>
-        <View style={s.leagueRow}>
-          <Ionicons name="football-outline" size={11} color={T.textMuted} />
-          <Text style={s.leagueTxt}>{g.league}</Text>
-        </View>
+    <View style={s.gameCard}>
+      <View style={s.gameCardTop}>
         <View style={s.ftPill}>
           <Text style={s.ftTxt}>FT</Text>
         </View>
+        {g.date ? <Text style={s.gameDate}>{g.date}</Text> : null}
       </View>
-
-      <View style={s.scoreRow}>
-        <View style={s.teamSide}>
+      <View style={s.gameTeams}>
+        <View style={s.gameTeamSide}>
           <View style={[s.teamDot, { backgroundColor: g.homeColor }]} />
-          <Text style={s.teamName}>{g.homeTeam}</Text>
+          <Text style={s.gameTeamName} numberOfLines={1}>
+            {g.homeTeam}
+          </Text>
         </View>
-        <Text style={s.scoreText}>
-          {isCompleted ? `${g.homeScore}` : "–"}
-          <Text style={s.scoreSep}> – </Text>
-          {isCompleted ? `${g.awayScore}` : "–"}
+        <Text style={s.gameScore}>
+          {g.homeScore}
+          <Text style={s.gameScoreSep}> – </Text>
+          {g.awayScore}
         </Text>
-        <View style={[s.teamSide, { alignItems: "flex-end" }]}>
+        <View style={[s.gameTeamSide, { alignItems: "flex-end" }]}>
           <View style={[s.teamDot, { backgroundColor: g.awayColor }]} />
-          <Text style={[s.teamName, { textAlign: "right" }]}>{g.awayTeam}</Text>
+          <Text
+            style={[s.gameTeamName, { textAlign: "right" }]}
+            numberOfLines={1}
+          >
+            {g.awayTeam}
+          </Text>
         </View>
       </View>
-
-      {g.mvp.name !== "—" && (
-        <View style={s.cardFooter}>
-          <View style={s.mvpRow}>
-            <View style={s.mvpBadge}>
-              <Text style={s.mvpBadgeTxt}>MVP</Text>
-            </View>
-            <Text style={s.mvpNameTxt}>{g.mvp.name}</Text>
-          </View>
-          {g.location ? (
-            <View style={s.locationRow}>
-              <Ionicons name="location-outline" size={10} color={T.textMuted} />
-              <Text style={s.locationTxt}>{g.location}</Text>
-            </View>
-          ) : null}
+      {g.location ? (
+        <View style={s.gameLocation}>
+          <Ionicons name="location-outline" size={9} color={T.textMuted} />
+          <Text style={s.gameLocationTxt}>{g.location}</Text>
         </View>
-      )}
-    </View>
-  );
-}
-
-function UpcomingCard({ g }: { g: Game }) {
-  return (
-    <View style={[s.card, s.upcomingCard]}>
-      <View style={s.cardTop}>
-        <Text style={s.sectionEyebrow}>UPCOMING</Text>
-        {g.date ? (
-          <View style={s.dateBadge}>
-            <Text style={s.dateBadgeTxt}>{g.date}</Text>
-          </View>
-        ) : null}
-      </View>
-      <View style={s.upcomingTeams}>
-        <Text style={s.upcomingTeamName}>{g.homeTeam}</Text>
-        <Text style={s.upcomingVs}>vs</Text>
-        <Text style={[s.upcomingTeamName, { textAlign: "right" }]}>{g.awayTeam}</Text>
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -93,108 +123,397 @@ function UpcomingCard({ g }: { g: Game }) {
 export default function HomeScreen() {
   const router = useRouter();
   const hasOnboarded = useStore((s) => s.hasOnboarded);
-  const lastGame = useLastGame();
-  const { gamesCount, playersCount, totalGoals } = useAppStats();
+  const { gamesCount, playersCount } = useAppStats();
   const games = useStore((s) => s.games);
-  const nextGame = games.find((g) => g.status === "Pending") ?? null;
+  const players = useStore((s) => s.players);
+  const league = useStore((s) => s.league);
 
   if (!hasOnboarded) return <Redirect href="/onboarding" />;
 
+  const recentGames = [...games]
+    .filter((g) => g.status === "FT")
+    .sort(
+      (a, b) =>
+        new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime(),
+    )
+    .slice(0, 4);
+
   return (
-    <SafeAreaView style={s.safe} edges={["top"]}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-
-        <View style={s.header}>
-          <Text style={s.logo}>BALLER<Text style={s.logoAccent}>Z</Text></Text>
-          <TouchableOpacity style={s.headerBtn} onPress={() => router.push("/create-game")}>
-            <Ionicons name="add" size={20} color={T.textPrimary} />
-          </TouchableOpacity>
+    <View style={s.root}>
+      {/* Blurred logo watermark with built-in bottom fade */}
+      {league.logoUri ? (
+        <View style={s.bgIconWrap} pointerEvents="none">
+          <Image source={{ uri: league.logoUri }} style={s.bgLogoImg} blurRadius={2} />
+          <LinearGradient
+            colors={["transparent", T.bg]}
+            locations={[0.3, 1]}
+            style={s.bgInnerFade}
+          />
         </View>
-
-        <View style={s.statsRow}>
-          <StatPill value={String(gamesCount)}   label="GAMES"   color="#60a5fa" />
-          <StatPill value={String(playersCount)}  label="PLAYERS" color="#a78bfa" />
-          <StatPill value={String(totalGoals)}    label="GOALS"   color={T.accent} />
+      ) : (
+        <View style={s.bgIconWrap} pointerEvents="none">
+          <Ionicons name="trophy" size={210} color={league.color} />
+          <LinearGradient
+            colors={["transparent", T.bg]}
+            locations={[0.3, 1]}
+            style={s.bgInnerFade}
+          />
         </View>
+      )}
 
-        {lastGame && (
-          <>
-            <Text style={[s.sectionEyebrow, { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8 }]}>
-              LAST RESULT
-            </Text>
-            <LastMatchCard g={lastGame} />
-          </>
-        )}
+      {/* Top color gradient */}
+      <LinearGradient
+        colors={[
+          league.color + "ff",
+          league.color + "ee",
+          league.color + "cc",
+          league.color + "99",
+          league.color + "55",
+          league.color + "22",
+          T.bg + "00",
+        ]}
+        locations={[0, 0.1, 0.25, 0.42, 0.62, 0.82, 1]}
+        style={s.gradientBg}
+        pointerEvents="none"
+      />
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <HeroContent
+          leagueName={league.name}
+          logoUri={league.logoUri}
+          color={league.color}
+          adminName={league.adminName}
+          gamesCount={gamesCount}
+          playersCount={playersCount}
+        />
 
-        {nextGame && (
-          <>
-            <Text style={[s.sectionEyebrow, { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }]}>
-              UPCOMING
-            </Text>
-            <UpcomingCard g={nextGame} />
-          </>
-        )}
+        <View style={s.sheet}>
+          {players.length > 0 && (
+            <>
+              <View style={s.sectionHeader}>
+                <Text style={s.sectionTitle}>TOP PLAYERS</Text>
+                <TouchableOpacity onPress={() => router.push("/(tabs)/players")}>
+                  <Text style={s.sectionLink}>See all</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={s.cardWrap}>
+                <Leaderboard limit={3} />
+              </View>
+            </>
+          )}
 
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push("/create-game")} style={s.ctaWrap}>
-          <LinearGradient colors={["#f59e0b", "#d97706"]} style={s.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Ionicons name="add-circle-outline" size={18} color="#000" />
-            <Text style={s.ctaTxt}>Create Game</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+          {recentGames.length > 0 && (
+            <>
+              <View style={s.sectionHeader}>
+                <Text style={s.sectionTitle}>RECENT GAMES</Text>
+                <TouchableOpacity onPress={() => router.push("/(tabs)/games")}>
+                  <Text style={s.sectionLink}>See all</Text>
+                </TouchableOpacity>
+              </View>
 
-        <View style={{ height: 32 }} />
+              <View style={s.gamesGrid}>
+                {recentGames.map((g) => (
+                  <GameCard key={g.id} g={g} />
+                ))}
+              </View>
+            </>
+          )}
+
+          {gamesCount === 0 && players.length === 0 && (
+            <View style={s.emptyState}>
+              <Ionicons name="football-outline" size={36} color="#999" />
+              <Text style={s.emptyText}>
+                Create your first game to get started
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => router.push("/create-game")}
+                style={s.emptyCtaWrap}
+              >
+                <LinearGradient
+                  colors={["#f59e0b", "#d97706"]}
+                  style={s.emptyCta}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={s.emptyCtaTxt}>Create Game</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={{ height: 32 }} />
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: T.bg },
+  root: { flex: 1, backgroundColor: T.bg },
   scroll: { flex: 1 },
-  content:{ paddingBottom: 16 },
+  content: { marginTop: 60, paddingBottom: 0 },
 
-  header:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
-  logo:      { color: T.textPrimary, fontSize: 22, fontWeight: "900", letterSpacing: -1 },
-  logoAccent:{ color: T.accent },
-  headerBtn: { width: 36, height: 36, borderRadius: T.radius.badge, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center" },
+  sheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    marginTop: -20,
+    paddingTop: 8,
+    minHeight: 200,
+  },
 
-  statsRow:  { flexDirection: "row", marginHorizontal: 16, gap: 8 },
-  statPill:  { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius.pill, paddingVertical: 14, alignItems: "center" },
-  statVal:   { fontSize: 22, fontWeight: "800" },
-  statLbl:   { fontSize: 8, color: T.textMuted, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
+  headerGradient: { marginBottom: 8 },
+  gradientBg: { position: "absolute", top: 0, left: 0, right: 0, height: 480 },
+  bgIconWrap: { position: "absolute", top: 0, left: 0, right: 0, height: 480, alignItems: "center", justifyContent: "center", opacity: 0.42 },
+  bgLogoImg: { width: 480, height: 480, borderRadius: 0},
+  bgFadeBottom: { position: "absolute", top: 80, left: 0, right: 0, height: 320 },
+  bgInnerFade: { position: "absolute", bottom: 0, left: 0, right: 0, height: "70%" },
+  heroInner: {
+    alignItems: "center",
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  logoWrap: { marginBottom: 12 },
+  heroLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgb(22, 22, 22)",
+  },
+  heroLogoFallback: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  heroName: {
+    fontSize: 30,
+    fontWeight: "900",
+    color: "#fff",
+    letterSpacing: -0.5,
+    textAlign: "center",
+  },
+  heroAdmin: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.65)",
+    marginTop: 3,
+    marginBottom: 14,
+  },
+  heroStats: {
+    flexDirection: "row",
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 0,
+    marginTop: 12,
+    marginBottom: 16,
+    width: "100%",
+  },
+  heroStatItem: { flex: 1, alignItems: "center" },
+  heroStatDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.2)" },
+  heroStatVal: { fontSize: 20, fontWeight: "800", color: "#fff" },
+  heroStatLbl: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  heroCtaWrap: {
+    width: "100%",
+    borderRadius: T.radius.pill,
+    overflow: "hidden",
+  },
+  heroCta: {
+    paddingVertical: 13,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  heroCtaTxt: { color: "#000", fontSize: 14, fontWeight: "800" },
 
-  sectionEyebrow: { fontSize: 9, fontWeight: "800", letterSpacing: 2, color: T.textMuted, textTransform: "uppercase" },
+  // Section headers
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    
+  },
+  sectionTitle: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 2,
+    color: "#aaa",
+  },
+  sectionLink: { fontSize: 11, fontWeight: "700", color: "#f59e0b" },
 
-  card:       { marginHorizontal: 16, backgroundColor: T.surface, borderRadius: T.radius.card, borderWidth: 1, borderColor: T.border, padding: 14 },
-  upcomingCard:{ marginTop: 0 },
-  cardTop:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  leagueRow:  { flexDirection: "row", alignItems: "center", gap: 5 },
-  leagueTxt:  { color: T.textMuted, fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
-  ftPill:     { backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  ftTxt:      { color: T.textMuted, fontSize: 9, fontWeight: "800", letterSpacing: 1 },
+  cardWrap: { marginHorizontal: 16, marginBottom: 20 },
 
-  scoreRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  teamSide:   { flex: 1 },
-  teamDot:    { width: 8, height: 8, borderRadius: 4, marginBottom: 6 },
-  teamName:   { color: T.textSecondary, fontSize: 13, fontWeight: "700" },
-  scoreText:  { color: T.textPrimary, fontSize: T.scoreSize, fontWeight: "900", letterSpacing: -1 },
-  scoreSep:   { color: T.textMuted, fontWeight: "300" },
+  // Card wrapper
+  card: {
+    marginHorizontal: 16,
+    backgroundColor: T.surface,
+    borderRadius: T.radius.card,
+    borderWidth: 1,
+    borderColor: T.border,
+    padding: 14,
+    marginBottom: 20,
+  },
 
-  cardFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTopWidth: 1, borderTopColor: T.border },
-  mvpRow:     { flexDirection: "row", alignItems: "center", gap: 8 },
-  mvpBadge:   { backgroundColor: T.accentMuted, borderWidth: 1, borderColor: T.accentBorder, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
-  mvpBadgeTxt:{ color: T.accent, fontSize: 9, fontWeight: "800" },
-  mvpNameTxt: { color: T.textSecondary, fontSize: 12, fontWeight: "700" },
-  locationRow:{ flexDirection: "row", alignItems: "center", gap: 4 },
-  locationTxt:{ color: T.textMuted, fontSize: 10 },
+  // Table header
+  tableHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: T.border,
+  },
+  tableHeaderTxt: {
+    fontSize: 8,
+    fontWeight: "800",
+    color: T.textMuted,
+    letterSpacing: 1,
+  },
 
-  dateBadge:       { backgroundColor: T.accentMuted, borderWidth: 1, borderColor: T.accentBorder, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  dateBadgeTxt:    { color: T.accent, fontSize: 9, fontWeight: "800" },
-  upcomingTeams:   { flexDirection: "row", alignItems: "center" },
-  upcomingTeamName:{ flex: 1, color: T.textPrimary, fontSize: 15, fontWeight: "800" },
-  upcomingVs:      { color: T.textMuted, fontSize: 11, fontWeight: "700", paddingHorizontal: 12 },
+  // Player row
+  playerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: T.border + "66",
+  },
+  rankNum: { width: 24, fontSize: 13, fontWeight: "800", color: T.textMuted },
+  initials: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: T.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  initialsTxt: { fontSize: 10, fontWeight: "800", color: T.textSecondary },
+  playerName: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    color: T.textPrimary,
+  },
+  playerStats: { flexDirection: "row", alignItems: "center", gap: 4 },
+  playerStatCol: { width: 30, alignItems: "center" },
+  playerStatVal: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  playerStatLbl: { fontSize: 8, color: T.textMuted, fontWeight: "600" },
+  ovrBadge: {
+    width: 40,
+    alignItems: "center",
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  ovrTxt: { fontSize: 12, fontWeight: "900" },
 
-  ctaWrap: { marginHorizontal: 16, marginTop: 20, borderRadius: T.radius.pill, overflow: "hidden" },
-  cta:     { paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  ctaTxt:  { color: "#000", fontSize: 15, fontWeight: "800" },
+  // Games grid
+  gamesGrid: {
+    marginHorizontal: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 4,
+  },
+  gameCard: {
+    width: "47.5%",
+    backgroundColor: "#f5f5f7",
+    borderRadius: T.radius.card,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    padding: 12,
+  },
+  gameCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  ftPill: {
+    backgroundColor: "#e5e5e5",
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  ftTxt: {
+    color: "#999",
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  gameDate: { color: "#999", fontSize: 9 },
+  gameTeams: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  gameTeamSide: { flex: 1, gap: 4 },
+  teamDot: { width: 7, height: 7, borderRadius: 3.5 },
+  gameTeamName: { color: "#444", fontSize: 11, fontWeight: "700" },
+  gameScore: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#111",
+    paddingHorizontal: 6,
+    textAlign: "center",
+  },
+  gameScoreSep: { color: "#bbb", fontWeight: "300" },
+  gameLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    marginTop: 4,
+  },
+  gameLocationTxt: { color: "#999", fontSize: 9 },
+
+  // Empty state
+  emptyState: {
+    alignItems: "center",
+    paddingTop: 40,
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  emptyText: {
+    color: "#999",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  emptyCtaWrap: {
+    width: "100%",
+    borderRadius: T.radius.pill,
+    overflow: "hidden",
+    marginTop: 8,
+  },
+  emptyCta: {
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyCtaTxt: { color: "#000", fontSize: 15, fontWeight: "800" },
 });
