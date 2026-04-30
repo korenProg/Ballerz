@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Redirect, router, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import { useAppStats } from "../../store/selectors";
 import { T } from "../../constants/theme";
@@ -122,6 +123,7 @@ function GameCard({ g }: { g: Game }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const hasOnboarded = useStore((s) => s.hasOnboarded);
   const { gamesCount, playersCount } = useAppStats();
   const games = useStore((s) => s.games);
@@ -178,7 +180,7 @@ export default function HomeScreen() {
       />
       <ScrollView
         style={s.scroll}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[s.content, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
       >
         <HeroContent
@@ -223,11 +225,10 @@ export default function HomeScreen() {
           )}
 
           {gamesCount === 0 && players.length === 0 && (
-            <View style={s.emptyState}>
-              <Ionicons name="football-outline" size={36} color="#999" />
-              <Text style={s.emptyText}>
-                Create your first game to get started
-              </Text>
+            <View style={s.emptyCard}>
+              <Ionicons name="football-outline" size={32} color={T.textMuted} />
+              <Text style={s.emptyTitle}>No games yet</Text>
+              <Text style={s.emptyText}>Create your first game to get started</Text>
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => router.push("/create-game")}
@@ -255,14 +256,16 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: T.bg },
   scroll: { flex: 1 },
-  content: { marginTop: 60, paddingBottom: 0 },
+  content: { paddingBottom: 0 },
 
   sheet: {
-    backgroundColor: "#fff",
+    backgroundColor: T.bg,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderTopWidth: 1,
+    borderTopColor: T.border,
     marginTop: -20,
-    paddingTop: 8,
+    paddingTop: 20,
     minHeight: 200,
   },
 
@@ -358,7 +361,7 @@ const s = StyleSheet.create({
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 2,
-    color: "#aaa",
+    color: T.textMuted,
   },
   sectionLink: { fontSize: 11, fontWeight: "700", color: "#f59e0b" },
 
@@ -441,10 +444,10 @@ const s = StyleSheet.create({
   },
   gameCard: {
     width: "47.5%",
-    backgroundColor: "#f5f5f7",
+    backgroundColor: T.surface,
     borderRadius: T.radius.card,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: T.border,
     padding: 12,
   },
   gameCardTop: {
@@ -454,18 +457,18 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   ftPill: {
-    backgroundColor: "#e5e5e5",
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 5,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   ftTxt: {
-    color: "#999",
+    color: T.textMuted,
     fontSize: 8,
     fontWeight: "800",
     letterSpacing: 1,
   },
-  gameDate: { color: "#999", fontSize: 9 },
+  gameDate: { color: T.textMuted, fontSize: 9 },
   gameTeams: {
     flexDirection: "row",
     alignItems: "center",
@@ -474,33 +477,42 @@ const s = StyleSheet.create({
   },
   gameTeamSide: { flex: 1, gap: 4 },
   teamDot: { width: 7, height: 7, borderRadius: 3.5 },
-  gameTeamName: { color: "#444", fontSize: 11, fontWeight: "700" },
+  gameTeamName: { color: T.textSecondary, fontSize: 11, fontWeight: "700" },
   gameScore: {
     fontSize: 16,
     fontWeight: "900",
-    color: "#111",
+    color: T.textPrimary,
     paddingHorizontal: 6,
     textAlign: "center",
   },
-  gameScoreSep: { color: "#bbb", fontWeight: "300" },
+  gameScoreSep: { color: T.textMuted, fontWeight: "300" },
   gameLocation: {
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
     marginTop: 4,
   },
-  gameLocationTxt: { color: "#999", fontSize: 9 },
+  gameLocationTxt: { color: T.textMuted, fontSize: 9 },
 
   // Empty state
-  emptyState: {
+  emptyCard: {
+    margin: 16,
+    backgroundColor: T.surface,
+    borderRadius: T.radius.card,
+    borderWidth: 1,
+    borderColor: T.border,
+    padding: 28,
     alignItems: "center",
-    paddingTop: 40,
-    gap: 12,
-    paddingHorizontal: 32,
+    gap: 8,
+  },
+  emptyTitle: {
+    color: T.textPrimary,
+    fontSize: 15,
+    fontWeight: "800",
   },
   emptyText: {
-    color: "#999",
-    fontSize: 14,
+    color: T.textMuted,
+    fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
   },
