@@ -109,10 +109,10 @@ const COL_MVP = 36;
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: "#f5f5f7",
+    backgroundColor: T.surface,
     borderRadius: T.radius.card,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: T.border,
     overflow: "hidden",
   },
 
@@ -122,12 +122,12 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: T.border,
   },
   hTxt: {
     fontSize: 8,
     fontWeight: "800",
-    color: "#aaa",
+    color: T.textMuted,
     letterSpacing: 1,
     textAlign: "center",
   },
@@ -139,29 +139,29 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: "rgba(255,255,255,0.05)",
   },
   rowFirst: { backgroundColor: "rgba(245,158,11,0.06)" },
   rowLast: { borderBottomWidth: 0 },
 
-  pos: { width: COL_POS, fontSize: 12, fontWeight: "800", color: "#bbb", textAlign: "center" },
+  pos: { width: COL_POS, fontSize: 12, fontWeight: "800", color: T.textMuted, textAlign: "center" },
 
   nameCell: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
   avatar: {
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#e5e5e5",
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: T.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarTxt: { fontSize: 9, fontWeight: "800", color: "#666" },
-  nameText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#111" },
+  avatarTxt: { fontSize: 9, fontWeight: "800", color: T.textSecondary },
+  nameText: { flex: 1, fontSize: 13, fontWeight: "700", color: T.textPrimary },
 
   cell: { alignItems: "center" },
-  statVal: { fontSize: 13, fontWeight: "700", color: "#aaa" },
+  statVal: { fontSize: 13, fontWeight: "700", color: T.textMuted },
 
   ovrBadge: {
     paddingHorizontal: 7,
