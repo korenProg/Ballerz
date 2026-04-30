@@ -6,12 +6,12 @@ import {
   Animated, Modal, ScrollView, Share, StyleSheet, Text,
   TouchableOpacity, TouchableWithoutFeedback, View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 import { useRouter } from "expo-router";
 import { GamePlayer, Game, ExportMode } from "../../types";
 import { useStore } from "../../store";
 import { T } from "../../constants/theme";
+import { TopBar } from "@/components/TopBar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,7 +75,7 @@ function FilterTabs({ active, onChange, counts }: {
 }
 
 const ft = StyleSheet.create({
-  bar: { height: 48, justifyContent: "center" },
+  bar: { height: 44, justifyContent: "center", borderBottomWidth: 1, borderBottomColor: T.border },
   content: { paddingHorizontal: 16, gap: 8, alignItems: "center" },
   pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
   pillActive: { backgroundColor: T.accent, borderColor: T.accent },
@@ -469,7 +469,7 @@ function GameCard({ game, selectable, selected, onSelect, onTap, onExport }: {
 
   return (
     <TouchableOpacity
-      activeOpacity={selectable || isCompleted ? 0.7 : 1}
+      activeOpacity={0.75}
       onPress={selectable ? onSelect : isCompleted ? onTap : undefined}
       style={[styles.card, selected && styles.cardSelected]}
     >
@@ -636,33 +636,25 @@ export default function GamesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.topBar}>
-        {selectMode ? (
-          <TouchableOpacity onPress={cancelSelect} style={styles.topBarBtn}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={openMenu} style={styles.topBarBtn}>
-            <Ionicons name="ellipsis-horizontal" size={22} color={T.textMuted} />
-          </TouchableOpacity>
-        )}
-        <Text style={styles.pageTitle}>Games</Text>
-        {selectMode ? (
-          <TouchableOpacity onPress={() => selectedIds.size > 0 && setConfirmVisible(true)} style={styles.topBarBtn} disabled={selectedIds.size === 0}>
-            <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
-              <Ionicons name="trash-outline" size={20} color="#cc0000" />
-              {selectedIds.size > 0 && (
-                <View style={styles.trashBadge}><Text style={styles.trashBadgeText}>{selectedIds.size}</Text></View>
-              )}
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.topBarBtn} onPress={() => router.push("/create-game")}>
-            <Ionicons name="add" size={26} color={T.textPrimary} />
-          </TouchableOpacity>
-        )}
-      </View>
+    <View style={styles.container}>
+      <TopBar
+        title="Games"
+        left={
+          selectMode
+            ? <TouchableOpacity onPress={cancelSelect}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
+            : <TouchableOpacity onPress={openMenu}><Ionicons name="ellipsis-horizontal" size={22} color={T.textSecondary} /></TouchableOpacity>
+        }
+        right={
+          selectMode
+            ? <TouchableOpacity onPress={() => selectedIds.size > 0 && setConfirmVisible(true)} disabled={selectedIds.size === 0}>
+                <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
+                  <Ionicons name="trash-outline" size={20} color="#cc0000" />
+                  {selectedIds.size > 0 && <View style={styles.trashBadge}><Text style={styles.trashBadgeText}>{selectedIds.size}</Text></View>}
+                </View>
+              </TouchableOpacity>
+            : <TouchableOpacity onPress={() => router.push("/create-game")}><Ionicons name="add" size={26} color={T.textPrimary} /></TouchableOpacity>
+        }
+      />
 
       {menuVisible && (
         <View style={styles.dropdownContainer}>
@@ -680,9 +672,19 @@ export default function GamesScreen() {
 
       <ScrollView ref={listRef} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {visibleGames.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="football-outline" size={36} color={T.textMuted} />
-            <Text style={styles.emptyText}>No games here</Text>
+          <View style={styles.emptyCard}>
+            <Ionicons name="football-outline" size={32} color={T.textMuted} />
+            <Text style={styles.emptyTitle}>
+              {activeFilter === "All" ? "No games yet" : `No ${activeFilter.toLowerCase()} games`}
+            </Text>
+            {activeFilter === "All" && (
+              <Text style={styles.emptySubtitle}>Create your first game to get started</Text>
+            )}
+            {activeFilter === "All" && (
+              <TouchableOpacity onPress={() => router.push("/create-game")} style={styles.emptyBtn} activeOpacity={0.85}>
+                <Text style={styles.emptyBtnTxt}>New Game</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           visibleGames.map((game) => (
@@ -701,7 +703,7 @@ export default function GamesScreen() {
 
       <ConfirmDialog visible={confirmVisible} count={selectedIds.size} onConfirm={confirmDelete} onCancel={() => setConfirmVisible(false)} />
       <GameExportSheet game={exportGame} visible={!!exportGame} onClose={() => setExportGame(null)} />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -709,10 +711,7 @@ export default function GamesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.bg },
-  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, zIndex: 100 },
-  topBarBtn: { minWidth: 40, alignItems: "center" },
-  pageTitle: { color: T.textPrimary, fontSize: 18, fontWeight: "800" },
-  cancelText: { color: T.textMuted, fontSize: 14, fontWeight: "600" },
+  cancelText: { color: T.textSecondary, fontSize: 14, fontWeight: "600" },
   trashBtn: { alignItems: "center", justifyContent: "center" },
   trashBadge: { position: "absolute", top: -6, right: -8, backgroundColor: "#cc0000", borderRadius: 8, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
   trashBadgeText: { color: "#fff", fontSize: 10, fontWeight: "800" },
@@ -722,8 +721,11 @@ const styles = StyleSheet.create({
   dropdownItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
   dropdownText: { color: T.textSecondary, fontSize: 14, fontWeight: "600" },
   scrollContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 40 },
-  emptyState: { alignItems: "center", paddingTop: 60, gap: 12 },
-  emptyText: { color: T.textMuted, fontSize: 14, fontWeight: "600" },
+  emptyCard: { margin: 16, backgroundColor: T.surface, borderRadius: T.radius.card, borderWidth: 1, borderColor: T.border, padding: 28, alignItems: "center", gap: 10 },
+  emptyTitle: { color: T.textPrimary, fontSize: 15, fontWeight: "800" },
+  emptySubtitle: { color: T.textMuted, fontSize: 13, textAlign: "center" },
+  emptyBtn: { marginTop: 4, backgroundColor: T.accent, borderRadius: T.radius.pill, paddingHorizontal: 24, paddingVertical: 11 },
+  emptyBtnTxt: { color: "#000", fontSize: 14, fontWeight: "800" },
 
   card: { backgroundColor: T.surface, borderRadius: T.radius.card, overflow: "hidden", borderWidth: 1, borderColor: T.border },
   cardSelected: { borderColor: T.accent, borderWidth: 1.5 },
@@ -752,7 +754,7 @@ const styles = StyleSheet.create({
   dateRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
   dateTxt: { color: T.textMuted, fontSize: 11, fontWeight: "600" },
   recordCta: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 11, gap: 6 },
-  recordCtaText: { color: T.accent, fontSize: 12, fontWeight: "600" },
+  recordCtaText: { color: T.accent, fontSize: 12, fontWeight: "600", textDecorationLine: "underline" },
 
   dialogOverlay: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   dialog: { backgroundColor: "#161616", borderRadius: 22, width: "100%", overflow: "hidden", alignItems: "center", borderWidth: 1, borderColor: "#242424" },
