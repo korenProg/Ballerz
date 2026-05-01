@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GamePlayer, Game, ExportMode } from "../../types";
 import { useStore } from "../../store";
 import { T } from "../../constants/theme";
@@ -75,7 +76,7 @@ function FilterTabs({ active, onChange, counts }: {
 }
 
 const ft = StyleSheet.create({
-  bar: { height: 44, justifyContent: "center", borderBottomWidth: 1, borderBottomColor: T.border },
+  bar: { height: 54, justifyContent: "center", borderBottomWidth: 1, borderBottomColor: T.border, borderTopWidth: 1, borderTopColor: T.border, marginBottom: 12, paddingVertical: 8 },
   content: { paddingHorizontal: 16, gap: 8, alignItems: "center" },
   pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
   pillActive: { backgroundColor: T.accent, borderColor: T.accent },
@@ -469,7 +470,7 @@ function GameCard({ game, selectable, selected, onSelect, onTap, onExport }: {
 
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={selectable || isCompleted ? 0.75 : 1}
       onPress={selectable ? onSelect : isCompleted ? onTap : undefined}
       style={[styles.card, selected && styles.cardSelected]}
     >
@@ -576,6 +577,7 @@ function GameCard({ game, selectable, selected, onSelect, onTap, onExport }: {
 
 export default function GamesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { games, deleteGame } = useStore();
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
@@ -659,7 +661,7 @@ export default function GamesScreen() {
       {menuVisible && (
         <View style={styles.dropdownContainer}>
           <TouchableWithoutFeedback onPress={closeMenu}><View style={styles.dropdownOverlay} /></TouchableWithoutFeedback>
-          <Animated.View style={[styles.dropdown, { opacity: dropdownOpacity, transform: [{ translateY: dropdownY }] }]}>
+          <Animated.View style={[styles.dropdown, { top: insets.top + 46, opacity: dropdownOpacity, transform: [{ translateY: dropdownY }] }]}>
             <TouchableOpacity style={styles.dropdownItem} onPress={() => { setSelectMode(true); closeMenu(); }}>
               <Ionicons name="checkbox-outline" size={16} color={T.textPrimary} />
               <Text style={styles.dropdownText}>Select Games</Text>

@@ -206,8 +206,6 @@ const s = StyleSheet.create({
   safe:    { flex: 1, backgroundColor: T.bg },
   content: { paddingHorizontal: 16, paddingBottom: 16 },
 
-  pageTitle: { color: T.textPrimary, fontSize: 22, fontWeight: "900", paddingTop: 14, marginBottom: 16 },
-
   sectionEyebrow: {
     fontSize: 9,
     fontWeight: "800",

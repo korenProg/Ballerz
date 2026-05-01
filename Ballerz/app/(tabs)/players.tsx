@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {Player} from '../../types'
 import { useStore } from "../../store";
 import { T } from "../../constants/theme";
@@ -507,6 +508,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
 
 export default function PlayersScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { players, deletePlayer }           = useStore();
   const [menuVisible, setMenuVisible]       = useState(false);
   const [selectMode, setSelectMode]         = useState(false);
@@ -634,7 +636,7 @@ export default function PlayersScreen() {
           left={
             selectMode
               ? <TouchableOpacity onPress={cancelSelect}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
-              : <TouchableOpacity onPress={openMenu}><Ionicons name="ellipsis-horizontal" size={22} color="#fff" /></TouchableOpacity>
+              : <TouchableOpacity onPress={openMenu}><Ionicons name="ellipsis-horizontal" size={22} color={T.textSecondary} /></TouchableOpacity>
           }
           right={
             selectMode
@@ -682,7 +684,7 @@ export default function PlayersScreen() {
         {menuVisible && (
           <View style={styles.dropdownContainer}>
             <TouchableWithoutFeedback onPress={closeMenu}><View style={styles.dropdownOverlay} /></TouchableWithoutFeedback>
-            <Animated.View style={[styles.dropdown, { opacity: dropdownOpacity, transform: [{ translateY: dropdownY }] }]}>
+            <Animated.View style={[styles.dropdown, { top: insets.top + 46, opacity: dropdownOpacity, transform: [{ translateY: dropdownY }] }]}>
               <TouchableOpacity style={styles.dropdownItem} onPress={() => { setSelectMode(true); closeMenu(); }}>
                 <Ionicons name="checkbox-outline" size={16} color="#fff" />
                 <Text style={styles.dropdownText}>Select Players</Text>
@@ -694,7 +696,7 @@ export default function PlayersScreen() {
         {sortMenuVisible && (
           <View style={styles.dropdownContainer}>
             <TouchableWithoutFeedback onPress={closeSortMenu}><View style={styles.dropdownOverlay} /></TouchableWithoutFeedback>
-            <Animated.View style={[styles.dropdown, styles.sortDropdown, { opacity: sortDropOpacity, transform: [{ translateY: sortDropY }] }]}>
+            <Animated.View style={[styles.dropdown, styles.sortDropdown, { top: insets.top + 46, opacity: sortDropOpacity, transform: [{ translateY: sortDropY }] }]}>
               {SORT_OPTIONS.map((opt, i) => (
                 <React.Fragment key={opt.key}>
                   <TouchableOpacity style={styles.dropdownItem} onPress={() => { setSortMode(opt.key); closeSortMenu(); }}>
@@ -749,8 +751,8 @@ export default function PlayersScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  cancelText:{ color: "#aaa", fontSize: 14, fontWeight: "600" },
+  container: { flex: 1, backgroundColor: T.bg },
+  cancelText: { color: T.textSecondary, fontSize: 14, fontWeight: "600" },
 
   trashBtn:       { alignItems: "center", justifyContent: "center" },
   trashBadge:     { position: "absolute", top: -6, right: -8, backgroundColor: "#cc0000", borderRadius: 8, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
