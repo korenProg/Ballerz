@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Polygon, Line, Circle, Text as SvgText } from "react-native-svg";
 import { useAppStats, useRivalry, useLastGameRadar } from "../../store/selectors";
 import { T } from "../../constants/theme";
+import { TopBar } from "@/components/TopBar";
 
 // ─── Radar Chart ──────────────────────────────────────────────────────────────
 
@@ -102,9 +102,9 @@ export default function StatsScreen() {
   const radar = useLastGameRadar();
 
   return (
-    <SafeAreaView style={s.safe} edges={["top"]}>
+    <View style={s.safe}>
+      <TopBar title="Stats" />
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <Text style={s.pageTitle}>Stats</Text>
 
         <View style={s.totalStrip}>
           <View style={s.totalItem}>
@@ -189,15 +189,16 @@ export default function StatsScreen() {
         )}
 
         {gamesCount === 0 && (
-          <View style={s.emptyState}>
-            <Ionicons name="stats-chart-outline" size={36} color={T.textMuted} />
-            <Text style={s.emptyText}>Play some games to see stats</Text>
+          <View style={s.emptyCard}>
+            <Ionicons name="stats-chart-outline" size={32} color={T.textMuted} />
+            <Text style={s.emptyTitle}>No stats yet</Text>
+            <Text style={s.emptySubtitle}>Play some games to see your league stats here</Text>
           </View>
         )}
 
         <View style={{ height: 32 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -207,7 +208,18 @@ const s = StyleSheet.create({
 
   pageTitle: { color: T.textPrimary, fontSize: 22, fontWeight: "900", paddingTop: 14, marginBottom: 16 },
 
-  sectionEyebrow: { fontSize: 9, fontWeight: "800", letterSpacing: 2, color: T.textMuted, textTransform: "uppercase", marginBottom: 8, marginTop: 20 },
+  sectionEyebrow: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 2,
+    color: T.textMuted,
+    textTransform: "uppercase",
+    marginBottom: 8,
+    marginTop: 20,
+    borderLeftWidth: 2,
+    borderLeftColor: T.accent,
+    paddingLeft: 6,
+  },
 
   totalStrip:   { flexDirection: "row", backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius.card, overflow: "hidden", marginBottom: 4 },
   totalItem:    { flex: 1, paddingVertical: 14, alignItems: "center" },
@@ -238,6 +250,7 @@ const s = StyleSheet.create({
   legendName:   { color: T.textSecondary, fontSize: 12, fontWeight: "600" },
   radarWrap:    { alignItems: "center" },
 
-  emptyState: { alignItems: "center", paddingTop: 60, gap: 12 },
-  emptyText:  { color: T.textMuted, fontSize: 14, fontWeight: "600" },
+  emptyCard: { marginTop: 24, backgroundColor: T.surface, borderRadius: T.radius.card, borderWidth: 1, borderColor: T.border, padding: 28, alignItems: "center", gap: 10 },
+  emptyTitle: { color: T.textPrimary, fontSize: 15, fontWeight: "800" },
+  emptySubtitle: { color: T.textMuted, fontSize: 13, textAlign: "center" },
 });
