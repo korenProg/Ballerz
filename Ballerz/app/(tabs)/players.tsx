@@ -277,9 +277,9 @@ function PlayerCardModal({ player, visible, onClose }: {
     await Share.share({ message: lines });
   };
 
-  if (!player) return null;
-
   const router = useRouter();
+
+  if (!player) return null;
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>

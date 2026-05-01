@@ -66,7 +66,7 @@ export default function Onboarding() {
         {step === 1 && (
           <View style={s.section}>
             <Text style={s.title}>Create your league</Text>
-            <Text style={s.subtitle}>Let's get you set up</Text>
+            <Text style={s.subtitle}>Let&apos;s get you set up</Text>
 
             {/* Logo picker */}
             <TouchableOpacity style={s.logoPicker} onPress={pickLogo}>
@@ -158,7 +158,7 @@ export default function Onboarding() {
 
         {step === 3 && (
           <View style={s.section}>
-            <Text style={s.title}>You're all set</Text>
+            <Text style={s.title}>You&apos;re all set</Text>
 
             {/* Preview card */}
             <View style={[s.previewCard, { borderColor: color }]}>
@@ -181,7 +181,7 @@ export default function Onboarding() {
                 <Text style={s.btnSecondaryText}>Back</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.btn, { flex: 1 }]} onPress={finish}>
-                <Text style={s.btnText}>Let's go 🚀</Text>
+                <Text style={s.btnText}>Let&apos;s go 🚀</Text>
               </TouchableOpacity>
             </View>
           </View>
