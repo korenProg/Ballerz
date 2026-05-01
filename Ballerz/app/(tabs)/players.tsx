@@ -17,6 +17,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "expo-router";
 import {Player} from '../../types'
 import { useStore } from "../../store";
+import { T } from "../../constants/theme";
 import { TopBar } from "@/components/TopBar";
 
 type SortMode = "ovr_desc" | "ovr_asc" | "goals" | "mvps";
