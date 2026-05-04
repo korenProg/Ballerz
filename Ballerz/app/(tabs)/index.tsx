@@ -149,7 +149,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View style={s.bgIconWrap} pointerEvents="none">
-          <Ionicons name="trophy" size={210} color={league.color} />
+          <Ionicons name="trophy" size={210} color="rgba(255,255,255,0.25)" />
           <LinearGradient
             colors={["transparent", T.bg]}
             locations={[0.3, 1]}
