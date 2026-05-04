@@ -173,11 +173,7 @@ export default function HomeScreen() {
         style={s.gradientBg}
         pointerEvents="none"
       />
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={[s.content, { paddingTop: insets.top + 16 }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={{ paddingTop: insets.top + 16 }}>
         <HeroContent
           leagueName={league.name}
           logoUri={league.logoUri}
@@ -186,7 +182,12 @@ export default function HomeScreen() {
           gamesCount={gamesCount}
           playersCount={playersCount}
         />
-
+      </View>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={s.sheet}>
           {players.length > 0 && (
             <>
