@@ -220,24 +220,39 @@ export default function HomeScreen() {
           )}
 
           {gamesCount === 0 && players.length === 0 && (
-            <View style={s.emptyCard}>
-              <Ionicons name="football-outline" size={32} color={T.textMuted} />
-              <Text style={s.emptyTitle}>No games yet</Text>
-              <Text style={s.emptyText}>Create your first game to get started</Text>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => router.push("/create-game")}
-                style={s.emptyCtaWrap}
-              >
-                <LinearGradient
-                  colors={["#f59e0b", "#d97706"]}
-                  style={s.emptyCta}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+            <View style={s.startSection}>
+              <Text style={s.sectionTitle}>GET STARTED</Text>
+              <View style={s.startCards}>
+                <TouchableOpacity
+                  style={s.startCard}
+                  activeOpacity={0.75}
+                  onPress={() => router.push("/(tabs)/players")}
                 >
-                  <Text style={s.emptyCtaTxt}>Create Game</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <View style={[s.startIconWrap, s.startIconBlue]}>
+                    <Ionicons name="people" size={22} color="#60a5fa" />
+                  </View>
+                  <Text style={s.startCardTitle}>Add Players</Text>
+                  <Text style={s.startCardDesc}>Build your squad first</Text>
+                  <View style={s.startCardBtn}>
+                    <Text style={s.startCardBtnTxt}>Add Players</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[s.startCard, { opacity: 0.6 }]}
+                  activeOpacity={0.75}
+                  onPress={() => router.push("/(tabs)/players")}
+                >
+                  <View style={[s.startIconWrap, s.startIconMuted]}>
+                    <Ionicons name="football" size={22} color={T.textMuted} />
+                  </View>
+                  <Text style={[s.startCardTitle, { color: T.textMuted }]}>Create Game</Text>
+                  <Text style={s.startCardDesc}>Add players first</Text>
+                  <View style={[s.startCardBtn, s.startCardBtnMuted]}>
+                    <Text style={[s.startCardBtnTxt, { color: T.textMuted }]}>Create Game</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -490,38 +505,39 @@ const s = StyleSheet.create({
   },
   gameLocationTxt: { color: T.textMuted, fontSize: 9 },
 
-  // Empty state
-  emptyCard: {
-    margin: 16,
+  // Empty state — get started
+  startSection: { marginHorizontal: 16, marginBottom: 20 },
+  startCards: { flexDirection: "row", gap: 10, marginTop: 10 },
+  startCard: {
+    flex: 1,
     backgroundColor: T.surface,
-    borderRadius: T.radius.card,
     borderWidth: 1,
     borderColor: T.border,
-    padding: 28,
-    alignItems: "center",
-    gap: 8,
+    borderRadius: T.radius.card,
+    padding: 16,
   },
-  emptyTitle: {
-    color: T.textPrimary,
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  emptyText: {
-    color: T.textMuted,
-    fontSize: 13,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  emptyCtaWrap: {
-    width: "100%",
-    borderRadius: T.radius.pill,
-    overflow: "hidden",
-    marginTop: 8,
-  },
-  emptyCta: {
-    paddingVertical: 14,
+  startIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
   },
-  emptyCtaTxt: { color: "#000", fontSize: 15, fontWeight: "800" },
+  startIconBlue:  { backgroundColor: "rgba(96,165,250,0.12)" },
+  startIconMuted: { backgroundColor: "rgba(255,255,255,0.06)" },
+  startCardTitle: { color: T.textPrimary, fontSize: 13, fontWeight: "800", marginBottom: 4 },
+  startCardDesc:  { color: T.textMuted, fontSize: 11, marginBottom: 10 },
+  startCardBtn: {
+    backgroundColor: T.accent,
+    borderRadius: T.radius.pill,
+    paddingVertical: 9,
+    alignItems: "center",
+  },
+  startCardBtnMuted: {
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: T.border,
+  },
+  startCardBtnTxt: { color: "#000", fontSize: 11, fontWeight: "800" },
 });
