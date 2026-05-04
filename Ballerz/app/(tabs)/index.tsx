@@ -259,7 +259,7 @@ const s = StyleSheet.create({
     borderTopRightRadius: 28,
     borderTopWidth: 1,
     borderTopColor: T.border,
-    marginTop: 5,
+    marginTop: -20,
     paddingTop: 20,
     minHeight: 200,
   },
