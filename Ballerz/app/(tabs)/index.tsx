@@ -66,14 +66,9 @@ function HeroContent({
         onPress={() => router.push("/(tabs)/league")}
         style={s.heroCtaWrap}
       >
-        <LinearGradient
-          colors={["#f59e0b", "#d97706"]}
-          style={s.heroCta}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
+        <View style={s.heroCta}>
           <Text style={s.heroCtaTxt}>Manage League</Text>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -264,7 +259,7 @@ const s = StyleSheet.create({
     borderTopRightRadius: 28,
     borderTopWidth: 1,
     borderTopColor: T.border,
-    marginTop: -20,
+    marginTop: 5,
     paddingTop: 20,
     minHeight: 200,
   },
@@ -345,6 +340,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    backgroundColor: T.accent,
   },
   heroCtaTxt: { color: "#000", fontSize: 14, fontWeight: "800" },
 
