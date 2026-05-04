@@ -238,11 +238,7 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[s.startCard, { opacity: 0.6 }]}
-                  activeOpacity={0.75}
-                  onPress={() => router.push("/(tabs)/players")}
-                >
+                <View style={[s.startCard, { opacity: 0.6 }]}>
                   <View style={[s.startIconWrap, s.startIconMuted]}>
                     <Ionicons name="football" size={22} color={T.textMuted} />
                   </View>
@@ -251,7 +247,7 @@ export default function HomeScreen() {
                   <View style={[s.startCardBtn, s.startCardBtnMuted]}>
                     <Text style={[s.startCardBtnTxt, { color: T.textMuted }]}>Create Game</Text>
                   </View>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           )}
