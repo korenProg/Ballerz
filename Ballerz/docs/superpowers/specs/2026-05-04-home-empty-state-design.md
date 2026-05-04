@@ -27,12 +27,15 @@ Two equal-width `TouchableOpacity` cards in a `flexDirection: "row"` container w
 - **CTA button:** amber pill "Add Players" — `backgroundColor: T.accent`, black text
 - **Navigation:** whole card + button → `router.push("/(tabs)/players")`
 
-### Create Game (right)
-- **Icon wrap:** `football` Ionicons icon, amber-tinted background (`rgba(245,158,11,0.12)`)
-- **Title:** "Create Game" — white, `fontSize: 13`, `fontWeight: "800"`
-- **Description:** "Jump straight in" — `T.textMuted`, `fontSize: 11`
-- **CTA button:** amber pill "Create Game" — `backgroundColor: T.accent`, black text
-- **Navigation:** whole card + button → `router.push("/create-game")`
+### Create Game (right) — disabled state
+Since this empty state only appears when `players.length === 0`, a game cannot be created yet. The card is visually dimmed to signal it is locked.
+
+- **Icon wrap:** `football` Ionicons icon, muted background (`rgba(255,255,255,0.06)`), icon color `T.textMuted`
+- **Title:** "Create Game" — `T.textMuted`, `fontSize: 13`, `fontWeight: "800"`
+- **Description:** "Add players first" — `T.textMuted`, `fontSize: 11`
+- **CTA button:** muted pill "Create Game" — `backgroundColor: rgba(255,255,255,0.07)`, border `T.border`, text `T.textMuted`
+- **Navigation:** whole card + button → `router.push("/(tabs)/players")` (guides user to the prerequisite step)
+- **Opacity:** entire card at `opacity: 0.6`
 
 ## Styles
 
