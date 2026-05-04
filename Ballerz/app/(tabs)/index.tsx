@@ -266,12 +266,12 @@ const s = StyleSheet.create({
   content: { paddingBottom: 0 },
 
   sheet: {
-    backgroundColor: T.bg,
+    backgroundColor: T.surface,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderTopWidth: 1,
     borderTopColor: T.border,
-    marginTop: -20,
+    marginTop: 5,
     paddingTop: 20,
     minHeight: 200,
   },
