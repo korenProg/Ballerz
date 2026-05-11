@@ -2,6 +2,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   ScrollView, KeyboardAvoidingView, Platform,
 } from "react-native";
+import { PlayerPhoto } from "@/components/PlayerPhoto";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -178,9 +179,7 @@ export default function RecordResultScreen() {
                         { borderColor: selected ? teamColor : T.border },
                         selected && { backgroundColor: teamColor + "20" },
                       ]}>
-                        <Text style={[s.mvpInitials, { color: selected ? teamColor : T.textMuted }]}>
-                          {initials(p.name)}
-                        </Text>
+                        <PlayerPhoto photo={p.photo} name={p.name} size={46} color={selected ? teamColor : T.textMuted} />
                       </View>
                       <Text
                         style={[s.mvpName, selected && { color: teamColor, fontWeight: "800" }]}
@@ -337,7 +336,9 @@ const s = StyleSheet.create({
     width: 46, height: 46, borderRadius: 23,
     backgroundColor: "rgba(255,255,255,0.04)",
     borderWidth: 1.5, alignItems: "center", justifyContent: "center",
+    overflow: "hidden",
   },
+  mvpAvatarImg: { width: 46, height: 46, borderRadius: 23 },
   mvpInitials: { fontSize: 13, fontWeight: "800" },
   mvpName: {
     color: T.textMuted, fontSize: 10, fontWeight: "600",

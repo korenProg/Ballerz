@@ -8,8 +8,11 @@ import {
   Animated,
   Modal,
   TextInput,
-  Share,
+  Image,
 } from "react-native";
+import { captureRef } from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
+import { PlayerPhoto } from "@/components/PlayerPhoto";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -86,6 +89,7 @@ function FormBadge({ form }: { form: Player["form"] }) {
 // ─── Card Front ───────────────────────────────────────────────────────────────
 
 function CardFront({ player }: { player: Player }) {
+  const [photoError, setPhotoError] = useState(false);
   const tier      = ovrTier(player.ovr);
   const color     = TIER_COLOR[tier];
   const gradient  = TIER_GRADIENT[tier];
@@ -96,34 +100,41 @@ function CardFront({ player }: { player: Player }) {
     <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={cs.card}>
       <View style={[cs.glow, { backgroundColor: color }]} />
 
-      <View style={cs.frontTopRow}>
-        <View>
+      {/* Full-bleed photo hero */}
+      <View style={[cs.photoHero, { backgroundColor: color + "18" }]}>
+        {player.photo && !photoError ? (
+          <Image source={{ uri: player.photo }} style={cs.heroImg} resizeMode="cover" onError={() => setPhotoError(true)} />
+        ) : (
+          <Text style={[cs.heroInitials, { color }]}>{initials}</Text>
+        )}
+        {/* Fade photo into card */}
+        <LinearGradient colors={["transparent", gradient[2]]} style={cs.heroFade} pointerEvents="none" />
+        {/* OVR + POS overlay — bottom left */}
+        <View style={cs.heroOvr}>
           <Text style={[cs.ovrNum, { color }]}>{player.ovr}</Text>
           <Text style={[cs.posText, { color }]}>{player.position}</Text>
         </View>
-        <View style={[cs.tierPill, { borderColor: color + "55", backgroundColor: color + "18" }]}>
+        {/* Tier badge — top right */}
+        <View style={[cs.tierPill, cs.tierPillAbs, { borderColor: color + "55", backgroundColor: color + "18" }]}>
           <Text style={[cs.tierPillText, { color }]}>{tierLabel}</Text>
         </View>
       </View>
 
-      <View style={[cs.avatar, { borderColor: color, shadowColor: color }]}>
-        <Text style={[cs.avatarText, { color }]}>{initials}</Text>
-      </View>
-
-      <Text style={cs.cardName} numberOfLines={1}>{player.name}</Text>
-
-      <View style={[cs.footPill, { borderColor: color + "44" }]}>
-        <Ionicons name={player.foot === "R" ? "arrow-forward" : "arrow-back"} size={10} color={color + "bb"} />
-        <Text style={[cs.footText, { color: color + "bb" }]}>{player.foot === "R" ? "Right foot" : "Left foot"}</Text>
-      </View>
-
-      <View style={cs.miniGrid}>
-        {ATTRS.map(a => (
-          <View key={a.key} style={cs.miniCell}>
-            <Text style={[cs.miniVal, { color: attrColor(player[a.key]) }]}>{player[a.key]}</Text>
-            <Text style={cs.miniLbl}>{a.label}</Text>
-          </View>
-        ))}
+      {/* Bottom info */}
+      <View style={cs.cardBottom}>
+        <Text style={cs.cardName} numberOfLines={1}>{player.name}</Text>
+        <View style={[cs.footPill, { borderColor: color + "44" }]}>
+          <Ionicons name={player.foot === "R" ? "arrow-forward" : "arrow-back"} size={10} color={color + "bb"} />
+          <Text style={[cs.footText, { color: color + "bb" }]}>{player.foot === "R" ? "Right foot" : "Left foot"}</Text>
+        </View>
+        <View style={cs.miniGrid}>
+          {ATTRS.map(a => (
+            <View key={a.key} style={cs.miniCell}>
+              <Text style={[cs.miniVal, { color: attrColor(player[a.key]) }]}>{player[a.key]}</Text>
+              <Text style={cs.miniLbl}>{a.label}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <Text style={cs.tapHint}>tap to flip</Text>
@@ -185,17 +196,25 @@ function CardBack({ player }: { player: Player }) {
 }
 
 const cs = StyleSheet.create({
-  card:         { width: CARD_W, height: CARD_H, borderRadius: 22, padding: 20, alignItems: "center", overflow: "hidden", borderWidth: 1, borderColor: "#ffffff0d" },
-  glow:         { position: "absolute", width: 220, height: 220, borderRadius: 110, opacity: 0.08, top: -50, alignSelf: "center" },
-  frontTopRow:  { width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-  ovrNum:       { fontSize: 38, fontWeight: "900", lineHeight: 40 },
-  posText:      { fontSize: 13, fontWeight: "700", marginTop: 1 },
-  tierPill:     { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4, marginTop: 4 },
+  card:         { width: CARD_W, height: CARD_H, borderRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: "#ffffff0d" },
+  glow:         { position: "absolute", width: 260, height: 260, borderRadius: 130, opacity: 0.07, top: -60, alignSelf: "center" },
+
+  // Photo hero
+  photoHero:    { width: CARD_W, height: 196, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  heroImg:      { position: "absolute", top: 0, left: 0, width: CARD_W, height: 196 },
+  heroInitials: { fontSize: 72, fontWeight: "900", opacity: 0.6 },
+  heroFade:     { position: "absolute", bottom: 0, left: 0, right: 0, height: 80 },
+  heroOvr:      { position: "absolute", bottom: 10, left: 14 },
+  tierPill:     { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
+  tierPillAbs:  { position: "absolute", top: 12, right: 12 },
   tierPillText: { fontSize: 10, fontWeight: "800", letterSpacing: 1.5 },
-  avatar:       { width: 82, height: 82, borderRadius: 41, backgroundColor: "#111", borderWidth: 2, alignItems: "center", justifyContent: "center", marginBottom: 10, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 18, elevation: 12 },
-  avatarText:   { fontSize: 28, fontWeight: "900" },
-  cardName:     { color: "#fff", fontSize: 18, fontWeight: "900", letterSpacing: 0.4, marginBottom: 6, textAlign: "center", width: "100%" },
-  footPill:     { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 14 },
+
+  // Bottom info
+  cardBottom:   { flex: 1, width: "100%", paddingHorizontal: 16, paddingTop: 6, alignItems: "center" },
+  ovrNum:       { fontSize: 36, fontWeight: "900", lineHeight: 38 },
+  posText:      { fontSize: 12, fontWeight: "700" },
+  cardName:     { color: "#fff", fontSize: 17, fontWeight: "900", letterSpacing: 0.3, marginBottom: 5, textAlign: "center", width: "100%" },
+  footPill:     { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 10 },
   footText:     { fontSize: 11, fontWeight: "600" },
   miniGrid:     { flexDirection: "row", width: "100%", gap: 4 },
   miniCell:     { flex: 1, alignItems: "center", backgroundColor: "#ffffff08", borderRadius: 8, paddingVertical: 6 },
@@ -255,26 +274,14 @@ function PlayerCardModal({ player, visible, onClose }: {
 
   const frontRotate = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg",   "180deg"] });
   const backRotate  = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
+  const captureViewRef = useRef<View>(null);
 
   const handleExport = async () => {
-    if (!player) return;
-    const tier     = ovrTier(player.ovr) === "cheapgold" ? "GOLD" : ovrTier(player.ovr).toUpperCase();
-    const formLine = player.form === "hot" ? "🔥 In form" : player.form === "cold" ? "❄️ Out of form" : "";
-    const lines = [
-      `⚽ BALLERZ — PLAYER CARD`,
-      `━━━━━━━━━━━━━━━━━━━━`,
-      `${player.name}  |  ${player.position}  |  ${player.ovr} OVR  [${tier}]`,
-      formLine,
-      `━━━━━━━━━━━━━━━━━━━━`,
-      `PAC ${String(player.pac).padEnd(3)}  SHO ${String(player.sho).padEnd(3)}  PAS ${player.pas}`,
-      `DRI ${String(player.dri).padEnd(3)}  DEF ${String(player.def).padEnd(3)}  PHY ${player.phy}`,
-      `━━━━━━━━━━━━━━━━━━━━`,
-      `⚽ ${player.goals} Goals   🅰️ ${player.assists} Assists   🏆 ${player.mvps} MVPs`,
-      `👟 ${player.foot === "R" ? "Right" : "Left"} foot`,
-      `━━━━━━━━━━━━━━━━━━━━`,
-      `via Ballerz App`,
-    ].filter(Boolean).join("\n");
-    await Share.share({ message: lines });
+    if (!player || !captureViewRef.current) return;
+    try {
+      const uri = await captureRef(captureViewRef, { format: "png", quality: 1 });
+      await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: `${player.name} — Ballerz Card` });
+    } catch (_) {}
   };
 
   const router = useRouter();
@@ -286,6 +293,11 @@ function PlayerCardModal({ player, visible, onClose }: {
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}>
         <BlurView intensity={55} tint="dark" style={StyleSheet.absoluteFill} />
       </Animated.View>
+
+      {/* Hidden off-screen card used as capture target */}
+      <View ref={captureViewRef} style={ms.captureTarget} collapsable={false}>
+        <CardFront player={player} />
+      </View>
 
       <View style={ms.container}>
         <TouchableOpacity style={ms.closeBtn} onPress={onClose}>
@@ -331,11 +343,12 @@ function PlayerCardModal({ player, visible, onClose }: {
 }
 
 const ms = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
-  closeBtn:  { position: "absolute", top: 60, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: "#ffffff14", alignItems: "center", justifyContent: "center" },
-  exportBtn: { flexDirection: "row", alignItems: "center", gap: 9, backgroundColor: "#0039a3", borderRadius: 14, paddingHorizontal: 30, paddingVertical: 14 },
-  editBtn:   { backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  exportText:{ color: "#fff", fontSize: 15, fontWeight: "700" },
+  container:     { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
+  closeBtn:      { position: "absolute", top: 60, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: "#ffffff14", alignItems: "center", justifyContent: "center" },
+  exportBtn:     { flexDirection: "row", alignItems: "center", gap: 9, backgroundColor: "#0039a3", borderRadius: 14, paddingHorizontal: 30, paddingVertical: 14 },
+  editBtn:       { backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  exportText:    { color: "#fff", fontSize: 15, fontWeight: "700" },
+  captureTarget: { position: "absolute", left: -9999, top: -9999 },
 });
 
 // ─── Confirm Dialog ───────────────────────────────────────────────────────────
@@ -411,7 +424,7 @@ function MvpCard({ player, onDismiss }: { player: Player; onDismiss: () => void 
       {/* body: avatar + info + OVR */}
       <View style={styles.mvpCardBody}>
         <View style={[styles.mvpAvatar, { borderColor: color + "66" }]}>
-          <Text style={[styles.mvpAvatarText, { color }]}>{initials}</Text>
+          <PlayerPhoto photo={player.photo} name={player.name} size={44} color={color} />
         </View>
         <View style={styles.mvpCardInfo}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -475,7 +488,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
         </Animated.View>
 
         <View style={[styles.avatar, { borderColor: color + "55" }]}>
-          <Text style={[styles.avatarText, { color }]}>{initials}</Text>
+          <PlayerPhoto photo={player.photo} name={player.name} size={46} color={color} />
         </View>
 
         <View style={styles.playerInfo}>
@@ -785,8 +798,9 @@ const styles = StyleSheet.create({
   mvpCardLabel:  { fontSize: 10, fontWeight: "800", letterSpacing: 1.5 },
   mvpDismissBtn: { padding: 2 },
   mvpCardBody:   { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingBottom: 13, gap: 12 },
-  mvpAvatar:     { width: 44, height: 44, borderRadius: 22, backgroundColor: "#0a0a0a", borderWidth: 1.5, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  mvpAvatar:     { width: 44, height: 44, borderRadius: 22, backgroundColor: "#0a0a0a", borderWidth: 1.5, alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" },
   mvpAvatarText: { fontSize: 14, fontWeight: "900" },
+  mvpAvatarImg:  { width: 44, height: 44, borderRadius: 22 },
   mvpCardInfo:   { flex: 1 },
   mvpCardName:   { color: "#fff", fontSize: 15, fontWeight: "800" },
   mvpCardSub:    { color: "#444", fontSize: 11, marginTop: 3, fontWeight: "500" },
@@ -797,8 +811,9 @@ const styles = StyleSheet.create({
   row:         { flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 13, gap: 12 },
   rowSelected: { backgroundColor: "rgba(0,57,163,0.1)", borderRadius: 12 },
   rowDivider:  { height: 1, backgroundColor: "#181818", marginHorizontal: 4 },
-  avatar:      { width: 46, height: 46, borderRadius: 23, backgroundColor: "#111", alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
+  avatar:      { width: 46, height: 46, borderRadius: 23, backgroundColor: "#111", alignItems: "center", justifyContent: "center", borderWidth: 1.5, overflow: "hidden" },
   avatarText:  { fontSize: 15, fontWeight: "800" },
+  avatarImg:   { width: 46, height: 46, borderRadius: 23 },
   playerInfo:  { flex: 1 },
   playerName:  { color: "#fff", fontSize: 15, fontWeight: "700" },
   playerSub:   { color: "#555", fontSize: 11, marginTop: 3, fontWeight: "500" },
