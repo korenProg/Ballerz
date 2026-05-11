@@ -6,12 +6,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { T } from "../constants/theme";
 
 export default function RecordResultScreen() {
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { games, players, updateGame, setMvp } = useStore();
   const game = games.find((g) => g.id === gameId);
 
@@ -80,7 +82,7 @@ export default function RecordResultScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         {/* Header */}
-        <View style={s.header}>
+        <View style={[s.header, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
             <Ionicons name="chevron-down" size={20} color={T.textSecondary} />
           </TouchableOpacity>
@@ -105,7 +107,7 @@ export default function RecordResultScreen() {
                 </View>
                 <Text style={s.teamRowName} numberOfLines={1}>{game.homeTeam}</Text>
               </View>
-              <TouchableOpacity activeOpacity={0.8} style={[s.scoreBox, { borderColor: game.homeColor + "55" }]}>
+              <View style={[s.scoreBox, { borderColor: game.homeColor + "55" }]}>
                 <TextInput
                   style={[s.scoreBoxInput, { color: game.homeColor }]}
                   value={homeScore}
@@ -116,7 +118,7 @@ export default function RecordResultScreen() {
                   placeholderTextColor={game.homeColor + "33"}
                   selectionColor={game.homeColor}
                 />
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={s.rowDivider} />
@@ -129,7 +131,7 @@ export default function RecordResultScreen() {
                 </View>
                 <Text style={s.teamRowName} numberOfLines={1}>{game.awayTeam}</Text>
               </View>
-              <TouchableOpacity activeOpacity={0.8} style={[s.scoreBox, { borderColor: game.awayColor + "55" }]}>
+              <View style={[s.scoreBox, { borderColor: game.awayColor + "55" }]}>
                 <TextInput
                   style={[s.scoreBoxInput, { color: game.awayColor }]}
                   value={awayScore}
@@ -140,7 +142,7 @@ export default function RecordResultScreen() {
                   placeholderTextColor={game.awayColor + "33"}
                   selectionColor={game.awayColor}
                 />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
 
@@ -232,7 +234,7 @@ const s = StyleSheet.create({
   header: {
     flexDirection: "row", alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16,
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16,
   },
   backBtn: {
     width: 38, height: 38, borderRadius: 12,
