@@ -308,8 +308,10 @@ const s = StyleSheet.create({
 
   // MVP
   mvpSection: {
-    backgroundColor: T.surface, borderRadius: T.radius.card,
-    borderWidth: 1, borderColor: T.border,
+    backgroundColor: "#0d0e1a",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: T.border,
     padding: 16,
   },
   mvpHeader: {
