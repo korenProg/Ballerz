@@ -32,6 +32,10 @@ export default function RootLayout() {
           name="record-result"
           options={{ presentation: 'modal', headerShown: false }}
         />
+        <Stack.Screen
+          name="game/[id]"
+          options={{ headerShown: false }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

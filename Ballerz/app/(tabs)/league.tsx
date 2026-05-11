@@ -31,7 +31,7 @@ export default function LeagueScreen() {
   const [defaultLocation, setDefaultLocation] = useState(league.defaultLocation);
   const [defaultTeamSize, setDefaultTeamSize] = useState(league.defaultTeamSize);
 
-  async function pickLogo() {
+  async function pickLogoFromLibrary() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -39,6 +39,28 @@ export default function LeagueScreen() {
       quality: 0.8,
     });
     if (!result.canceled) setLogoUri(result.assets[0].uri);
+  }
+
+  async function pickLogoFromCamera() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Camera access is required to take a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) setLogoUri(result.assets[0].uri);
+  }
+
+  function pickLogo() {
+    Alert.alert("League Logo", "Choose a source", [
+      { text: "Camera", onPress: pickLogoFromCamera },
+      { text: "Camera Roll", onPress: pickLogoFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
   }
 
   function save() {

@@ -140,7 +140,7 @@ export default function HomeScreen() {
       {/* Blurred logo watermark with built-in bottom fade */}
       {league.logoUri ? (
         <View style={s.bgIconWrap} pointerEvents="none">
-          <Image source={{ uri: league.logoUri }} style={s.bgLogoImg} blurRadius={2} />
+          <Image source={{ uri: league.logoUri }} style={s.bgLogoImg} blurRadius={10} />
           <LinearGradient
             colors={["transparent", T.bg]}
             locations={[0.3, 1]}
@@ -183,12 +183,14 @@ export default function HomeScreen() {
           playersCount={playersCount}
         />
       </View>
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={s.sheet}>
+
+      <View style={s.sheet}>
+        <ScrollView
+          style={s.scroll}
+          contentContainerStyle={s.content}
+          showsVerticalScrollIndicator={false}
+
+        >
           {players.length > 0 && (
             <>
               <View style={s.sectionHeader}>
@@ -218,6 +220,24 @@ export default function HomeScreen() {
                 ))}
               </View>
             </>
+          )}
+
+          {recentGames.length === 0 && players.length > 0 && (
+            <View style={s.noGamesWrap}>
+              <View style={s.noGamesIconWrap}>
+                <Ionicons name="football-outline" size={32} color={T.textMuted} />
+              </View>
+              <Text style={s.noGamesTitle}>No games played yet</Text>
+              <Text style={s.noGamesDesc}>Create a game and record the result to see match history here.</Text>
+              <TouchableOpacity
+                style={s.noGamesBtn}
+                activeOpacity={0.85}
+                onPress={() => router.push("/create-game")}
+              >
+                <Ionicons name="add" size={16} color="#000" />
+                <Text style={s.noGamesBtnTxt}>Create Game</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           {gamesCount === 0 && players.length === 0 && (
@@ -254,8 +274,8 @@ export default function HomeScreen() {
           )}
 
           <View style={{ height: 32 }} />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -263,17 +283,18 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: T.bg },
   scroll: { flex: 1 },
-  content: { paddingBottom: 0 },
+  content: { paddingBottom: 24 },
 
   sheet: {
-    backgroundColor: T.surface,
+    flex: 1,
+    backgroundColor: T.bg,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderTopWidth: 1,
     borderTopColor: T.border,
     marginTop: 5,
     paddingTop: 20,
-    minHeight: 200,
+    overflow: "hidden",
   },
 
   headerGradient: { marginBottom: 8 },
@@ -537,4 +558,43 @@ const s = StyleSheet.create({
     borderColor: T.border,
   },
   startCardBtnTxt: { color: "#000", fontSize: 11, fontWeight: "800" },
+
+  // No games empty state
+
+  noGamesWrap: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.border,
+    borderRadius: T.radius.card,
+    padding: 24,
+    alignItems: "center",
+    gap: 8,
+  },
+  noGamesIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: T.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  noGamesTitle: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
+  noGamesDesc: { fontSize: 12, color: T.textMuted, textAlign: "center", lineHeight: 18 },
+  noGamesBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    backgroundColor: T.accent,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: T.radius.pill,
+  },
+  noGamesBtnTxt: { color: "#000", fontWeight: "800", fontSize: 13 },
 });
