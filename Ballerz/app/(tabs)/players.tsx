@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   Image,
+  Dimensions,
 } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -23,6 +24,9 @@ import {Player} from '../../types'
 import { useStore } from "../../store";
 import { T } from "../../constants/theme";
 import { TopBar } from "@/components/TopBar";
+
+const SCREEN_W = Dimensions.get("window").width;
+const GRID_ITEM_W = (SCREEN_W - 32 - 16) / 3; // 32px total h-padding, 16px for 2 gaps of 8
 
 type SortMode = "ovr_desc" | "ovr_asc" | "goals" | "mvps";
 
@@ -566,6 +570,45 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
   );
 }
 
+// ─── Grid Card ────────────────────────────────────────────────────────────────
+
+function GridCard({ player, onTap }: { player: Player; onTap: () => void }) {
+  const tier     = ovrTier(player.ovr);
+  const color    = TIER_COLOR[tier];
+  const gradient = TIER_GRADIENT[tier];
+  const lastName = player.name.split(" ").slice(-1)[0].toUpperCase();
+
+  return (
+    <TouchableOpacity onPress={onTap} activeOpacity={0.75} style={gs.card}>
+      <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={gs.inner}>
+        <View style={[gs.avatar, { borderColor: color + "66" }]}>
+          <PlayerPhoto photo={player.photo} name={player.name} size={36} color={color} />
+        </View>
+        <Text style={[gs.ovr, { color }]}>{player.ovr}</Text>
+        <Text style={gs.lastName} numberOfLines={1}>{lastName}</Text>
+        <Text style={gs.pos}>{player.position}</Text>
+        {player.form !== "neutral" && (
+          <Ionicons
+            name={player.form === "hot" ? "flame-outline" : "snow-outline"}
+            size={10}
+            color={player.form === "hot" ? "#f97316" : "#60a5fa"}
+            style={{ marginTop: 2 }}
+          />
+        )}
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
+
+const gs = StyleSheet.create({
+  card:     { width: GRID_ITEM_W, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "#ffffff0d" },
+  inner:    { padding: 10, alignItems: "center" },
+  avatar:   { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, overflow: "hidden", marginBottom: 6, backgroundColor: "#ffffff0a" },
+  ovr:      { fontSize: 18, fontWeight: "900", lineHeight: 20 },
+  lastName: { color: "#fff", fontSize: 9, fontWeight: "800", marginTop: 3 },
+  pos:      { color: "#555", fontSize: 8, marginTop: 1 },
+});
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function PlayersScreen() {
@@ -582,6 +625,7 @@ export default function PlayersScreen() {
   const [cardPlayer, setCardPlayer]         = useState<Player | null>(null);
   const [mvpDismissed, setMvpDismissed]     = useState(false);
   const [positionFilter, setPositionFilter] = useState("ALL");
+  const [viewMode, setViewMode]             = useState<"list" | "grid">("list");
 
   const dropdownOpacity = useRef(new Animated.Value(0)).current;
   const dropdownY       = useRef(new Animated.Value(-8)).current;
@@ -703,14 +747,38 @@ export default function PlayersScreen() {
               : <TouchableOpacity onPress={openMenu}><Ionicons name="ellipsis-horizontal" size={22} color={T.textSecondary} /></TouchableOpacity>
           }
           right={
-            selectMode
-              ? <TouchableOpacity onPress={() => selectedIds.size > 0 && setConfirmVisible(true)} disabled={selectedIds.size === 0}>
-                  <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
-                    <Ionicons name="trash-outline" size={20} color="#cc0000" />
-                    {selectedIds.size > 0 && <View style={styles.trashBadge}><Text style={styles.trashBadgeText}>{selectedIds.size}</Text></View>}
+            selectMode ? (
+              <TouchableOpacity
+                onPress={() => selectedIds.size > 0 && setConfirmVisible(true)}
+                disabled={selectedIds.size === 0}
+              >
+                <View style={[styles.trashBtn, selectedIds.size === 0 && { opacity: 0.3 }]}>
+                  <Ionicons name="trash-outline" size={20} color="#cc0000" />
+                  {selectedIds.size > 0 && (
+                    <View style={styles.trashBadge}>
+                      <Text style={styles.trashBadgeText}>{selectedIds.size}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.headerRight}>
+                <TouchableOpacity
+                  style={styles.viewToggle}
+                  onPress={() => setViewMode(v => v === "list" ? "grid" : "list")}
+                >
+                  <View style={[styles.viewToggleSeg, viewMode === "grid" && styles.viewToggleSegActive]}>
+                    <Ionicons name="grid-outline" size={14} color={viewMode === "grid" ? "#fff" : "#555"} />
+                  </View>
+                  <View style={[styles.viewToggleSeg, viewMode === "list" && styles.viewToggleSegActive]}>
+                    <Ionicons name="list-outline" size={14} color={viewMode === "list" ? "#fff" : "#555"} />
                   </View>
                 </TouchableOpacity>
-              : <TouchableOpacity onPress={() => router.push("/create-player")}><Ionicons name="add" size={26} color="#fff" /></TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/create-player")}>
+                  <Ionicons name="add" size={26} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )
           }
         />
 
@@ -798,7 +866,8 @@ export default function PlayersScreen() {
               )}
             </View>
           )}
-          {sorted.map((player, index) => (
+
+          {sorted.length > 0 && (selectMode || viewMode === "list") && sorted.map((player, index) => (
             <PlayerRow
               key={player.id}
               player={player}
@@ -809,6 +878,14 @@ export default function PlayersScreen() {
               isLast={index === sorted.length - 1}
             />
           ))}
+
+          {sorted.length > 0 && !selectMode && viewMode === "grid" && (
+            <View style={styles.gridWrap}>
+              {sorted.map(player => (
+                <GridCard key={player.id} player={player} onTap={() => setCardPlayer(player)} />
+              ))}
+            </View>
+          )}
         </ScrollView>
 
         <ConfirmDialog visible={confirmVisible} count={selectedIds.size} onConfirm={confirmDelete} onCancel={() => setConfirmVisible(false)} />
@@ -823,6 +900,12 @@ export default function PlayersScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.bg },
   cancelText: { color: T.textSecondary, fontSize: 14, fontWeight: "600" },
+
+  headerRight:         { flexDirection: "row", alignItems: "center", gap: 10 },
+  viewToggle:          { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  viewToggleSeg:       { padding: 5 },
+  viewToggleSegActive: { backgroundColor: "rgba(255,255,255,0.18)" },
+  gridWrap:            { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 
   trashBtn:       { alignItems: "center", justifyContent: "center" },
   trashBadge:     { position: "absolute", top: -6, right: -8, backgroundColor: "#cc0000", borderRadius: 8, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
