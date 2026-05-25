@@ -349,6 +349,50 @@ const ms = StyleSheet.create({
   captureTarget: { position: "absolute", left: -9999, top: -9999 },
 });
 
+// ─── Position Tabs ────────────────────────────────────────────────────────
+
+function PositionTabs({ players, active, onChange }: {
+  players: Player[]; active: string; onChange: (pos: string) => void;
+}) {
+  const positions = [...new Set(players.map(p => p.position))].sort();
+  const counts: Record<string, number> = { ALL: players.length };
+  positions.forEach(pos => { counts[pos] = players.filter(p => p.position === pos).length; });
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={pt.bar}
+      contentContainerStyle={pt.content}
+    >
+      {(["ALL", ...positions] as string[]).map(pos => {
+        const isActive = pos === active;
+        return (
+          <TouchableOpacity
+            key={pos}
+            onPress={() => onChange(pos)}
+            activeOpacity={0.75}
+            style={[pt.pill, isActive && pt.pillActive]}
+          >
+            <Text style={[pt.label, isActive && pt.labelActive]}>
+              {pos} · {counts[pos]}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+const pt = StyleSheet.create({
+  bar:        { marginBottom: 8 },
+  content:    { paddingHorizontal: 16, gap: 8, alignItems: "center" },
+  pill:       { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
+  pillActive: { backgroundColor: T.accent, borderColor: T.accent },
+  label:      { fontSize: 10, fontWeight: "700", color: T.textMuted },
+  labelActive:{ color: "#000" },
+});
+
 // ─── Confirm Dialog ───────────────────────────────────────────────────────────
 
 function ConfirmDialog({ visible, count, onConfirm, onCancel }: {
@@ -537,6 +581,7 @@ export default function PlayersScreen() {
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const [cardPlayer, setCardPlayer]         = useState<Player | null>(null);
   const [mvpDismissed, setMvpDismissed]     = useState(false);
+  const [positionFilter, setPositionFilter] = useState("ALL");
 
   const dropdownOpacity = useRef(new Animated.Value(0)).current;
   const dropdownY       = useRef(new Animated.Value(-8)).current;
@@ -624,6 +669,7 @@ export default function PlayersScreen() {
 
   const sorted = [...players]
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter(p => positionFilter === "ALL" || p.position === positionFilter)
     .sort((a, b) => {
       if (sortMode === "ovr_asc") return a.ovr - b.ovr;
       if (sortMode === "goals")   return b.goals - a.goals;
@@ -666,6 +712,12 @@ export default function PlayersScreen() {
                 </TouchableOpacity>
               : <TouchableOpacity onPress={() => router.push("/create-player")}><Ionicons name="add" size={26} color="#fff" /></TouchableOpacity>
           }
+        />
+
+        <PositionTabs
+          players={players}
+          active={positionFilter}
+          onChange={(pos) => { setPositionFilter(pos); }}
         />
 
         {/* ── Search + sort ── */}
