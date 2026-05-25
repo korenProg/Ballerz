@@ -175,19 +175,10 @@ function CardBack({ player }: { player: Player }) {
 
       <Text style={[cs.backSectionTitle, { color, marginBottom: 10 }]}>CAREER STATS</Text>
       <View style={cs.careerRow}>
-        {[
-          { val: player.goals,   lbl: "Goals"  },
-          { val: player.assists, lbl: "Assists" },
-          { val: player.mvps,    lbl: "MVPs"   },
-        ].map((s, i) => (
-          <React.Fragment key={s.lbl}>
-            {i > 0 && <View style={[cs.careerDiv, { backgroundColor: color + "25" }]} />}
-            <View style={cs.careerCell}>
-              <Text style={[cs.careerVal, { color }]}>{s.val}</Text>
-              <Text style={cs.careerLbl}>{s.lbl}</Text>
-            </View>
-          </React.Fragment>
-        ))}
+        <View style={cs.careerCell}>
+          <Text style={[cs.careerVal, { color }]}>{player.mvps}</Text>
+          <Text style={cs.careerLbl}>MVPs</Text>
+        </View>
       </View>
 
       <Text style={cs.tapHint}>tap to flip</Text>
@@ -432,7 +423,7 @@ function MvpCard({ player, onDismiss }: { player: Player; onDismiss: () => void 
             <FormBadge form={player.form} />
           </View>
           <Text style={styles.mvpCardSub}>
-            {player.position} · {player.goals}G · {player.assists}A · {player.mvps} MVPs
+            {player.position} · {player.mvps} MVPs
           </Text>
         </View>
         <View style={[styles.mvpOvrBadge, { backgroundColor: ovrBg(player.ovr), borderColor: color + "55" }]}>
@@ -503,7 +494,7 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
             )}
           </View>
           <Text style={styles.playerSub}>
-            {player.position} · {player.goals}G · {player.assists}A · {player.mvps} MVPs
+            {player.position} · {player.mvps} MVPs
           </Text>
         </View>
 
