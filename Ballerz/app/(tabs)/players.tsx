@@ -62,6 +62,13 @@ function attrColor(val: number) {
   return "#e05555";
 }
 
+function top3Attrs(player: Player): { label: string; val: number }[] {
+  return ATTRS
+    .map(a => ({ label: a.label, val: player[a.key] }))
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 3);
+}
+
 // ─── FIFA Card constants ──────────────────────────────────────────────────────
 
 const CARD_W = 268;
@@ -496,6 +503,13 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
           <Text style={styles.playerSub}>
             {player.position} · {player.mvps} MVPs
           </Text>
+          <View style={styles.attrPills}>
+            {top3Attrs(player).map(p => (
+              <View key={p.label} style={[styles.attrPill, { backgroundColor: attrColor(p.val) + "18" }]}>
+                <Text style={[styles.attrPillText, { color: attrColor(p.val) }]}>{p.label} {p.val}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={[styles.ovrBadge, { backgroundColor: bg, borderColor: color + "44" }]}>
@@ -810,6 +824,9 @@ const styles = StyleSheet.create({
   playerSub:   { color: "#555", fontSize: 11, marginTop: 3, fontWeight: "500" },
   mvpPill:     { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "#2a1f00", borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
   mvpPillText: { color: "#f5c518", fontSize: 9, fontWeight: "800" },
+  attrPills:    { flexDirection: "row", gap: 4, marginTop: 4 },
+  attrPill:     { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  attrPillText: { fontSize: 9, fontWeight: "700" },
   ovrBadge:    { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, alignItems: "center", minWidth: 48, borderWidth: 1 },
   ovrText:     { fontSize: 18, fontWeight: "900" },
   ovrLabel:    { fontSize: 9, fontWeight: "700", letterSpacing: 1, marginTop: 1 },
