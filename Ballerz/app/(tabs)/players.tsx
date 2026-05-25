@@ -9,7 +9,7 @@ import {
   Modal,
   TextInput,
   Image,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -24,9 +24,6 @@ import {Player} from '../../types'
 import { useStore } from "../../store";
 import { T } from "../../constants/theme";
 import { TopBar } from "@/components/TopBar";
-
-const SCREEN_W = Dimensions.get("window").width;
-const GRID_ITEM_W = (SCREEN_W - 32 - 16) / 3; // 32px total h-padding, 16px for 2 gaps of 8
 
 type SortMode = "ovr_desc" | "ovr_asc" | "goals" | "mvps";
 
@@ -573,13 +570,15 @@ function PlayerRow({ player, selectable, selected, onSelect, onTap, isLast }: {
 // ─── Grid Card ────────────────────────────────────────────────────────────────
 
 function GridCard({ player, onTap }: { player: Player; onTap: () => void }) {
+  const { width: screenW } = useWindowDimensions();
+  const gridItemW = (screenW - 32 - 16) / 3;
   const tier     = ovrTier(player.ovr);
   const color    = TIER_COLOR[tier];
   const gradient = TIER_GRADIENT[tier];
   const lastName = player.name.split(" ").slice(-1)[0].toUpperCase();
 
   return (
-    <TouchableOpacity onPress={onTap} activeOpacity={0.75} style={gs.card}>
+    <TouchableOpacity onPress={onTap} activeOpacity={0.75} style={[gs.card, { width: gridItemW }]}>
       <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={gs.inner}>
         <View style={[gs.avatar, { borderColor: color + "66" }]}>
           <PlayerPhoto photo={player.photo} name={player.name} size={36} color={color} />
@@ -601,7 +600,7 @@ function GridCard({ player, onTap }: { player: Player; onTap: () => void }) {
 }
 
 const gs = StyleSheet.create({
-  card:     { width: GRID_ITEM_W, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "#ffffff0d" },
+  card:     { borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "#ffffff0d" },
   inner:    { padding: 10, alignItems: "center" },
   avatar:   { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, overflow: "hidden", marginBottom: 6, backgroundColor: "#ffffff0a" },
   ovr:      { fontSize: 18, fontWeight: "900", lineHeight: 20 },
