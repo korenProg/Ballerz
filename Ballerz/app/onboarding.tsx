@@ -1,281 +1,313 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
   Image,
-  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
+import { T } from "../constants/theme";
 
-const PRESET_COLORS = ["#f5c518", "#0039a3", "#cc0000", "#1a7a1a", "#7b2fbe", "#e0e0e0"];
-const TEAM_SIZES = [5, 7, 11];
+const LEAGUE_COLORS = [
+  "#0039a3",
+  "#dc2626",
+  "#059669",
+  "#7c3aed",
+  "#ea580c",
+  "#0d9488",
+  "#ca8a04",
+  "#e11d48",
+];
+
+const TEAM_SIZES = [5, 6, 7, 8, 11];
+
+const TOTAL_STEPS = 3;
 
 export default function Onboarding() {
   const router = useRouter();
-  const { setLeague, completeOnboarding } = useStore();
+  const setLeague = useStore((s) => s.setLeague);
+  const completeOnboarding = useStore((s) => s.completeOnboarding);
 
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [logoUri, setLogoUri] = useState<string | null>(null);
-  const [color, setColor] = useState("#0039a3");
+  const [step, setStep] = useState(0);
   const [adminName, setAdminName] = useState("");
-  const [defaultLocation, setDefaultLocation] = useState("");
-  const [defaultTeamSize, setDefaultTeamSize] = useState(5);
+  const [leagueName, setLeagueName] = useState("");
+  const [logoUri, setLogoUri] = useState<string | null>(null);
+  const [color, setColor] = useState(LEAGUE_COLORS[0]);
+  const [location, setLocation] = useState("");
+  const [teamSize, setTeamSize] = useState(5);
 
-  async function pickLogo() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+  const canContinue =
+    step === 0 ? adminName.trim().length > 0 : step === 1 ? leagueName.trim().length > 0 : true;
+
+  async function pickFromLibrary() {
+    const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
     });
-    if (!result.canceled) {
-      setLogoUri(result.assets[0].uri);
-    }
+    if (!res.canceled) setLogoUri(res.assets[0].uri);
   }
 
-  function finish() {
-    if (!name.trim()) {
-      Alert.alert("Missing info", "Please enter a league name.");
+  async function takePhoto() {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Camera unavailable", "Allow camera access to take a photo.");
       return;
     }
-    setLeague({ name: name.trim(), logoUri, color, adminName: adminName.trim(), defaultLocation: defaultLocation.trim(), defaultTeamSize });
+    const res = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!res.canceled) setLogoUri(res.assets[0].uri);
+  }
+
+  function pickLogo() {
+    Alert.alert("League logo", "Choose a source", [
+      { text: "Take Photo", onPress: takePhoto },
+      { text: "Choose from Library", onPress: pickFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
+
+  function next() {
+    if (step < TOTAL_STEPS - 1) {
+      setStep(step + 1);
+      return;
+    }
+    setLeague({
+      name: leagueName.trim(),
+      logoUri,
+      color,
+      adminName: adminName.trim(),
+      defaultLocation: location.trim(),
+      defaultTeamSize: teamSize,
+    });
     completeOnboarding();
     router.replace("/(tabs)");
   }
 
   return (
-    <SafeAreaView style={s.safe}>
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+      <View style={styles.progressRow}>
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.progressSeg, i <= step && styles.progressSegActive]}
+            disabled={i >= step}
+            hitSlop={8}
+            onPress={() => setStep(i)}
+          />
+        ))}
+      </View>
 
-        {/* Progress dots */}
-        <View style={s.dots}>
-          {[1, 2, 3].map((n) => (
-            <View key={n} style={[s.dot, step >= n && s.dotActive]} />
-          ))}
-        </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        {step === 0 && (
+          <View style={styles.stepBody}>
+            <Text style={styles.eyebrow}>STEP 1 OF 3</Text>
+            <Text style={styles.title}>Who's running the league?</Text>
+            <Text style={styles.sub}>This is you — the league admin.</Text>
+
+            <Text style={styles.fieldLabel}>Full name</Text>
+            <TextInput
+              style={styles.input}
+              value={adminName}
+              onChangeText={setAdminName}
+              placeholder="e.g. Koren"
+              placeholderTextColor={T.textMuted}
+              autoFocus
+              returnKeyType="next"
+              onSubmitEditing={() => canContinue && next()}
+            />
+          </View>
+        )}
 
         {step === 1 && (
-          <View style={s.section}>
-            <Text style={s.title}>Create your league</Text>
-            <Text style={s.subtitle}>Let&apos;s get you set up</Text>
+          <View style={styles.stepBody}>
+            <Text style={styles.eyebrow}>STEP 2 OF 3</Text>
+            <Text style={styles.title}>Create your league</Text>
+            <Text style={styles.sub}>Give it a name and a badge.</Text>
 
-            {/* Logo picker */}
-            <TouchableOpacity style={s.logoPicker} onPress={pickLogo}>
+            <TouchableOpacity style={styles.logoPicker} activeOpacity={0.8} onPress={pickLogo}>
               {logoUri ? (
-                <Image source={{ uri: logoUri }} style={s.logoImg} />
+                <Image source={{ uri: logoUri }} style={styles.logoImage} />
               ) : (
-                <View style={s.logoPlaceholder}>
-                  <Ionicons name="trophy" size={40} color="#555" />
-                </View>
+                <>
+                  <Ionicons name="image-outline" size={26} color={T.textSecondary} />
+                  <Text style={styles.logoPickerTxt}>Add logo</Text>
+                </>
               )}
-              <Text style={s.logoHint}>Tap to add logo (optional)</Text>
             </TouchableOpacity>
 
-            {/* League name */}
-            <Text style={s.label}>League name</Text>
+            <Text style={styles.fieldLabel}>League name</Text>
             <TextInput
-              style={s.input}
-              value={name}
-              onChangeText={setName}
+              style={styles.input}
+              value={leagueName}
+              onChangeText={setLeagueName}
               placeholder="e.g. Sunday League"
-              placeholderTextColor="#555"
+              placeholderTextColor={T.textMuted}
+              returnKeyType="next"
+              onSubmitEditing={() => canContinue && next()}
             />
-
-            {/* Color swatches */}
-            <Text style={s.label}>League color</Text>
-            <View style={s.swatches}>
-              {PRESET_COLORS.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[s.swatch, { backgroundColor: c }, color === c && s.swatchSelected]}
-                  onPress={() => setColor(c)}
-                />
-              ))}
-            </View>
-
-            <TouchableOpacity style={s.btn} onPress={() => setStep(2)}>
-              <Text style={s.btnText}>Next</Text>
-            </TouchableOpacity>
           </View>
         )}
 
         {step === 2 && (
-          <View style={s.section}>
-            <Text style={s.title}>Details</Text>
+          <View style={styles.stepBody}>
+            <Text style={styles.eyebrow}>STEP 3 OF 3</Text>
+            <Text style={styles.title}>League defaults</Text>
+            <Text style={styles.sub}>You can change these anytime.</Text>
 
-            <Text style={s.label}>Your name (admin)</Text>
-            <TextInput
-              style={s.input}
-              value={adminName}
-              onChangeText={setAdminName}
-              placeholder="e.g. Koren"
-              placeholderTextColor="#555"
-            />
-
-            <Text style={s.label}>Default location</Text>
-            <TextInput
-              style={s.input}
-              value={defaultLocation}
-              onChangeText={setDefaultLocation}
-              placeholder="e.g. The Cage"
-              placeholderTextColor="#555"
-            />
-
-            <Text style={s.label}>Default team size</Text>
-            <View style={s.pills}>
-              {TEAM_SIZES.map((n) => (
+            <Text style={styles.fieldLabel}>League color</Text>
+            <View style={styles.swatchRow}>
+              {LEAGUE_COLORS.map((c) => (
                 <TouchableOpacity
-                  key={n}
-                  style={[s.pill, defaultTeamSize === n && s.pillActive]}
-                  onPress={() => setDefaultTeamSize(n)}
+                  key={c}
+                  style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setColor(c)}
                 >
-                  <Text style={[s.pillText, defaultTeamSize === n && s.pillTextActive]}>
-                    {n}v{n}
-                  </Text>
+                  {color === c && <Ionicons name="checkmark" size={16} color={T.textPrimary} />}
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View style={s.row}>
-              <TouchableOpacity style={[s.btn, s.btnSecondary]} onPress={() => setStep(1)}>
-                <Text style={s.btnSecondaryText}>Back</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[s.btn, { flex: 1 }]} onPress={() => setStep(3)}>
-                <Text style={s.btnText}>Next</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+            <Text style={styles.fieldLabel}>Home pitch</Text>
+            <TextInput
+              style={styles.input}
+              value={location}
+              onChangeText={setLocation}
+              placeholder="e.g. City Park Field (optional)"
+              placeholderTextColor={T.textMuted}
+            />
 
-        {step === 3 && (
-          <View style={s.section}>
-            <Text style={s.title}>You&apos;re all set</Text>
-
-            {/* Preview card */}
-            <View style={[s.previewCard, { borderColor: color }]}>
-              <View style={[s.previewBanner, { backgroundColor: color }]} />
-              <View style={s.previewBody}>
-                {logoUri ? (
-                  <Image source={{ uri: logoUri }} style={s.previewLogo} />
-                ) : (
-                  <View style={[s.previewLogo, s.previewLogoPlaceholder]}>
-                    <Ionicons name="trophy" size={28} color="#555" />
-                  </View>
-                )}
-                <Text style={s.previewName}>{name || "Your League"}</Text>
-                {adminName ? <Text style={s.previewAdmin}>{adminName}</Text> : null}
-              </View>
-            </View>
-
-            <View style={s.row}>
-              <TouchableOpacity style={[s.btn, s.btnSecondary]} onPress={() => setStep(2)}>
-                <Text style={s.btnSecondaryText}>Back</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[s.btn, { flex: 1 }]} onPress={finish}>
-                <Text style={s.btnText}>Let&apos;s go 🚀</Text>
-              </TouchableOpacity>
+            <Text style={styles.fieldLabel}>Players per team</Text>
+            <View style={styles.sizeRow}>
+              {TEAM_SIZES.map((size) => (
+                <TouchableOpacity
+                  key={size}
+                  style={[styles.sizeChip, teamSize === size && styles.sizeChipActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setTeamSize(size)}
+                >
+                  <Text style={[styles.sizeChipTxt, teamSize === size && styles.sizeChipTxtActive]}>
+                    {size}v{size}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         )}
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.nextBtn, !canContinue && styles.nextBtnDisabled]}
+          activeOpacity={0.8}
+          disabled={!canContinue}
+          onPress={next}
+        >
+          <Text style={styles.nextBtnTxt}>{step === TOTAL_STEPS - 1 ? "Start Ballin'" : "Continue"}</Text>
+        </TouchableOpacity>
+      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0a0a0a" },
-  scroll: { flexGrow: 1, padding: 24 },
-  dots: { flexDirection: "row", justifyContent: "center", gap: 8, marginBottom: 32 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#333" },
-  dotActive: { backgroundColor: "#f5c518" },
-  section: { flex: 1, gap: 16 },
-  title: { fontSize: 28, fontWeight: "700", color: "#fff" },
-  subtitle: { fontSize: 15, color: "#888" },
-  label: { fontSize: 13, fontWeight: "600", color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 },
+const styles = StyleSheet.create({
+  main: { flex: 1, backgroundColor: T.bg, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 },
+  flex: { flex: 1 },
+  progressRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+  progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
+  progressSegActive: { backgroundColor: T.textPrimary },
+  scrollContent: { paddingBottom: 24 },
+
+  stepBody: { marginTop: 36, gap: 6 },
+  eyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
+  title: { fontSize: 28, fontWeight: "900", color: T.textPrimary },
+  sub: { fontSize: 13, color: T.textSecondary, marginBottom: 18 },
+
+  fieldLabel: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 14, marginBottom: 8 },
   input: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    color: "#fff",
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: "#2a2a2a",
+    borderColor: T.border,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: T.textPrimary,
   },
-  logoPicker: { alignItems: "center", gap: 8, marginVertical: 8 },
-  logoImg: { width: 88, height: 88, borderRadius: 44 },
-  logoPlaceholder: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: "#1a1a1a",
+
+  logoPicker: {
+    alignSelf: "center",
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.border,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#2a2a2a",
-    borderStyle: "dashed",
-  },
-  logoHint: { fontSize: 13, color: "#555" },
-  swatches: { flexDirection: "row", gap: 12, flexWrap: "wrap" },
-  swatch: { width: 36, height: 36, borderRadius: 18 },
-  swatchSelected: { borderWidth: 3, borderColor: "#fff" },
-  pills: { flexDirection: "row", gap: 10 },
-  pill: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#1a1a1a",
-    borderWidth: 1,
-    borderColor: "#2a2a2a",
-    alignItems: "center",
-  },
-  pillActive: { backgroundColor: "#f5c518", borderColor: "#f5c518" },
-  pillText: { color: "#aaa", fontWeight: "600", fontSize: 15 },
-  pillTextActive: { color: "#000" },
-  btn: {
-    backgroundColor: "#f5c518",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
+    gap: 4,
     marginTop: 8,
-  },
-  btnText: { color: "#000", fontWeight: "700", fontSize: 16 },
-  btnSecondary: {
-    backgroundColor: "#1a1a1a",
-    borderWidth: 1,
-    borderColor: "#2a2a2a",
-    width: 80,
-    marginTop: 8,
-    marginRight: 10,
-  },
-  btnSecondaryText: { color: "#aaa", fontWeight: "600", fontSize: 16 },
-  row: { flexDirection: "row", alignItems: "center" },
-  previewCard: {
-    borderRadius: 16,
     overflow: "hidden",
-    borderWidth: 2,
-    backgroundColor: "#111",
-    marginVertical: 8,
   },
-  previewBanner: { height: 60 },
-  previewBody: { alignItems: "center", paddingVertical: 16, gap: 8 },
-  previewLogo: { width: 64, height: 64, borderRadius: 32, marginTop: -42 },
-  previewLogoPlaceholder: {
-    backgroundColor: "#1a1a1a",
+  logoImage: { width: "100%", height: "100%" },
+  logoPickerTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
+
+  swatchRow: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  swatch: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#333",
-    marginTop: -42,
   },
-  previewName: { fontSize: 20, fontWeight: "700", color: "#fff" },
-  previewAdmin: { fontSize: 13, color: "#888" },
+  swatchActive: { borderWidth: 2, borderColor: T.textPrimary },
+
+  sizeRow: { flexDirection: "row", gap: 8 },
+  sizeChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.border,
+    alignItems: "center",
+  },
+  sizeChipActive: { backgroundColor: T.border },
+  sizeChipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  sizeChipTxtActive: { color: T.textPrimary, fontWeight: "800" },
+
+  footer: { flexDirection: "row", gap: 10, marginTop: 12 },
+  nextBtn: {
+    flex: 1,
+    backgroundColor: T.textPrimary,
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  nextBtnDisabled: { opacity: 0.4 },
+  nextBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
 });

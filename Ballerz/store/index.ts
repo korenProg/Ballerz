@@ -32,22 +32,27 @@ interface BallerzStore {
 
   setLeague: (updates: Partial<League>) => void;
   completeOnboarding: () => void;
+  resetAll: () => void;
 }
+
+const initialState = {
+  players: [],
+  games: [],
+  league: {
+    name: "",
+    logoUri: null,
+    color: "#0039a3",
+    defaultLocation: "",
+    defaultTeamSize: 5,
+    adminName: "",
+  },
+  hasOnboarded: false,
+};
 
 export const useStore = create<BallerzStore>()(
   persist(
     (set) => ({
-      players: [],
-      games: [],
-      league: {
-        name: "",
-        logoUri: null,
-        color: "#0039a3",
-        defaultLocation: "",
-        defaultTeamSize: 5,
-        adminName: "",
-      },
-      hasOnboarded: false,
+      ...initialState,
 
       addPlayer: (player) =>
         set((s) => ({
@@ -106,6 +111,8 @@ export const useStore = create<BallerzStore>()(
         set((s) => ({ league: { ...s.league, ...updates } })),
 
       completeOnboarding: () => set({ hasOnboarded: true }),
+
+      resetAll: () => set(initialState),
     }),
     {
       name: "ballerz-store",

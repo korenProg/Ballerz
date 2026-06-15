@@ -1,15 +1,10 @@
 export const T = {
-  bg: "#07080f",
-  surface: "rgba(255,255,255,0.04)",
-  border: "rgba(255,255,255,0.07)",
-  accent: "#f59e0b",
-  accentMuted: "rgba(245,158,11,0.12)",
-  accentBorder: "rgba(245,158,11,0.2)",
-  textPrimary: "#ffffff",
-  textSecondary: "#c8ccd8",
-  textMuted: "#3a3d52",
-  scoreSize: 28,
-  radius: { card: 22, pill: 14, badge: 8 },
+  bg: "#04050B",
+  surface: "#111525",
+  border: "#2E385B",
+  textMuted: "#4A5C6A",
+  textSecondary: "#9BA8AB",
+  textPrimary: "#CCD0CF",
 } as const;
 
 /**

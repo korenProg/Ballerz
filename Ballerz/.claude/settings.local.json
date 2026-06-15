@@ -35,7 +35,12 @@
       "Bash(Test-Path *)",
       "Bash(scripts/start-server.sh --project-dir \"C:\\\\Users\\\\koren\\\\OneDrive\\\\מסמכים\\\\MyProjects\\\\Ballerz\\\\Ballerz\")",
       "Bash(C:\\\\Users\\\\koren\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh *)",
-      "Bash(gh pr create --title 'fix: solid amber Manage League button' --body ' *)"
+      "Bash(gh pr create --title 'fix: solid amber Manage League button' --body ' *)",
+      "Bash(C:\\\\Users\\\\koren\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.1.0\\\\scripts\\\\start-server.sh *)",
+      "PowerShell(node \"C:\\\\Users\\\\koren\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.1.0\\\\scripts\\\\server.js\" --project-dir \"C:\\\\Users\\\\koren\\\\OneDrive\\\\מסמכים\\\\MyProjects\\\\Ballerz\\\\Ballerz\" 2>&1 | Select-Object -First 5)",
+      "PowerShell(node \"C:\\\\Users\\\\koren\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.1.0\\\\skills\\\\brainstorming\\\\scripts\\\\server.cjs\" --project-dir \"C:\\\\Users\\\\koren\\\\OneDrive\\\\מסמכים\\\\MyProjects\\\\Ballerz\\\\Ballerz\")",
+      "PowerShell(git *)",
+      "Bash(scripts/start-server.sh *)"
     ]
   },
   "enabledPlugins": {
