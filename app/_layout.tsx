@@ -22,7 +22,7 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="create-player"
-          options={{ presentation: 'modal', headerShown: false }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="create-game"

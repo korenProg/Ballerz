@@ -27,6 +27,7 @@ app/
   create-player.tsx    # Modal screen
   create-game.tsx      # Full-screen flow
   record-result.tsx    # Modal screen
+  game/[id].tsx        # Dynamic route: single-game detail / live view
   (tabs)/
     _layout.tsx        # Bottom tab bar (Home, Games, Players, Stats, League)
     index.tsx          # Home dashboard
@@ -36,7 +37,7 @@ app/
     league.tsx
 ```
 
-The root layout redirects to `/onboarding` when `hasOnboarded` is false (checked in `HomeScreen` via a `<Redirect>`).
+Every non-tab screen is registered as a `Stack.Screen` in `app/_layout.tsx` with `headerShown: false`; `create-player` and `record-result` use `presentation: "modal"`. The root layout redirects to `/onboarding` when `hasOnboarded` is false (checked in `HomeScreen` via a `<Redirect>`).
 
 ### State management
 
@@ -47,7 +48,9 @@ All app state lives in a single **Zustand** store (`store/index.ts`) persisted t
 - `league: League` — singleton config (name, color, logo, admin, defaults)
 - `hasOnboarded: boolean`
 
-Derived/memoized reads that span multiple slices live in `store/selectors.ts` (e.g. `useLastGameRadar`, `useRivalry`). Use selectors for anything that requires filtering or aggregation; prefer `useShallow` when returning objects from a selector.
+All writes go through named store actions (`addPlayer`, `updatePlayer`, `deletePlayer`, `setMvp`, `addGame`, `updateGame`, `deleteGame`, `finishGame`, `setLeague`, `completeOnboarding`, `resetAll`) — never mutate slices directly. New entities get an id from the local `genId()` helper. `setMvp` is exclusive (clears `isMvp` on all other players); `finishGame` is the canonical way to move a game to `"FT"` with score + MVP.
+
+Derived/memoized reads that span multiple slices live in `store/selectors.ts` (`useLastGame`, `useMvpPlayer`, `useAppStats`, `useRivalry`, `useLastGameRadar`). Use selectors for anything that requires filtering or aggregation; prefer `useShallow` when returning objects from a selector. Note: aggregations only count games with `status === "FT"`.
 
 ### Design system
 

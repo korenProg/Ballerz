@@ -38,6 +38,7 @@ export default function Onboarding() {
   const setLeague = useStore((s) => s.setLeague);
   const completeOnboarding = useStore((s) => s.completeOnboarding);
 
+  const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [adminName, setAdminName] = useState("");
   const [leagueName, setLeagueName] = useState("");
@@ -96,6 +97,37 @@ export default function Onboarding() {
     });
     completeOnboarding();
     router.replace("/(tabs)");
+  }
+
+  if (showWelcome) {
+    return (
+      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+        <View style={styles.welcomeBody}>
+          <View style={styles.welcomeLogo}>
+            <Image
+              source={require("../assets/images/ballerzLogo.png")}
+              style={styles.welcomeLogoImg}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.welcomeWordmark}>Ballerz</Text>
+          <Text style={styles.welcomeTagline}>Run your amateur league like a pro.</Text>
+          <Text style={styles.welcomeDesc}>
+            Track every match, rate your squad FIFA-style, and crown your league MVP.
+          </Text>
+        </View>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.nextBtn}
+            activeOpacity={0.8}
+            onPress={() => setShowWelcome(false)}
+          >
+            <Text style={styles.nextBtnTxt}>Get Started</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -241,6 +273,31 @@ const styles = StyleSheet.create({
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
   progressSegActive: { backgroundColor: T.textPrimary },
   scrollContent: { paddingBottom: 24 },
+
+  welcomeBody: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
+  welcomeLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 32,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.border,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    marginBottom: 18,
+  },
+  welcomeLogoImg: { width: "78%", height: "78%" },
+  welcomeWordmark: { fontSize: 40, fontWeight: "900", color: T.textPrimary, letterSpacing: 0.5 },
+  welcomeTagline: { fontSize: 16, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
+  welcomeDesc: {
+    fontSize: 14,
+    color: T.textSecondary,
+    textAlign: "center",
+    lineHeight: 21,
+    marginTop: 4,
+    paddingHorizontal: 12,
+  },
 
   stepBody: { marginTop: 36, gap: 6 },
   eyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },

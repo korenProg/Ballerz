@@ -1,82 +1,134 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Pressable, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { T } from '../../constants/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
-export default function TabLayout() {
-  const insets = useSafeAreaInsets();
+const TAB_ICONS: Record<string, { filled: IconName; outline: IconName }> = {
+  index: { filled: 'home', outline: 'home-outline' },
+  games: { filled: 'football', outline: 'football-outline' },
+  players: { filled: 'people', outline: 'people-outline' },
+  league: { filled: 'trophy', outline: 'trophy-outline' },
+};
 
-  const tabIcon = (filled: IconName, outline: IconName) =>
-    ({ focused }: { focused: boolean }) => (
-      <View style={[styles.iconPill, focused && styles.iconPillActive]}>
-        <Ionicons
-          name={focused ? filled : outline}
-          size={18}
-          color={focused ? T.textPrimary : T.textMuted}
-        />
-      </View>
-    );
+const PILL_W = 60;
+const PILL_H = 40;
+const TAB_H = 44;
+
+function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+  const [barWidth, setBarWidth] = useState(0);
+  const slot = state.routes.length ? barWidth / state.routes.length : 0;
+
+  const translateX = useRef(new Animated.Value(0)).current;
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!slot) return;
+    const target = state.index * slot + (slot - PILL_W) / 2;
+    if (!initialized.current) {
+      // Place the pill without animating on first layout so it doesn't fly in.
+      translateX.setValue(target);
+      initialized.current = true;
+    } else {
+      Animated.spring(translateX, {
+        toValue: target,
+        useNativeDriver: true,
+        stiffness: 150,
+        damping: 16,
+        mass: 0.9,
+      }).start();
+    }
+  }, [state.index, slot, translateX]);
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: T.textPrimary,
-        tabBarInactiveTintColor: T.textMuted,
-        tabBarStyle: {
-          backgroundColor: T.bg,
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 52 + insets.bottom,
-          paddingTop: 4,
-          paddingBottom: insets.bottom + 4,
-        },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
-      }}
+    <View
+      style={[
+        styles.bar,
+        { height: TAB_H + 6 + insets.bottom + 6, paddingBottom: insets.bottom + 6 },
+      ]}
+      onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: tabIcon('home', 'home-outline'),
-        }}
-      />
-      <Tabs.Screen
-        name="games"
-        options={{
-          title: 'Games',
-          tabBarIcon: tabIcon('football', 'football-outline'),
-        }}
-      />
-      <Tabs.Screen
-        name="players"
-        options={{
-          title: 'Players',
-          tabBarIcon: tabIcon('people', 'people-outline'),
-        }}
-      />
-      <Tabs.Screen
-        name="league"
-        options={{
-          title: 'League',
-          tabBarIcon: tabIcon('trophy', 'trophy-outline'),
-        }}
-      />
+      {barWidth > 0 && (
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.pill, { transform: [{ translateX }] }]}
+        />
+      )}
+
+      {state.routes.map((route, index) => {
+        const focused = state.index === index;
+        const icons = TAB_ICONS[route.name];
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <Pressable
+            key={route.key}
+            style={styles.tab}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityState={focused ? { selected: true } : {}}
+            onPress={onPress}
+          >
+            <Ionicons
+              name={focused ? icons.filled : icons.outline}
+              size={26}
+              color={focused ? T.textPrimary : T.textMuted}
+            />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <Tabs
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <FloatingTabBar {...props} />}
+    >
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen name="games" options={{ title: 'Games' }} />
+      <Tabs.Screen name="players" options={{ title: 'Players' }} />
+      <Tabs.Screen name="league" options={{ title: 'League' }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  iconPill: {
-    width: 48,
-    height: 28,
-    borderRadius: 999,
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: T.bg,
+    paddingTop: 6,
+  },
+  tab: {
+    flex: 1,
+    height: TAB_H,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconPillActive: { backgroundColor: T.border },
+  pill: {
+    position: 'absolute',
+    left: 0,
+    top: 8,
+    width: PILL_W,
+    height: PILL_H,
+    borderRadius: 999,
+    backgroundColor: T.border,
+  },
 });
