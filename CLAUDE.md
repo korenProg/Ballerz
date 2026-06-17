@@ -22,22 +22,23 @@ No test suite is configured.
 
 ```
 app/
-  _layout.tsx          # Root Stack: tabs + modals (create-player, record-result)
+  _layout.tsx          # Root Stack: (tabs) + onboarding, create-player, create-game, record-result, game/[id]
   onboarding.tsx       # First-launch 3-step wizard; redirects to (tabs) on completion
-  create-player.tsx    # Modal screen
-  create-game.tsx      # Full-screen flow
-  record-result.tsx    # Modal screen
+  create-player.tsx    # Full-screen (headerShown: false)
+  create-game.tsx      # Full-screen (headerShown: false)
+  record-result.tsx    # Modal (presentation: "modal")
   game/[id].tsx        # Dynamic route: single-game detail / live view
   (tabs)/
-    _layout.tsx        # Bottom tab bar (Home, Games, Players, Stats, League)
+    _layout.tsx        # Bottom tab bar (Home, Games, Players, League)
     index.tsx          # Home dashboard
     games.tsx
     players.tsx
-    stats.tsx
     league.tsx
 ```
 
-Every non-tab screen is registered as a `Stack.Screen` in `app/_layout.tsx` with `headerShown: false`; `create-player` and `record-result` use `presentation: "modal"`. The root layout redirects to `/onboarding` when `hasOnboarded` is false (checked in `HomeScreen` via a `<Redirect>`).
+Every non-tab screen is registered as a `Stack.Screen` in `app/_layout.tsx` with `headerShown: false`; only `record-result` uses `presentation: "modal"`. The root layout redirects to `/onboarding` when `hasOnboarded` is false (checked in `HomeScreen` via a `<Redirect>`, `app/(tabs)/index.tsx`).
+
+**Implementation status:** Only `(tabs)/index.tsx` (home dashboard, ~21 KB), `create-player.tsx`, and `onboarding.tsx` are built out. `games.tsx`, `players.tsx`, `league.tsx`, `create-game.tsx`, `record-result.tsx`, and `game/[id].tsx` are still centered-text placeholder stubs — expect to flesh these out. The tab bar is a custom `FloatingTabBar` with an animated pill (`(tabs)/_layout.tsx`), not the default tab bar.
 
 ### State management
 
@@ -54,17 +55,18 @@ Derived/memoized reads that span multiple slices live in `store/selectors.ts` (`
 
 ### Design system
 
-The primary design token object is `T` exported from `constants/theme.ts`. Key values:
+The primary design token object is `T` exported from `constants/theme.ts` — a flat, dark-only palette (no light/dark variants, no `radius` or `accent` keys):
 
 | Token | Value |
 |---|---|
-| `T.bg` | `#07080f` (deep-space dark) |
-| `T.accent` | `#f59e0b` (amber) |
-| `T.surface` | `rgba(255,255,255,0.04)` |
-| `T.textPrimary` | `#ffffff` |
-| `T.radius.card` | `22` |
+| `T.bg` | `#04050B` |
+| `T.surface` | `#111525` |
+| `T.border` | `#2E385B` |
+| `T.textPrimary` | `#CCD0CF` |
+| `T.textSecondary` | `#9BA8AB` |
+| `T.textMuted` | `#4A5C6A` |
 
-The home screen uses a white bottom sheet (`backgroundColor: "#fff"`) overlaid on a dark hero — this is intentional; the sheet and the hero have distinct color schemes.
+`constants/theme.ts` also exports `Colors` (light/dark) and `Fonts`, plus the `hooks/use-color-scheme*` and `hooks/use-theme-color` helpers — these are leftover Expo template boilerplate; the app's own screens use the `T` palette directly. Radius/spacing values are hard-coded per screen (no shared scale).
 
 Styling is done with `StyleSheet.create` inline in each screen file. There is no global stylesheet or component library.
 
@@ -78,3 +80,4 @@ Styling is done with `StyleSheet.create` inline in each screen file. There is no
 - `@/` path alias maps to the project root (configured in tsconfig).
 - The React Compiler is enabled (`experiments.reactCompiler: true`); avoid manual `useMemo`/`useCallback` unless there's a specific reason.
 - Images (player photos, league logos) are stored as local `file://` URIs via `expo-image-picker`, not uploaded anywhere.
+- Shared types live in `types/` and are re-exported through the `types/index.ts` barrel (`Player`, `Game`, `GamePlayer`, `League`, `ExportMode`). A game's MVP is the embedded `mvp: { name, stat }` object on `Game`; a player's `isMvp` flag (toggled by `setMvp`) is the separate "current MVP of the league" concept.

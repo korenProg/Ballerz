@@ -15,9 +15,9 @@ const TAB_ICONS: Record<string, { filled: IconName; outline: IconName }> = {
   league: { filled: 'trophy', outline: 'trophy-outline' },
 };
 
-const PILL_W = 60;
-const PILL_H = 40;
-const TAB_H = 44;
+const PILL_W = 54;
+const PILL_H = 32;
+const TAB_H = 34;
 
 function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -49,7 +49,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     <View
       style={[
         styles.bar,
-        { height: TAB_H + 6 + insets.bottom + 6, paddingBottom: insets.bottom + 6 },
+        { height: TAB_H + insets.bottom + 18, paddingBottom: insets.bottom + 6 },
       ]}
       onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
     >
@@ -86,7 +86,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           >
             <Ionicons
               name={focused ? icons.filled : icons.outline}
-              size={26}
+              size={24}
               color={focused ? T.textPrimary : T.textMuted}
             />
           </Pressable>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     backgroundColor: T.bg,
-    paddingTop: 6,
+    paddingTop: 12,
   },
   tab: {
     flex: 1,
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   pill: {
     position: 'absolute',
     left: 0,
-    top: 8,
+    top: 12,
     width: PILL_W,
     height: PILL_H,
     borderRadius: 999,

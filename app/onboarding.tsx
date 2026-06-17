@@ -105,7 +105,7 @@ export default function Onboarding() {
         <View style={styles.welcomeBody}>
           <View style={styles.welcomeLogo}>
             <Image
-              source={require("../assets/images/ballerzLogo.png")}
+              source={require("../assets/images/xi_logo_white_png.png")}
               style={styles.welcomeLogoImg}
               resizeMode="contain"
             />
@@ -276,18 +276,13 @@ const styles = StyleSheet.create({
 
   welcomeBody: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
   welcomeLogo: {
-    width: 120,
-    height: 120,
-    borderRadius: 32,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
+    width: 180,
+    height: 180,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
     marginBottom: 18,
   },
-  welcomeLogoImg: { width: "78%", height: "78%" },
+  welcomeLogoImg: { width: "100%", height: "100%" },
   welcomeWordmark: { fontSize: 40, fontWeight: "900", color: T.textPrimary, letterSpacing: 0.5 },
   welcomeTagline: { fontSize: 16, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
   welcomeDesc: {

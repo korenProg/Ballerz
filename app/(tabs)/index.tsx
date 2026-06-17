@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from "react-native";
 import { Redirect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -321,6 +321,14 @@ export default function HomeScreen() {
   const players = useStore((s) => s.players);
   const resetAll = useStore((s) => s.resetAll);
   const insets = useSafeAreaInsets();
+  // Measured so the under-bar fade gradient sits exactly below the fixed header.
+  const [headerH, setHeaderH] = useState(0);
+  // Pull-to-refresh loading animation at the top.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1200);
+  };
 
   if (!hasOnboarded) return <Redirect href="/onboarding" />;
 
@@ -331,42 +339,27 @@ export default function HomeScreen() {
   const gamesPlayed = games.filter((g) => g.status === "FT").length;
 
   return (
-    <View
-      style={[
-        styles.main,
-        { paddingTop: Math.max(insets.top - 12, 0) },
-      ]}
-    >
+    <View style={styles.main}>
+      {/* Background glow near the top that fades into the app bg (behind content). */}
       <LinearGradient
-        colors={[T.border, T.surface, "transparent"]}
-        locations={[0, 0.5, 1]}
-        style={styles.topFade}
+        colors={["rgba(17,21,37,0.9)", "rgba(17,21,37,0.35)", "transparent"]}
+        locations={[0, 0.55, 1]}
+        style={[styles.headerFade, { top: headerH }]}
         pointerEvents="none"
       />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.headerBar}>
-          <View style={styles.greetingContainer}>
-            <Text style={styles.greeting}>{timegreet()}</Text>
-            <Text style={styles.name}>{adminName}</Text>
-          </View>
-
-          <View style={styles.headerActions}>
-            {/* TEMP: dev-only reset button — remove before release */}
-            <TouchableOpacity onPress={resetAll} hitSlop={8}>
-              <Ionicons name="trash-outline" size={18} color={T.textMuted} />
-            </TouchableOpacity>
-
-            {logoUri ? (
-              <Image source={{ uri: logoUri }} style={styles.logo} />
-            ) : (
-              <View style={styles.logoFallback}>
-                <Ionicons name="trophy" size={20} color={T.textSecondary} />
-              </View>
-            )}
-          </View>
-        </View>
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: headerH }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={leagueColor}
+            colors={[leagueColor]}
+          />
+        }
+      >
         <WeekStrip gameDates={gameDates} leagueColor={leagueColor} />
 
         <LeagueStatsCard
@@ -380,6 +373,41 @@ export default function HomeScreen() {
 
         <MvpLeaderboardCard players={players} games={games} />
       </ScrollView>
+
+      {/* Bottom divider for the bar: glows in the center, fades at the edges. */}
+      <LinearGradient
+        colors={["transparent", T.border, "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.headerBorder, { top: headerH }]}
+        pointerEvents="none"
+      />
+
+      {/* Fixed, solid top bar. */}
+      <View
+        style={[styles.headerBar, { paddingTop: insets.top + 8 }]}
+        onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
+      >
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greeting}>{timegreet()}</Text>
+          <Text style={styles.name}>{adminName}</Text>
+        </View>
+
+        <View style={styles.headerActions}>
+          {/* TEMP: dev-only reset button — remove before release */}
+          <TouchableOpacity onPress={resetAll} hitSlop={8}>
+            <Ionicons name="trash-outline" size={18} color={T.textMuted} />
+          </TouchableOpacity>
+
+          {logoUri ? (
+            <Image source={{ uri: logoUri }} style={styles.logo} />
+          ) : (
+            <View style={styles.logoFallback}>
+              <Ionicons name="trophy" size={20} color={T.textSecondary} />
+            </View>
+          )}
+        </View>
+      </View>
     </View>
   );
 }
@@ -394,19 +422,31 @@ const timegreet = () => {
 const styles = StyleSheet.create({
   main: { flexDirection: "column", flex: 1, backgroundColor: T.bg },
   scrollContent: { paddingBottom: 24 },
-  topFade: {
+  headerFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 140,
+  },
+  headerBorder: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 1.5,
+    zIndex: 2,
+  },
+  headerBar: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 160,
-  },
-  headerBar: {
+    zIndex: 3,
+    backgroundColor: T.surface,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginTop: 16,
+    paddingBottom: 16,
   },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 14 },
   greetingContainer: { alignItems: "flex-start" },
