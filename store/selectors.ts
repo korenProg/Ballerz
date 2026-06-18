@@ -61,37 +61,41 @@ type RadarTeam = { label: string; color: string; pac: number; sho: number; pas: 
 const avg = (vals: number[]) =>
   vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : 0;
 
-export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null =>
-  useStore(
-    useShallow((s) => {
-      const last = s.games.filter((g) => g.status === "FT").sort((a, b) =>
-        new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
-      )[0];
-      if (!last) return null;
+// Same stability concern as useGamesByStatus: returning a fresh { home, away }
+// object through useShallow loops forever once a finished game exists. Select
+// the stable games/players slices and memoize the derived radar instead.
+export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null => {
+  const games = useStore((s) => s.games);
+  const players = useStore((s) => s.players);
+  return useMemo(() => {
+    const last = games.filter((g) => g.status === "FT").sort((a, b) =>
+      new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+    )[0];
+    if (!last) return null;
 
-      const playerMap = new Map<string, Player>(s.players.map((p) => [p.id, p]));
+    const playerMap = new Map<string, Player>(players.map((p) => [p.id, p]));
 
-      const stats = (ids: string[]) => {
-        const ps = ids.map((id) => playerMap.get(id)).filter(Boolean) as Player[];
-        return {
-          pac: avg(ps.map((p) => p.pac)),
-          sho: avg(ps.map((p) => p.sho)),
-          pas: avg(ps.map((p) => p.pas)),
-          dri: avg(ps.map((p) => p.dri)),
-          def: avg(ps.map((p) => p.def)),
-          phy: avg(ps.map((p) => p.phy)),
-        };
-      };
-
-      const homeIds = (last.homePlayers ?? []).map((p) => p.id);
-      const awayIds = (last.awayPlayers ?? []).map((p) => p.id);
-
+    const stats = (ids: string[]) => {
+      const ps = ids.map((id) => playerMap.get(id)).filter(Boolean) as Player[];
       return {
-        home: { label: last.homeTeam, color: last.homeColor, ...stats(homeIds) },
-        away: { label: last.awayTeam, color: last.awayColor, ...stats(awayIds) },
+        pac: avg(ps.map((p) => p.pac)),
+        sho: avg(ps.map((p) => p.sho)),
+        pas: avg(ps.map((p) => p.pas)),
+        dri: avg(ps.map((p) => p.dri)),
+        def: avg(ps.map((p) => p.def)),
+        phy: avg(ps.map((p) => p.phy)),
       };
-    })
-  );
+    };
+
+    const homeIds = (last.homePlayers ?? []).map((p) => p.id);
+    const awayIds = (last.awayPlayers ?? []).map((p) => p.id);
+
+    return {
+      home: { label: last.homeTeam, color: last.homeColor, ...stats(homeIds) },
+      away: { label: last.awayTeam, color: last.awayColor, ...stats(awayIds) },
+    };
+  }, [games, players]);
+};
 
 // Select the stable `games` array (referentially stable across renders unless
 // games actually change) and derive the grouped object via useMemo. Returning
