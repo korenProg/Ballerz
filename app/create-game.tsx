@@ -17,6 +17,7 @@ export default function CreateGameScreen() {
   const router = useRouter();
   const league = useStore((s) => s.league);
   const addGame = useStore((s) => s.addGame);
+  const players = useStore((s) => s.players);
 
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
@@ -26,6 +27,24 @@ export default function CreateGameScreen() {
   const [location, setLocation] = useState(league.defaultLocation ?? "");
   const [homeLogo, setHomeLogo] = useState<string | null>(null);
   const [awayLogo, setAwayLogo] = useState<string | null>(null);
+  const [homePlayerIds, setHomePlayerIds] = useState<string[]>([]);
+  const [awayPlayerIds, setAwayPlayerIds] = useState<string[]>([]);
+
+  const toggle = (side: "home" | "away", id: string) => {
+    if (side === "home") {
+      setAwayPlayerIds((a) => a.filter((x) => x !== id));
+      setHomePlayerIds((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]));
+    } else {
+      setHomePlayerIds((h) => h.filter((x) => x !== id));
+      setAwayPlayerIds((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]));
+    }
+  };
+
+  const snapshot = (ids: string[]) =>
+    ids
+      .map((id) => players.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => !!p)
+      .map((p) => ({ id: p.id, name: p.name, position: p.position }));
 
   async function pickLogo(set: (uri: string) => void) {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
@@ -50,8 +69,8 @@ export default function CreateGameScreen() {
       awayLogo: awayLogo ?? undefined,
       date,
       location: location.trim(),
-      homePlayers: [],
-      awayPlayers: [],
+      homePlayers: snapshot(homePlayerIds),
+      awayPlayers: snapshot(awayPlayerIds),
     });
     router.back();
   }
@@ -95,6 +114,38 @@ export default function CreateGameScreen() {
 
           <Text style={styles.label}>Location</Text>
           <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholder="e.g. City Park (optional)" placeholderTextColor={T.textMuted} />
+
+          <Text style={styles.label}>Lineups (optional · {league.defaultTeamSize}v{league.defaultTeamSize})</Text>
+          {players.length === 0 ? (
+            <TouchableOpacity onPress={() => router.push("/create-player")}>
+              <Text style={styles.hintLink}>No players yet — add players first</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <Text style={styles.lineupSide}>Home squad</Text>
+              <View style={styles.chipWrap}>
+                {players.map((p) => {
+                  const on = homePlayerIds.includes(p.id);
+                  return (
+                    <TouchableOpacity key={p.id} style={[styles.chip, on && { backgroundColor: homeColor, borderColor: homeColor }]} activeOpacity={0.8} onPress={() => toggle("home", p.id)}>
+                      <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{p.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.lineupSide}>Away squad</Text>
+              <View style={styles.chipWrap}>
+                {players.map((p) => {
+                  const on = awayPlayerIds.includes(p.id);
+                  return (
+                    <TouchableOpacity key={p.id} style={[styles.chip, on && { backgroundColor: awayColor, borderColor: awayColor }]} activeOpacity={0.8} onPress={() => toggle("away", p.id)}>
+                      <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{p.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -136,4 +187,10 @@ const styles = StyleSheet.create({
   saveBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
   logoSlot: { width: 56, height: 56, borderRadius: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", overflow: "hidden", marginTop: 8 },
   logoSlotImg: { width: "100%", height: "100%" },
+  hintLink: { fontSize: 13, color: T.textSecondary, textDecorationLine: "underline", marginTop: 8 },
+  lineupSide: { fontSize: 12, fontWeight: "700", color: T.textSecondary, marginTop: 12, marginBottom: 6 },
+  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
+  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  chipTxtOn: { color: "#fff" },
 });
