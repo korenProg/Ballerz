@@ -1,6 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "./index";
 import type { Player } from "../types/players";
+import type { Game } from "../types/games";
+import { parseGameDate } from "../utils/game";
 
 export const useLastGame = () =>
   useStore((s) => {
@@ -86,6 +88,21 @@ export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null 
       return {
         home: { label: last.homeTeam, color: last.homeColor, ...stats(homeIds) },
         away: { label: last.awayTeam, color: last.awayColor, ...stats(awayIds) },
+      };
+    })
+  );
+
+export const useGamesByStatus = () =>
+  useStore(
+    useShallow((s) => {
+      const byDateDesc = (a: Game, b: Game) =>
+        parseGameDate(b.date) - parseGameDate(a.date);
+      const byDateAsc = (a: Game, b: Game) =>
+        parseGameDate(a.date) - parseGameDate(b.date);
+      return {
+        live: s.games.filter((g) => g.status === "Live").sort(byDateDesc),
+        upcoming: s.games.filter((g) => g.status === "Pending").sort(byDateAsc),
+        results: s.games.filter((g) => g.status === "FT").sort(byDateDesc),
       };
     })
   );
