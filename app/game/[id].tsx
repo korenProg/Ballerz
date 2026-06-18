@@ -56,6 +56,16 @@ export default function GameDetailScreen() {
           <Lineup title={game.awayTeam} players={game.awayPlayers} color={game.awayColor} />
         </View>
 
+        {game.status === "FT" && game.mvp?.name ? (
+          <View style={styles.mvpCard}>
+            <Ionicons name="star" size={18} color="#ca8a04" />
+            <View>
+              <Text style={styles.mvpLabel}>MVP</Text>
+              <Text style={styles.mvpName}>{game.mvp.name}{game.mvp.stat ? ` · ${game.mvp.stat}` : ""}</Text>
+            </View>
+          </View>
+        ) : null}
+
         {game.status === "Pending" && (
           <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={() => updateGame(game.id, { status: "Live" })}>
             <Ionicons name="play" size={18} color={T.bg} />
@@ -115,4 +125,7 @@ const styles = StyleSheet.create({
   liveTeamName: { fontSize: 13, fontWeight: "800", color: T.textPrimary },
   liveBtns: { flexDirection: "row", gap: 10 },
   liveBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
+  mvpCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 16, marginTop: 16 },
+  mvpLabel: { fontSize: 10, fontWeight: "800", color: T.textSecondary, letterSpacing: 1 },
+  mvpName: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
 });
