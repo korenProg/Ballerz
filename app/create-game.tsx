@@ -18,6 +18,8 @@ export default function CreateGameScreen() {
   const league = useStore((s) => s.league);
   const addGame = useStore((s) => s.addGame);
   const players = useStore((s) => s.players);
+  const setMvp = useStore((s) => s.setMvp);
+  const updatePlayer = useStore((s) => s.updatePlayer);
 
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
@@ -29,6 +31,11 @@ export default function CreateGameScreen() {
   const [awayLogo, setAwayLogo] = useState<string | null>(null);
   const [homePlayerIds, setHomePlayerIds] = useState<string[]>([]);
   const [awayPlayerIds, setAwayPlayerIds] = useState<string[]>([]);
+  const [mode, setMode] = useState<"upcoming" | "result">("upcoming");
+  const [homeScore, setHomeScore] = useState(0);
+  const [awayScore, setAwayScore] = useState(0);
+  const [mvpId, setMvpId] = useState<string | null>(null);
+  const [mvpStat, setMvpStat] = useState("");
 
   const toggle = (side: "home" | "away", id: string) => {
     if (side === "home") {
@@ -46,6 +53,10 @@ export default function CreateGameScreen() {
       .filter((p): p is NonNullable<typeof p> => !!p)
       .map((p) => ({ id: p.id, name: p.name, position: p.position }));
 
+  const lineup = [...homePlayerIds, ...awayPlayerIds]
+    .map((id) => players.find((p) => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => !!p);
+
   async function pickLogo(set: (uri: string) => void) {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!res.canceled) set(res.assets[0].uri);
@@ -55,23 +66,32 @@ export default function CreateGameScreen() {
 
   function save() {
     if (!canSave) return;
-    addGame({
+    const base = {
       league: league.name,
-      status: "Pending",
       homeTeam: homeTeam.trim(),
       awayTeam: awayTeam.trim(),
-      homeScore: 0,
-      awayScore: 0,
-      mvp: { name: "", stat: "" },
-      homeColor,
-      awayColor,
+      homeColor, awayColor, date,
+      location: location.trim(),
       homeLogo: homeLogo ?? undefined,
       awayLogo: awayLogo ?? undefined,
-      date,
-      location: location.trim(),
       homePlayers: snapshot(homePlayerIds),
       awayPlayers: snapshot(awayPlayerIds),
-    });
+    };
+    if (mode === "result") {
+      const mvpPlayer = mvpId ? players.find((p) => p.id === mvpId) : null;
+      addGame({
+        ...base,
+        status: "FT",
+        homeScore, awayScore,
+        mvp: { name: mvpPlayer?.name ?? "", stat: mvpPlayer ? mvpStat.trim() : "" },
+      });
+      if (mvpPlayer) {
+        setMvp(mvpPlayer.id);
+        updatePlayer(mvpPlayer.id, { mvps: mvpPlayer.mvps + 1 });
+      }
+    } else {
+      addGame({ ...base, status: "Pending", homeScore: 0, awayScore: 0, mvp: { name: "", stat: "" } });
+    }
     router.back();
   }
 
@@ -87,6 +107,14 @@ export default function CreateGameScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.segment}>
+            {(["upcoming", "result"] as const).map((m) => (
+              <TouchableOpacity key={m} style={[styles.segBtn, mode === m && styles.segBtnActive]} activeOpacity={0.8} onPress={() => setMode(m)}>
+                <Text style={[styles.segTxt, mode === m && styles.segTxtActive]}>{m === "upcoming" ? "Upcoming" : "Log result"}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <Text style={styles.label}>Home team</Text>
           <TextInput style={styles.input} value={homeTeam} onChangeText={setHomeTeam} placeholder="e.g. Reds" placeholderTextColor={T.textMuted} />
           <ColorRow value={homeColor} onChange={setHomeColor} />
@@ -146,15 +174,51 @@ export default function CreateGameScreen() {
               </View>
             </>
           )}
+
+          {mode === "result" && (
+            <>
+              <Text style={styles.label}>Final score</Text>
+              <View style={styles.scoreRow}>
+                <Stepper value={homeScore} onChange={setHomeScore} />
+                <Text style={styles.scoreColon}>:</Text>
+                <Stepper value={awayScore} onChange={setAwayScore} />
+              </View>
+              <Text style={styles.label}>MVP (optional)</Text>
+              {lineup.length === 0 ? (
+                <Text style={styles.hintLink}>Add players to a lineup to pick an MVP</Text>
+              ) : (
+                <View style={styles.chipWrap}>
+                  {lineup.map((p) => (
+                    <TouchableOpacity key={p.id} style={[styles.chip, mvpId === p.id && styles.chipMvpOn]} activeOpacity={0.8} onPress={() => setMvpId(mvpId === p.id ? null : p.id)}>
+                      <Text style={[styles.chipTxt, mvpId === p.id && styles.chipTxtOn]}>{p.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {mvpId ? (
+                <TextInput style={[styles.input, { marginTop: 10 }]} value={mvpStat} onChangeText={setMvpStat} placeholder="MVP stat, e.g. 2 goals" placeholderTextColor={T.textMuted} />
+              ) : null}
+            </>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]} activeOpacity={0.8} disabled={!canSave} onPress={save}>
-            <Text style={styles.saveBtnTxt}>Create Game</Text>
+            <Text style={styles.saveBtnTxt}>{mode === "result" ? "Save Result" : "Create Game"}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function Stepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <View style={styles.stepper}>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(Math.max(0, value - 1))}><Ionicons name="remove" size={18} color={T.textPrimary} /></TouchableOpacity>
+      <Text style={styles.stepVal}>{value}</Text>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(value + 1)}><Ionicons name="add" size={18} color={T.textPrimary} /></TouchableOpacity>
+    </View>
   );
 }
 
@@ -193,4 +257,15 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
   chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
   chipTxtOn: { color: "#fff" },
+  segment: { flexDirection: "row", backgroundColor: T.surface, borderRadius: 12, padding: 4, marginTop: 8 },
+  segBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
+  segBtnActive: { backgroundColor: T.border },
+  segTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  segTxtActive: { color: T.textPrimary },
+  scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 6 },
+  scoreColon: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
+  stepVal: { fontSize: 20, fontWeight: "900", color: T.textPrimary, minWidth: 24, textAlign: "center" },
+  chipMvpOn: { backgroundColor: "#ca8a04", borderColor: "#ca8a04" },
 });
