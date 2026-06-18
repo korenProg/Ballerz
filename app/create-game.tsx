@@ -82,7 +82,7 @@ export default function CreateGameScreen() {
         const mvpPlayer = mvpId ? players.find((p) => p.id === mvpId) : null;
         updateGame(editing.id, { ...base, status: "FT", homeScore, awayScore, mvp: { name: mvpPlayer?.name ?? editing.mvp.name, stat: mvpPlayer ? mvpStat.trim() : editing.mvp.stat } });
       } else {
-        updateGame(editing.id, { ...base, status: "Pending" });
+        updateGame(editing.id, { ...base, status: "Pending", homeScore: 0, awayScore: 0, mvp: { name: "", stat: "" } });
       }
       router.back();
       return;
