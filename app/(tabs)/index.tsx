@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
+import GameScoreboard from "../../components/GameScoreboard";
 
 const DAY_LETTERS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const RANK_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
@@ -72,12 +73,6 @@ function WeekStrip({ gameDates, leagueColor }: { gameDates: Set<string>; leagueC
       })}
     </View>
   );
-}
-
-function teamInitials(name: string) {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
 }
 
 function LeagueStatsCard({
@@ -165,50 +160,8 @@ function CreateGameCard() {
 function LastGameCard({ game }: { game: Game }) {
   return (
     <View style={styles.gameCard}>
-      <Ionicons
-        name="football"
-        size={220}
-        color={T.textSecondary + "22"}
-        style={styles.cardWatermark}
-      />
-
-      <View style={styles.gameCardHeader}>
-        <Text style={styles.gameCardLocation}>{game.location || "Match"}</Text>
-        {game.date ? <Text style={styles.gameCardSub}>{game.date}</Text> : null}
-      </View>
-
-      <View style={styles.gameCardMiddle}>
-        <View style={styles.teamCol}>
-          <View style={[styles.teamBadge, { backgroundColor: game.homeColor }]}>
-            <Text style={styles.teamBadgeTxt}>{teamInitials(game.homeTeam)}</Text>
-          </View>
-          <Text style={styles.teamName} numberOfLines={1}>{game.homeTeam}</Text>
-        </View>
-
-        <View style={styles.centerCol}>
-          <Text style={styles.gameScore}>
-            {game.homeScore} : {game.awayScore}
-          </Text>
-
-          <View style={styles.statusPill}>
-            {game.status === "Live" ? (
-              <>
-                <View style={styles.liveDot} />
-                <Text style={styles.statusTxt}>LIVE</Text>
-              </>
-            ) : (
-              <Text style={styles.statusTxt}>{game.status === "FT" ? "FT" : "SOON"}</Text>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.teamCol}>
-          <View style={[styles.teamBadge, { backgroundColor: game.awayColor }]}>
-            <Text style={styles.teamBadgeTxt}>{teamInitials(game.awayTeam)}</Text>
-          </View>
-          <Text style={styles.teamName} numberOfLines={1}>{game.awayTeam}</Text>
-        </View>
-      </View>
+      <Ionicons name="football" size={220} color={T.textSecondary + "22"} style={styles.cardWatermark} />
+      <GameScoreboard game={game} size="full" />
     </View>
   );
 }
