@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { formatDate } from "../utils/game";
@@ -23,6 +24,13 @@ export default function CreateGameScreen() {
   const [awayColor, setAwayColor] = useState(TEAM_COLORS[1]);
   const [date, setDate] = useState(formatDate(new Date()));
   const [location, setLocation] = useState(league.defaultLocation ?? "");
+  const [homeLogo, setHomeLogo] = useState<string | null>(null);
+  const [awayLogo, setAwayLogo] = useState<string | null>(null);
+
+  async function pickLogo(set: (uri: string) => void) {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    if (!res.canceled) set(res.assets[0].uri);
+  }
 
   const canSave = homeTeam.trim().length > 0 && awayTeam.trim().length > 0;
 
@@ -38,6 +46,8 @@ export default function CreateGameScreen() {
       mvp: { name: "", stat: "" },
       homeColor,
       awayColor,
+      homeLogo: homeLogo ?? undefined,
+      awayLogo: awayLogo ?? undefined,
       date,
       location: location.trim(),
       homePlayers: [],
@@ -61,10 +71,24 @@ export default function CreateGameScreen() {
           <Text style={styles.label}>Home team</Text>
           <TextInput style={styles.input} value={homeTeam} onChangeText={setHomeTeam} placeholder="e.g. Reds" placeholderTextColor={T.textMuted} />
           <ColorRow value={homeColor} onChange={setHomeColor} />
+          <TouchableOpacity style={styles.logoSlot} activeOpacity={0.8} onPress={() => pickLogo(setHomeLogo)}>
+            {homeLogo ? (
+              <Image source={{ uri: homeLogo }} style={styles.logoSlotImg} resizeMode="contain" />
+            ) : (
+              <Ionicons name="image-outline" size={20} color={T.textSecondary} />
+            )}
+          </TouchableOpacity>
 
           <Text style={styles.label}>Away team</Text>
           <TextInput style={styles.input} value={awayTeam} onChangeText={setAwayTeam} placeholder="e.g. Blues" placeholderTextColor={T.textMuted} />
           <ColorRow value={awayColor} onChange={setAwayColor} />
+          <TouchableOpacity style={styles.logoSlot} activeOpacity={0.8} onPress={() => pickLogo(setAwayLogo)}>
+            {awayLogo ? (
+              <Image source={{ uri: awayLogo }} style={styles.logoSlotImg} resizeMode="contain" />
+            ) : (
+              <Ionicons name="image-outline" size={20} color={T.textSecondary} />
+            )}
+          </TouchableOpacity>
 
           <Text style={styles.label}>Date</Text>
           <TextInput style={styles.input} value={date} onChangeText={setDate} placeholder="DD/MM/YYYY" placeholderTextColor={T.textMuted} />
@@ -110,4 +134,6 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: T.textPrimary, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
+  logoSlot: { width: 56, height: 56, borderRadius: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", overflow: "hidden", marginTop: 8 },
+  logoSlotImg: { width: "100%", height: "100%" },
 });
