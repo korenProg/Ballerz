@@ -62,6 +62,31 @@ export default function GameDetailScreen() {
             <Text style={styles.primaryBtnTxt}>Start Game</Text>
           </TouchableOpacity>
         )}
+
+        {game.status === "Live" && (
+          <>
+            <View style={styles.liveControls}>
+              <View style={styles.liveTeam}>
+                <Text style={styles.liveTeamName} numberOfLines={1}>{game.homeTeam}</Text>
+                <View style={styles.liveBtns}>
+                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { homeScore: Math.max(0, game.homeScore - 1) })}><Ionicons name="remove" size={20} color={T.textPrimary} /></TouchableOpacity>
+                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { homeScore: game.homeScore + 1 })}><Ionicons name="add" size={20} color={T.textPrimary} /></TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.liveTeam}>
+                <Text style={styles.liveTeamName} numberOfLines={1}>{game.awayTeam}</Text>
+                <View style={styles.liveBtns}>
+                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { awayScore: Math.max(0, game.awayScore - 1) })}><Ionicons name="remove" size={20} color={T.textPrimary} /></TouchableOpacity>
+                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { awayScore: game.awayScore + 1 })}><Ionicons name="add" size={20} color={T.textPrimary} /></TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={() => router.push(`/record-result?id=${game.id}` as const)}>
+              <Ionicons name="flag" size={18} color={T.bg} />
+              <Text style={styles.primaryBtnTxt}>Finish</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -85,4 +110,9 @@ const styles = StyleSheet.create({
   notFoundTxt: { fontSize: 16, fontWeight: "700", color: T.textSecondary },
   backBtn: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
   backBtnTxt: { color: T.textPrimary, fontWeight: "700" },
+  liveControls: { flexDirection: "row", gap: 12, marginTop: 16 },
+  liveTeam: { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 14, gap: 10, alignItems: "center" },
+  liveTeamName: { fontSize: 13, fontWeight: "800", color: T.textPrimary },
+  liveBtns: { flexDirection: "row", gap: 10 },
+  liveBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
 });
