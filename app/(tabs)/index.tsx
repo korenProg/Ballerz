@@ -9,6 +9,7 @@ import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
 import GameScoreboard from "../../components/GameScoreboard";
+import { formatDate, parseGameDate } from "../../utils/game";
 
 const DAY_LETTERS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const RANK_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
@@ -20,16 +21,6 @@ const LEADERBOARD_MODES = [
 ] as const;
 
 type LeaderboardMode = (typeof LEADERBOARD_MODES)[number]["key"];
-
-function formatDate(d: Date) {
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
-
-function parseGameDate(date?: string) {
-  if (!date) return 0;
-  const [day, month, year] = date.split("/").map(Number);
-  return new Date(year, month - 1, day).getTime();
-}
 
 function winStreak(playerId: string, finishedGames: Game[]) {
   let streak = 0;
