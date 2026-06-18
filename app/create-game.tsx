@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
   KeyboardAvoidingView, Platform, Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,27 +15,30 @@ const TEAM_COLORS = ["#0039a3", "#dc2626", "#059669", "#7c3aed", "#ea580c", "#0d
 
 export default function CreateGameScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const league = useStore((s) => s.league);
   const addGame = useStore((s) => s.addGame);
+  const updateGame = useStore((s) => s.updateGame);
   const players = useStore((s) => s.players);
   const setMvp = useStore((s) => s.setMvp);
   const updatePlayer = useStore((s) => s.updatePlayer);
+  const editing = useStore((s) => (id ? s.games.find((g) => g.id === id) ?? null : null));
 
-  const [homeTeam, setHomeTeam] = useState("");
-  const [awayTeam, setAwayTeam] = useState("");
-  const [homeColor, setHomeColor] = useState(league.color);
-  const [awayColor, setAwayColor] = useState(TEAM_COLORS[1]);
-  const [date, setDate] = useState(formatDate(new Date()));
-  const [location, setLocation] = useState(league.defaultLocation ?? "");
-  const [homeLogo, setHomeLogo] = useState<string | null>(null);
-  const [awayLogo, setAwayLogo] = useState<string | null>(null);
-  const [homePlayerIds, setHomePlayerIds] = useState<string[]>([]);
-  const [awayPlayerIds, setAwayPlayerIds] = useState<string[]>([]);
-  const [mode, setMode] = useState<"upcoming" | "result">("upcoming");
-  const [homeScore, setHomeScore] = useState(0);
-  const [awayScore, setAwayScore] = useState(0);
+  const [homeTeam, setHomeTeam] = useState(editing?.homeTeam ?? "");
+  const [awayTeam, setAwayTeam] = useState(editing?.awayTeam ?? "");
+  const [homeColor, setHomeColor] = useState(editing?.homeColor ?? league.color);
+  const [awayColor, setAwayColor] = useState(editing?.awayColor ?? TEAM_COLORS[1]);
+  const [date, setDate] = useState(editing?.date ?? formatDate(new Date()));
+  const [location, setLocation] = useState(editing?.location ?? league.defaultLocation ?? "");
+  const [homeLogo, setHomeLogo] = useState<string | null>(editing?.homeLogo ?? null);
+  const [awayLogo, setAwayLogo] = useState<string | null>(editing?.awayLogo ?? null);
+  const [homePlayerIds, setHomePlayerIds] = useState<string[]>(editing?.homePlayers?.map((p) => p.id) ?? []);
+  const [awayPlayerIds, setAwayPlayerIds] = useState<string[]>(editing?.awayPlayers?.map((p) => p.id) ?? []);
+  const [mode, setMode] = useState<"upcoming" | "result">(editing?.status === "FT" ? "result" : "upcoming");
+  const [homeScore, setHomeScore] = useState(editing?.homeScore ?? 0);
+  const [awayScore, setAwayScore] = useState(editing?.awayScore ?? 0);
   const [mvpId, setMvpId] = useState<string | null>(null);
-  const [mvpStat, setMvpStat] = useState("");
+  const [mvpStat, setMvpStat] = useState(editing?.mvp?.stat ?? "");
 
   const toggle = (side: "home" | "away", id: string) => {
     if (side === "home") {
@@ -68,15 +71,22 @@ export default function CreateGameScreen() {
     if (!canSave) return;
     const base = {
       league: league.name,
-      homeTeam: homeTeam.trim(),
-      awayTeam: awayTeam.trim(),
-      homeColor, awayColor, date,
-      location: location.trim(),
+      homeTeam: homeTeam.trim(), awayTeam: awayTeam.trim(),
+      homeColor, awayColor, date, location: location.trim(),
       homeLogo: homeLogo ?? undefined,
       awayLogo: awayLogo ?? undefined,
-      homePlayers: snapshot(homePlayerIds),
-      awayPlayers: snapshot(awayPlayerIds),
+      homePlayers: snapshot(homePlayerIds), awayPlayers: snapshot(awayPlayerIds),
     };
+    if (editing) {
+      if (mode === "result") {
+        const mvpPlayer = mvpId ? players.find((p) => p.id === mvpId) : null;
+        updateGame(editing.id, { ...base, status: "FT", homeScore, awayScore, mvp: { name: mvpPlayer?.name ?? editing.mvp.name, stat: mvpPlayer ? mvpStat.trim() : editing.mvp.stat } });
+      } else {
+        updateGame(editing.id, { ...base, status: "Pending" });
+      }
+      router.back();
+      return;
+    }
     if (mode === "result") {
       const mvpPlayer = mvpId ? players.find((p) => p.id === mvpId) : null;
       addGame({
@@ -102,7 +112,7 @@ export default function CreateGameScreen() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
             <Ionicons name="close" size={26} color={T.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Game</Text>
+          <Text style={styles.headerTitle}>{editing ? "Edit Game" : "New Game"}</Text>
           <View style={{ width: 26 }} />
         </View>
 
