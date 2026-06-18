@@ -16,6 +16,8 @@ export type Game = {
   mvp: { name: string; stat: string };
   homeColor: string;
   awayColor: string;
+  homeLogo?: string;   // file:// URI of home team crest
+  awayLogo?: string;   // file:// URI of away team crest
   location?: string;
   homePlayers?: GamePlayer[];
   awayPlayers?: GamePlayer[];
