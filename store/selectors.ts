@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "./index";
 import type { Player } from "../types/players";
@@ -92,17 +93,21 @@ export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null 
     })
   );
 
-export const useGamesByStatus = () =>
-  useStore(
-    useShallow((s) => {
-      const byDateDesc = (a: Game, b: Game) =>
-        parseGameDate(b.date) - parseGameDate(a.date);
-      const byDateAsc = (a: Game, b: Game) =>
-        parseGameDate(a.date) - parseGameDate(b.date);
-      return {
-        live: s.games.filter((g) => g.status === "Live").sort(byDateDesc),
-        upcoming: s.games.filter((g) => g.status === "Pending").sort(byDateAsc),
-        results: s.games.filter((g) => g.status === "FT").sort(byDateDesc),
-      };
-    })
-  );
+// Select the stable `games` array (referentially stable across renders unless
+// games actually change) and derive the grouped object via useMemo. Returning
+// freshly-filtered arrays through useShallow would never compare equal, making
+// useSyncExternalStore re-render forever ("Maximum update depth exceeded").
+export const useGamesByStatus = () => {
+  const games = useStore((s) => s.games);
+  return useMemo(() => {
+    const byDateDesc = (a: Game, b: Game) =>
+      parseGameDate(b.date) - parseGameDate(a.date);
+    const byDateAsc = (a: Game, b: Game) =>
+      parseGameDate(a.date) - parseGameDate(b.date);
+    return {
+      live: games.filter((g) => g.status === "Live").sort(byDateDesc),
+      upcoming: games.filter((g) => g.status === "Pending").sort(byDateAsc),
+      results: games.filter((g) => g.status === "FT").sort(byDateDesc),
+    };
+  }, [games]);
+};
