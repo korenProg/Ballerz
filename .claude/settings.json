@@ -1,4 +1,19 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/koren/.claude/plugins/cache/claude-plugins-official/superpowers/6.0.0/skills/subagent-driven-development/**)",
+      "Bash(ls scripts/)",
+      "Bash(bash scripts/review-package.sh 3a98cef HEAD)",
+      "Bash(bash scripts/review-package 3a98cef HEAD)",
+      "Bash(mkdir -p .git/sdd)",
+      "Bash(printf 'Task card \\(A+3revised+14\\): complete \\(commits 3a98cef..11d8b59, review clean\\)\\\\n')",
+      "Bash(git add *)",
+      "PowerShell(npm run lint)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\koren\\MyProjects\\Ballerz\\.git\\sdd"
+    ]
+  },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "playwright@claude-plugins-official": true
