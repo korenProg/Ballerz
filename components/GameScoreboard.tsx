@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
-  divider: { height: 1, marginTop: -4, marginHorizontal: -14 },
+  divider: { height: 1, marginHorizontal: -14 },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
   crestCol: { flex: 1, alignItems: "center" },
   namesRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, gap: 8 },
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(0,0,0,0.22)", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
   pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
-  mvpSection: { gap: 4 },
+  mvpSection: { gap: 8 },
   mvpRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   mvpName: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
 });
