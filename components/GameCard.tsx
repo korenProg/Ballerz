@@ -28,5 +28,5 @@ const styles = StyleSheet.create({
     padding: 14,
     overflow: "hidden",
   },
-  watermark: { position: "absolute", top: -20, right: -30, transform: [{ rotate: "-15deg" }] },
+  watermark: { position: "absolute", top: -40, right: -45, transform: [{ rotate: "-15deg" }] },
 });
