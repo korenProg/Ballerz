@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,28 +10,35 @@ import GameScoreboard from "../../components/GameScoreboard";
 import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
 
-function Section({
-  title, games, onPress, onDelete,
-}: { title: string; games: Game[]; onPress: (id: string) => void; onDelete: (g: Game) => void }) {
-  if (!games.length) return null;
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "FT", label: "FT" },
+  { key: "Live", label: "Live" },
+  { key: "Pending", label: "UpComing" },
+] as const;
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+function GameCard({
+  game, onPress, onDelete,
+}: { game: Game; onPress: (id: string) => void; onDelete: (g: Game) => void }) {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {games.map((g) => (
-        <Swipeable
-          key={g.id}
-          renderRightActions={() => (
-            <TouchableOpacity style={styles.deleteAction} activeOpacity={0.8} onPress={() => onDelete(g)}>
-              <Ionicons name="trash" size={20} color="#fff" />
-            </TouchableOpacity>
-          )}
-        >
-          <TouchableOpacity style={styles.rowCard} activeOpacity={0.85} onPress={() => onPress(g.id)}>
-            <GameScoreboard game={g} size="row" />
-          </TouchableOpacity>
-        </Swipeable>
-      ))}
-    </View>
+    <Swipeable
+      renderRightActions={() => (
+        <TouchableOpacity style={styles.deleteAction} activeOpacity={0.8} onPress={() => onDelete(game)}>
+          <Ionicons name="trash" size={20} color="#fff" />
+        </TouchableOpacity>
+      )}
+    >
+      <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={() => onPress(game.id)}>
+        <Ionicons
+          name="football"
+          size={180}
+          color={T.textSecondary + "14"}
+          style={styles.cardWatermark}
+        />
+        <GameScoreboard game={game} size="full" />
+      </TouchableOpacity>
+    </Swipeable>
   );
 }
 
@@ -40,6 +48,7 @@ export default function GamesScreen() {
   const total = useStore((s) => s.games.length);
   const deleteGame = useStore((s) => s.deleteGame);
   const { live, upcoming, results } = useGamesByStatus();
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   const openGame = (id: string) => router.push(`/game/${id}` as const);
   const confirmDelete = (g: Game) =>
@@ -48,9 +57,16 @@ export default function GamesScreen() {
       { text: "Delete", style: "destructive", onPress: () => deleteGame(g.id) },
     ]);
 
+  const games =
+    filter === "FT" ? results
+    : filter === "Live" ? live
+    : filter === "Pending" ? upcoming
+    : [...live, ...upcoming, ...results];
+
   return (
     <View style={styles.main}>
       <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.title}>Games</Text>
         <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => router.push("/create-game")}>
           <Ionicons name="add" size={24} color={T.bg} />
@@ -69,11 +85,33 @@ export default function GamesScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-          <Section title="LIVE" games={live} onPress={openGame} onDelete={confirmDelete} />
-          <Section title="UPCOMING" games={upcoming} onPress={openGame} onDelete={confirmDelete} />
-          <Section title="RESULTS" games={results} onPress={openGame} onDelete={confirmDelete} />
-        </ScrollView>
+        <>
+          <View style={styles.filterRow}>
+            {FILTERS.map((f) => {
+              const active = filter === f.key;
+              return (
+                <TouchableOpacity
+                  key={f.key}
+                  style={[styles.pill, active && styles.pillActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setFilter(f.key)}
+                >
+                  <Text style={[styles.pillTxt, active && styles.pillTxtActive]}>{f.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            {games.length === 0 ? (
+              <Text style={styles.noneTxt}>No games here yet</Text>
+            ) : (
+              games.map((g) => (
+                <GameCard key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
+              ))
+            )}
+          </ScrollView>
+        </>
       )}
     </View>
   );
@@ -85,17 +123,32 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingBottom: 14,
   },
-  title: { fontSize: 28, fontWeight: "900", color: T.textPrimary },
+  headerSpacer: { width: 40 },
+  title: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
   addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.textPrimary, alignItems: "center", justifyContent: "center" },
-  scroll: { paddingHorizontal: 20, paddingBottom: 24 },
-  section: { marginTop: 18, gap: 10 },
-  sectionTitle: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  rowCard: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 14 },
+
+  filterRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
+  pill: {
+    paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999,
+    backgroundColor: T.surface, borderWidth: 1, borderColor: T.border,
+  },
+  pillActive: { backgroundColor: T.textPrimary, borderColor: T.textPrimary },
+  pillTxt: { fontSize: 13, fontWeight: "800", color: T.textSecondary },
+  pillTxtActive: { color: T.bg },
+
+  scroll: { paddingHorizontal: 20, paddingBottom: 24, gap: 14 },
+  card: {
+    backgroundColor: T.surface, borderWidth: 1, borderColor: T.border,
+    borderRadius: 18, padding: 16, overflow: "hidden",
+  },
+  cardWatermark: { position: "absolute", top: -30, right: -30, transform: [{ rotate: "-15deg" }] },
+  deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 18, marginLeft: 10 },
+  noneTxt: { fontSize: 13, color: T.textSecondary, textAlign: "center", marginTop: 40 },
+
   empty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 8 },
   emptyIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", marginBottom: 6 },
   emptyTitle: { fontSize: 18, fontWeight: "900", color: T.textPrimary },
   emptySub: { fontSize: 13, color: T.textSecondary, textAlign: "center" },
   emptyBtn: { marginTop: 10, backgroundColor: T.textPrimary, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14 },
   emptyBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
-  deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 16, marginLeft: 10 },
 });
