@@ -17,7 +17,7 @@ function Crest({ name, color, logo, size }: { name: string; color: string; logo?
 
 export default function GameScoreboard({ game, size = "row" }: { game: Game; size?: "row" | "full" }) {
   const full = size === "full";
-  const crestSize = full ? 76 : 42;
+  const crestSize = full ? 82 : 42;
   const header = [game.league, game.location].filter(Boolean).join(" - ");
 
   return (
@@ -36,6 +36,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
           ) : null}
         </View>
       )}
+      {full && <View style={styles.divider} />}
 
       <View style={[styles.row, full && styles.rowFull]}>
         <View style={styles.teamCol}>
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1 },
   headerTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginTop: -4 },
   row: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   rowFull: { paddingHorizontal: 4 },
   teamCol: { flex: 1, alignItems: "center", gap: 10 },
@@ -86,13 +88,13 @@ const styles = StyleSheet.create({
   badge: { alignItems: "center", justifyContent: "center" },
   badgeTxt: { fontWeight: "900", color: "#fff" },
   teamName: { fontSize: 13, fontWeight: "700", color: T.textPrimary, textAlign: "center", maxWidth: 110 },
-  teamNameFull: { fontSize: 15, fontWeight: "800" },
+  teamNameFull: { fontSize: 17, fontWeight: "800", color: "#fff", maxWidth: 130 },
   score: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  scoreFull: { fontSize: 46, fontWeight: "900", color: T.textPrimary, letterSpacing: 2 },
+  scoreFull: { fontSize: 52, fontWeight: "900", color: "#fff", letterSpacing: 2 },
   vs: { fontSize: 16, fontWeight: "800", color: T.textSecondary },
-  vsFull: { fontSize: 30, fontWeight: "900", color: T.textSecondary },
-  pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: T.border, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
-  pillTxt: { fontSize: 10, fontWeight: "800", color: "#fff", letterSpacing: 1 },
+  vsFull: { fontSize: 32, fontWeight: "900", color: "#fff" },
+  pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(0,0,0,0.22)", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
+  pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
   mvpRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   mvpName: { fontSize: 14, fontWeight: "800", color: T.textSecondary },

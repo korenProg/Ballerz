@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
-import GameScoreboard from "../../components/GameScoreboard";
+import GameCard from "../../components/GameCard";
 import { formatDate, parseGameDate } from "../../utils/game";
 
 const DAY_LETTERS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -150,9 +150,8 @@ function CreateGameCard() {
 
 function LastGameCard({ game }: { game: Game }) {
   return (
-    <View style={styles.gameCard}>
-      <Ionicons name="football" size={220} color={T.textSecondary + "22"} style={styles.cardWatermark} />
-      <GameScoreboard game={game} size="full" />
+    <View style={styles.lastGameWrap}>
+      <GameCard game={game} />
     </View>
   );
 }
@@ -472,6 +471,7 @@ const styles = StyleSheet.create({
   },
   manageLeagueTxt: { fontSize: 13, fontWeight: "800", color: T.bg },
 
+  lastGameWrap: { marginHorizontal: 20, marginTop: 24 },
   gameCard: {
     marginHorizontal: 20,
     marginTop: 24,

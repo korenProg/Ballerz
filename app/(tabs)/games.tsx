@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Swipeable } from "react-native-gesture-handler";
 import { useStore } from "../../store";
 import { useGamesByStatus } from "../../store/selectors";
-import GameScoreboard from "../../components/GameScoreboard";
+import GameCard from "../../components/GameCard";
 import { T } from "../../constants/theme";
 import type { Game } from "../../types/games";
 
@@ -18,7 +18,7 @@ const FILTERS = [
 ] as const;
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-function GameCard({
+function GameRow({
   game, onPress, onDelete,
 }: { game: Game; onPress: (id: string) => void; onDelete: (g: Game) => void }) {
   return (
@@ -29,14 +29,8 @@ function GameCard({
         </TouchableOpacity>
       )}
     >
-      <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={() => onPress(game.id)}>
-        <Ionicons
-          name="football"
-          size={180}
-          color={T.textSecondary + "14"}
-          style={styles.cardWatermark}
-        />
-        <GameScoreboard game={game} size="full" />
+      <TouchableOpacity activeOpacity={0.85} onPress={() => onPress(game.id)}>
+        <GameCard game={game} />
       </TouchableOpacity>
     </Swipeable>
   );
@@ -107,7 +101,7 @@ export default function GamesScreen() {
               <Text style={styles.noneTxt}>No games here yet</Text>
             ) : (
               games.map((g) => (
-                <GameCard key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
+                <GameRow key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
               ))
             )}
           </ScrollView>
@@ -137,12 +131,7 @@ const styles = StyleSheet.create({
   pillTxtActive: { color: T.bg },
 
   scroll: { paddingHorizontal: 20, paddingBottom: 24, gap: 14 },
-  card: {
-    backgroundColor: T.surface, borderWidth: 1, borderColor: T.border,
-    borderRadius: 18, padding: 16, overflow: "hidden",
-  },
-  cardWatermark: { position: "absolute", top: -30, right: -30, transform: [{ rotate: "-15deg" }] },
-  deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 18, marginLeft: 10 },
+  deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 20, marginLeft: 10 },
   noneTxt: { fontSize: 13, color: T.textSecondary, textAlign: "center", marginTop: 40 },
 
   empty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 8 },
