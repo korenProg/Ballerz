@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
-  divider: { height: 1, marginTop: -4 },
+  divider: { height: 1, marginTop: -4, marginHorizontal: -14 },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
   crestCol: { flex: 1, alignItems: "center" },
   namesRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, gap: 8 },

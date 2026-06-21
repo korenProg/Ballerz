@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary },
   scroll: { paddingHorizontal: 20, paddingBottom: 32, alignItems: "stretch" },
   dateTxt: { fontSize: 12, color: T.textSecondary, textAlign: "center", marginBottom: 12 },
-  board: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 20, padding: 20 },
+  board: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 20, padding: 14, overflow: "hidden" },
   lineups: { flexDirection: "row", gap: 12, marginTop: 16 },
   lineupCol: { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 14, gap: 4 },
   lineupDot: { width: 10, height: 10, borderRadius: 5, marginBottom: 4 },
