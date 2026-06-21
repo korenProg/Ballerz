@@ -1,20 +1,15 @@
-import { StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import GameScoreboard from "./GameScoreboard";
 import { T } from "../constants/theme";
 import type { Game } from "../types/games";
 
-// The full game card: navy gradient surface + faint football watermark +
-// the GameScoreboard "full" content. Shared by the games list and home.
+// The full game card: solid surface (matches the leaderboard card) + faint
+// football watermark + the GameScoreboard "full" content. Shared by the
+// games list and the home screen.
 export default function GameCard({ game }: { game: Game }) {
   return (
-    <LinearGradient
-      colors={[T.border, T.surface]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.card}
-    >
+    <View style={styles.card}>
       <Ionicons
         name="football"
         size={200}
@@ -22,12 +17,13 @@ export default function GameCard({ game }: { game: Game }) {
         style={styles.watermark}
       />
       <GameScoreboard game={game} size="full" />
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: T.surface,
     borderRadius: 18,
     padding: 14,
     overflow: "hidden",
