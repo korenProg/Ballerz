@@ -5,6 +5,17 @@ import { T } from "../constants/theme";
 import { teamInitials } from "../utils/game";
 import type { Game } from "../types/games";
 
+function Divider() {
+  return (
+    <LinearGradient
+      colors={["transparent", "rgba(255,255,255,0.16)", "transparent"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.divider}
+    />
+  );
+}
+
 function Crest({ name, color, logo, size }: { name: string; color: string; logo?: string; size: number }) {
   if (logo) {
     return <Image source={{ uri: logo }} style={{ width: size, height: size }} resizeMode="contain" />;
@@ -37,14 +48,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
           ) : null}
         </View>
       )}
-      {full && (
-        <LinearGradient
-          colors={["transparent", "rgba(255,255,255,0.16)", "transparent"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.divider}
-        />
-      )}
+      {full && <Divider />}
 
       <View style={[styles.row, full && styles.rowFull]}>
         <View style={styles.teamCol}>
@@ -74,10 +78,13 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       </View>
 
       {full && game.mvp?.name ? (
-        <View style={styles.mvpRow}>
-          <Ionicons name="star" size={16} color="#f5c518" />
-          <Text style={styles.mvpName}>{game.mvp.name}</Text>
-        </View>
+        <>
+          <Divider />
+          <View style={styles.mvpRow}>
+            <Ionicons name="star" size={16} color="#f5c518" />
+            <Text style={styles.mvpName}>{game.mvp.name}</Text>
+          </View>
+        </>
       ) : null}
     </View>
   );
