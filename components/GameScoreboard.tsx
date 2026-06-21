@@ -8,7 +8,7 @@ import type { Game } from "../types/games";
 function Divider() {
   return (
     <LinearGradient
-      colors={["rgba(0,0,0,0.35)", "rgba(255,255,255,0.16)", "rgba(0,0,0,0.35)"]}
+      colors={[T.bg, T.textMuted, T.bg]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={styles.divider}
@@ -50,6 +50,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       )}
       {full && <Divider />}
 
+      <View style={styles.middle}>
       {/* Top band: badges + score on one horizontal line */}
       <View style={styles.scoreRow}>
         <View style={styles.crestCol}>
@@ -77,6 +78,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
         </View>
         <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.awayTeam}</Text>
       </View>
+      </View>
 
       {full && game.mvp?.name ? (
         <View style={styles.mvpSection}>
@@ -92,7 +94,8 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
+  wrap: { gap: 8 },
+  middle: { gap: 10, paddingVertical: 10 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
