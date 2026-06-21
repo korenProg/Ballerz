@@ -1,4 +1,5 @@
 import { View, Text, Image, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { T } from "../constants/theme";
 import { teamInitials } from "../utils/game";
@@ -36,7 +37,14 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
           ) : null}
         </View>
       )}
-      {full && <View style={styles.divider} />}
+      {full && (
+        <LinearGradient
+          colors={["transparent", "rgba(255,255,255,0.16)", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.divider}
+        />
+      )}
 
       <View style={[styles.row, full && styles.rowFull]}>
         <View style={styles.teamCol}>
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1 },
   headerTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginTop: -4 },
+  divider: { height: 1, marginTop: -4 },
   row: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   rowFull: { paddingHorizontal: 4 },
   teamCol: { flex: 1, alignItems: "center", gap: 10 },

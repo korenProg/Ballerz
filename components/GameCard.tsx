@@ -10,7 +10,7 @@ import type { Game } from "../types/games";
 export default function GameCard({ game }: { game: Game }) {
   return (
     <LinearGradient
-      colors={["#34406A", "#212942"]}
+      colors={[T.border, T.surface]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.card}
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     padding: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: T.border,
   },
   watermark: { position: "absolute", top: -20, right: -30, transform: [{ rotate: "-15deg" }] },
 });
