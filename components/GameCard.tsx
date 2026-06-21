@@ -12,7 +12,7 @@ export default function GameCard({ game }: { game: Game }) {
     <View style={styles.card}>
       <Ionicons
         name="football"
-        size={280}
+        size={240}
         color={T.textSecondary + "12"}
         style={styles.watermark}
       />
@@ -28,5 +28,5 @@ const styles = StyleSheet.create({
     padding: 14,
     overflow: "hidden",
   },
-  watermark: { position: "absolute", top: -40, right: -45, transform: [{ rotate: "-15deg" }] },
+  watermark: { position: "absolute", top: -55, right: -60, transform: [{ rotate: "-15deg" }] },
 });

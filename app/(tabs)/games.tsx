@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Swipeable } from "react-native-gesture-handler";
 import { useStore } from "../../store";
@@ -43,6 +44,7 @@ export default function GamesScreen() {
   const deleteGame = useStore((s) => s.deleteGame);
   const { live, upcoming, results } = useGamesByStatus();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [headerH, setHeaderH] = useState(0);
 
   const openGame = (id: string) => router.push(`/game/${id}` as const);
   const confirmDelete = (g: Game) =>
@@ -59,16 +61,16 @@ export default function GamesScreen() {
 
   return (
     <View style={styles.main}>
-      <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.title}>Games</Text>
-        <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => router.push("/create-game")}>
-          <Ionicons name="add" size={24} color={T.bg} />
-        </TouchableOpacity>
-      </View>
+      {/* Background glow near the top that fades into the app bg (behind content). */}
+      <LinearGradient
+        colors={["rgba(17,21,37,0.9)", "rgba(17,21,37,0.35)", "transparent"]}
+        locations={[0, 0.55, 1]}
+        style={[styles.headerFade, { top: headerH }]}
+        pointerEvents="none"
+      />
 
       {total === 0 ? (
-        <View style={styles.empty}>
+        <View style={[styles.empty, { paddingTop: headerH }]}>
           <View style={styles.emptyIcon}>
             <Ionicons name="football" size={26} color={T.textSecondary} />
           </View>
@@ -79,7 +81,43 @@ export default function GamesScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scroll, { paddingTop: headerH + 14 }]}
+        >
+          {games.length === 0 ? (
+            <Text style={styles.noneTxt}>No games here yet</Text>
+          ) : (
+            games.map((g) => (
+              <GameRow key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
+            ))
+          )}
+        </ScrollView>
+      )}
+
+      {/* Bottom divider for the bar: glows in the center, fades at the edges. */}
+      <LinearGradient
+        colors={["transparent", T.border, "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.headerBorder, { top: headerH }]}
+        pointerEvents="none"
+      />
+
+      {/* Fixed, solid top bar: title + filter pills. */}
+      <View
+        style={[styles.headerBar, { paddingTop: insets.top + 8 }]}
+        onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
+      >
+        <View style={styles.titleRow}>
+          <View style={styles.headerSpacer} />
+          <Text style={styles.title}>Games</Text>
+          <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => router.push("/create-game")}>
+            <Ionicons name="add" size={24} color={T.bg} />
+          </TouchableOpacity>
+        </View>
+
+        {total > 0 && (
           <View style={styles.filterRow}>
             {FILTERS.map((f) => {
               const active = filter === f.key;
@@ -95,36 +133,35 @@ export default function GamesScreen() {
               );
             })}
           </View>
-
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-            {games.length === 0 ? (
-              <Text style={styles.noneTxt}>No games here yet</Text>
-            ) : (
-              games.map((g) => (
-                <GameRow key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
-              ))
-            )}
-          </ScrollView>
-        </>
-      )}
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
+  headerFade: { position: "absolute", left: 0, right: 0, height: 140 },
+  headerBorder: { position: "absolute", left: 0, right: 0, height: 1.5, zIndex: 2 },
   headerBar: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 3,
+    backgroundColor: T.surface,
+    paddingHorizontal: 20,
+    paddingBottom: 14,
   },
+  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSpacer: { width: 40 },
   title: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
   addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.textPrimary, alignItems: "center", justifyContent: "center" },
 
-  filterRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
+  filterRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
   pill: {
     paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: T.surface, borderWidth: 1, borderColor: T.border,
+    backgroundColor: T.bg, borderWidth: 1, borderColor: T.border,
   },
   pillActive: { backgroundColor: T.textPrimary, borderColor: T.textPrimary },
   pillTxt: { fontSize: 13, fontWeight: "800", color: T.textSecondary },
