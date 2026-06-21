@@ -96,7 +96,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
 const styles = StyleSheet.create({
   wrap: { gap: 8 },
   middle: { gap: 10, paddingVertical: 10 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
   divider: { height: 1, marginTop: -4, marginHorizontal: -14 },
@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
   pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
   mvpSection: { gap: 4 },
-  mvpRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  mvpRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   mvpName: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
 });
