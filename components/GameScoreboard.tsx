@@ -8,7 +8,7 @@ import type { Game } from "../types/games";
 function Divider() {
   return (
     <LinearGradient
-      colors={["transparent", "rgba(255,255,255,0.16)", "transparent"]}
+      colors={["rgba(0,0,0,0.6)", "rgba(255,255,255,0.16)", "rgba(0,0,0,0.6)"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={styles.divider}
