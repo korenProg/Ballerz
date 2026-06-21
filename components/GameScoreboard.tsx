@@ -37,12 +37,12 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       {full && (
         <View style={styles.header}>
           <View style={styles.headerSide}>
-            <Ionicons name="location-outline" size={13} color={T.textSecondary} />
+            <Ionicons name="location-outline" size={11} color={T.textSecondary} />
             <Text style={styles.headerTxt} numberOfLines={1}>{header || "Match"}</Text>
           </View>
           {game.date ? (
             <View style={styles.headerSide}>
-              <Ionicons name="calendar-outline" size={13} color={T.textSecondary} />
+              <Ionicons name="calendar-outline" size={11} color={T.textSecondary} />
               <Text style={styles.headerTxt}>{game.date}</Text>
             </View>
           ) : null}
@@ -56,11 +56,13 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
         <View style={styles.crestCol}>
           <Crest name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} size={crestSize} />
         </View>
-        {game.status === "Pending" ? (
-          <Text style={full ? styles.vsFull : styles.vs}>vs</Text>
-        ) : (
-          <Text style={full ? styles.scoreFull : styles.score}>{game.homeScore} : {game.awayScore}</Text>
-        )}
+        <View style={styles.centerSlot}>
+          {game.status === "Pending" ? (
+            <Text style={full ? styles.vsFull : styles.vs} numberOfLines={1}>vs</Text>
+          ) : (
+            <Text style={full ? styles.scoreFull : styles.score} numberOfLines={1}>{game.homeScore} : {game.awayScore}</Text>
+          )}
+        </View>
         <View style={styles.crestCol}>
           <Crest name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} size={crestSize} />
         </View>
@@ -69,12 +71,14 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       {/* Bottom band: team names + status pill on one horizontal line */}
       <View style={styles.namesRow}>
         <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.homeTeam}</Text>
-        <View style={styles.pill}>
-          {game.status === "Live" ? (
-            <><View style={styles.liveDot} /><Text style={styles.pillTxt}>LIVE</Text></>
-          ) : (
-            <Text style={styles.pillTxt}>{game.status === "FT" ? "FT" : "SOON"}</Text>
-          )}
+        <View style={styles.centerSlot}>
+          <View style={styles.pill}>
+            {game.status === "Live" ? (
+              <><View style={styles.liveDot} /><Text style={styles.pillTxt}>LIVE</Text></>
+            ) : (
+              <Text style={styles.pillTxt}>{game.status === "FT" ? "FT" : "SOON"}</Text>
+            )}
+          </View>
         </View>
         <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.awayTeam}</Text>
       </View>
@@ -84,7 +88,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
         <View style={styles.mvpSection}>
           <Divider />
           <View style={styles.mvpRow}>
-            <Ionicons name="star" size={13} color="#f5c518" />
+            <Ionicons name="star" size={11} color="#f5c518" />
             <Text style={styles.mvpName}>{game.mvp.name}</Text>
           </View>
         </View>
@@ -98,11 +102,12 @@ const styles = StyleSheet.create({
   middle: { gap: 10, paddingVertical: 10 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
-  headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
+  headerTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
   divider: { height: 1, marginHorizontal: -14 },
-  scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
+  scoreRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
   crestCol: { flex: 1, alignItems: "center" },
-  namesRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, gap: 8 },
+  centerSlot: { width: 92, alignItems: "center" },
+  namesRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
   badge: { alignItems: "center", justifyContent: "center" },
   badgeTxt: { fontWeight: "900", color: "#fff" },
   teamName: { flex: 1, fontSize: 13, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
@@ -116,5 +121,5 @@ const styles = StyleSheet.create({
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
   mvpSection: { gap: 8 },
   mvpRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  mvpName: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
+  mvpName: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
 });

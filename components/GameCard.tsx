@@ -12,7 +12,7 @@ export default function GameCard({ game }: { game: Game }) {
     <View style={styles.card}>
       <Ionicons
         name="football"
-        size={200}
+        size={280}
         color={T.textSecondary + "12"}
         style={styles.watermark}
       />
