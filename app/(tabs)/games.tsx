@@ -156,14 +156,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "900", color: T.textPrimary },
   addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: T.textPrimary, alignItems: "center", justifyContent: "center" },
 
-  filterRow: { flexDirection: "row", gap: 10 },
+  filterRow: { flexDirection: "row", gap: 8 },
   pill: {
-    paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: T.bg, borderWidth: 1, borderColor: T.border,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
-  pillActive: { backgroundColor: T.textPrimary, borderColor: T.textPrimary },
-  pillTxt: { fontSize: 13, fontWeight: "800", color: T.textSecondary },
-  pillTxtActive: { color: T.bg },
+  pillActive: { backgroundColor: T.border },
+  pillTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
+  pillTxtActive: { color: T.textPrimary, fontWeight: "800" },
 
   scroll: { paddingHorizontal: 20, paddingBottom: 24, gap: 14 },
   deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 20, marginLeft: 10 },
