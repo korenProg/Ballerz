@@ -94,8 +94,8 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  headerSide: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1 },
-  headerTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
+  headerTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
   divider: { height: 1, marginTop: -4 },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
   crestCol: { flex: 1, alignItems: "center" },
