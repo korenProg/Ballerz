@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +18,14 @@ const FILTERS = [
   { key: "Pending", label: "UpComing" },
 ] as const;
 type FilterKey = (typeof FILTERS)[number]["key"];
+
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+const EMPTY_FILTER: Record<FilterKey, { icon: IoniconName; title: string; sub: string }> = {
+  all: { icon: "football-outline", title: "No games yet", sub: "Create a game to get the season going" },
+  FT: { icon: "checkmark-done-outline", title: "No results yet", sub: "Finished games will show up here" },
+  Live: { icon: "radio-outline", title: "No live games", sub: "Start a game to follow it live" },
+  Pending: { icon: "calendar-outline", title: "No upcoming games", sub: "Scheduled games will appear here" },
+};
 
 function GameRow({
   game, onPress, onDelete,
@@ -102,7 +110,13 @@ export default function GamesScreen() {
           </View>
 
           {games.length === 0 ? (
-            <Text style={styles.noneTxt}>No games here yet</Text>
+            <View style={styles.placeholder}>
+              <View style={styles.placeholderIcon}>
+                <Ionicons name={EMPTY_FILTER[filter].icon} size={24} color={T.textSecondary} />
+              </View>
+              <Text style={styles.placeholderTitle}>{EMPTY_FILTER[filter].title}</Text>
+              <Text style={styles.placeholderSub}>{EMPTY_FILTER[filter].sub}</Text>
+            </View>
           ) : (
             games.map((g) => (
               <GameRow key={g.id} game={g} onPress={openGame} onDelete={confirmDelete} />
@@ -167,7 +181,11 @@ const styles = StyleSheet.create({
 
   scroll: { paddingHorizontal: 20, paddingBottom: 24, gap: 14 },
   deleteAction: { backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center", width: 72, borderRadius: 20, marginLeft: 10 },
-  noneTxt: { fontSize: 13, color: T.textSecondary, textAlign: "center", marginTop: 40 },
+
+  placeholder: { alignItems: "center", paddingTop: 70, paddingHorizontal: 24, gap: 8 },
+  placeholderIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+  placeholderTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary },
+  placeholderSub: { fontSize: 13, color: T.textSecondary, textAlign: "center" },
 
   empty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 8 },
   emptyIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", marginBottom: 6 },
