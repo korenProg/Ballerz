@@ -85,6 +85,22 @@ export default function GamesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scroll, { paddingTop: headerH + 14 }]}
         >
+          <View style={styles.filterRow}>
+            {FILTERS.map((f) => {
+              const active = filter === f.key;
+              return (
+                <TouchableOpacity
+                  key={f.key}
+                  style={[styles.pill, active && styles.pillActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setFilter(f.key)}
+                >
+                  <Text style={[styles.pillTxt, active && styles.pillTxtActive]}>{f.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {games.length === 0 ? (
             <Text style={styles.noneTxt}>No games here yet</Text>
           ) : (
@@ -109,31 +125,11 @@ export default function GamesScreen() {
         style={[styles.headerBar, { paddingTop: insets.top + 8 }]}
         onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
       >
-        <View style={styles.titleRow}>
-          <View style={styles.headerSpacer} />
-          <Text style={styles.title}>Games</Text>
-          <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => router.push("/create-game")}>
-            <Ionicons name="add" size={24} color={T.bg} />
-          </TouchableOpacity>
-        </View>
-
-        {total > 0 && (
-          <View style={styles.filterRow}>
-            {FILTERS.map((f) => {
-              const active = filter === f.key;
-              return (
-                <TouchableOpacity
-                  key={f.key}
-                  style={[styles.pill, active && styles.pillActive]}
-                  activeOpacity={0.8}
-                  onPress={() => setFilter(f.key)}
-                >
-                  <Text style={[styles.pillTxt, active && styles.pillTxtActive]}>{f.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        <View style={styles.headerSpacer} />
+        <Text style={styles.title}>Games</Text>
+        <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => router.push("/create-game")}>
+          <Ionicons name="add" size={20} color={T.bg} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -150,15 +146,17 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 3,
     backgroundColor: T.surface,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingBottom: 14,
   },
-  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  headerSpacer: { width: 40 },
-  title: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
-  addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.textPrimary, alignItems: "center", justifyContent: "center" },
+  headerSpacer: { width: 34 },
+  title: { fontSize: 20, fontWeight: "900", color: T.textPrimary },
+  addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: T.textPrimary, alignItems: "center", justifyContent: "center" },
 
-  filterRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
+  filterRow: { flexDirection: "row", gap: 10 },
   pill: {
     paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999,
     backgroundColor: T.bg, borderWidth: 1, borderColor: T.border,
