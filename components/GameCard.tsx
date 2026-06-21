@@ -28,11 +28,9 @@ export default function GameCard({ game }: { game: Game }) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 18,
+    padding: 14,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: T.border,
   },
   watermark: { position: "absolute", top: -20, right: -30, transform: [{ rotate: "-15deg" }] },
 });

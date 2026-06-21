@@ -29,7 +29,7 @@ function Crest({ name, color, logo, size }: { name: string; color: string; logo?
 
 export default function GameScoreboard({ game, size = "row" }: { game: Game; size?: "row" | "full" }) {
   const full = size === "full";
-  const crestSize = full ? 82 : 42;
+  const crestSize = full ? 60 : 42;
   const header = [game.league, game.location].filter(Boolean).join(" - ");
 
   return (
@@ -56,7 +56,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
           <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.homeTeam}</Text>
         </View>
 
-        <View style={styles.centerCol}>
+        <View style={[styles.centerCol, full && { height: crestSize, justifyContent: "center" }]}>
           {game.status === "Pending" ? (
             <Text style={full ? styles.vsFull : styles.vs}>vs</Text>
           ) : (
@@ -91,23 +91,23 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 16 },
+  wrap: { gap: 12 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1 },
   headerTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
   divider: { height: 1, marginTop: -4 },
   row: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   rowFull: { paddingHorizontal: 4 },
-  teamCol: { flex: 1, alignItems: "center", gap: 10 },
+  teamCol: { flex: 1, alignItems: "center", gap: 8 },
   centerCol: { alignItems: "center", gap: 8, paddingHorizontal: 8 },
   badge: { alignItems: "center", justifyContent: "center" },
   badgeTxt: { fontWeight: "900", color: "#fff" },
   teamName: { fontSize: 13, fontWeight: "700", color: T.textPrimary, textAlign: "center", maxWidth: 110 },
-  teamNameFull: { fontSize: 17, fontWeight: "800", color: "#fff", maxWidth: 130 },
+  teamNameFull: { fontSize: 14, fontWeight: "800", color: "#fff", maxWidth: 120 },
   score: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  scoreFull: { fontSize: 52, fontWeight: "900", color: "#fff", letterSpacing: 2 },
+  scoreFull: { fontSize: 34, fontWeight: "900", color: "#fff", letterSpacing: 1 },
   vs: { fontSize: 16, fontWeight: "800", color: T.textSecondary },
-  vsFull: { fontSize: 32, fontWeight: "900", color: "#fff" },
+  vsFull: { fontSize: 24, fontWeight: "900", color: "#fff" },
   pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(0,0,0,0.22)", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
   pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
