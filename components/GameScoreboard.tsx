@@ -79,13 +79,13 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       </View>
 
       {full && game.mvp?.name ? (
-        <>
+        <View style={styles.mvpSection}>
           <Divider />
           <View style={styles.mvpRow}>
             <Ionicons name="star" size={13} color="#f5c518" />
             <Text style={styles.mvpName}>{game.mvp.name}</Text>
           </View>
-        </>
+        </View>
       ) : null}
     </View>
   );
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
   pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(0,0,0,0.22)", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
   pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
+  mvpSection: { gap: 4 },
   mvpRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   mvpName: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
 });
