@@ -1,9 +1,9 @@
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { T } from "../constants/theme";
-import { teamInitials } from "../utils/game";
 import type { Game } from "../types/games";
+import Crest from "./Crest";
 
 function Divider() {
   return (
@@ -16,21 +16,10 @@ function Divider() {
   );
 }
 
-function Crest({ name, color, logo, size }: { name: string; color: string; logo?: string; size: number, borderRadius?: number}) {
-  if (logo) {
-    return <Image source={{ uri: logo }} style={{ width: size, height: size, borderRadius: size}} resizeMode="contain" />;
-  }
-  return (
-    <View style={[styles.badge, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]}>
-      <Text style={[styles.badgeTxt, { fontSize: size * 0.34 }]}>{teamInitials(name)}</Text>
-    </View>
-  );
-}
 
 export default function GameScoreboard({ game, size = "row" }: { game: Game; size?: "row" | "full" }) {
   const full = size === "full";
   const crestSize = full ? 60 : 42;
-  const crestBorderRadius = 50; 
   const header = [game.league, game.location].filter(Boolean).join(" - ");
 
   return (
@@ -55,7 +44,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
       {/* Top band: badges + score on one horizontal line */}
       <View style={styles.scoreRow}>
         <View style={styles.crestCol}>
-          <Crest name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} size={crestSize} borderRadius={crestBorderRadius}/>
+          <Crest name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} size={crestSize} />
         </View>
         <View style={styles.centerSlot}>
           {game.status === "Pending" ? (
@@ -65,7 +54,7 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
           )}
         </View>
         <View style={styles.crestCol}>
-          <Crest name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} size={crestSize} borderRadius={crestBorderRadius} />
+          <Crest name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} size={crestSize} />
         </View>
       </View>
 
@@ -109,8 +98,6 @@ const styles = StyleSheet.create({
   crestCol: { flex: 1, alignItems: "center" },
   centerSlot: { width: 92, alignItems: "center" },
   namesRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
-  badge: { alignItems: "center", justifyContent: "center" },
-  badgeTxt: { fontWeight: "900", color: "#fff" },
   teamName: { flex: 1, fontSize: 13, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
   teamNameFull: { fontSize: 14, fontWeight: "800", color: "#fff" },
   score: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
