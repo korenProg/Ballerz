@@ -5,7 +5,7 @@ export default function Crest({
   name, color, logo, size,
 }: { name: string; color: string; logo?: string; size: number }) {
   if (logo) {
-    return <Image source={{ uri: logo }} style={{ width: size, height: size }} resizeMode="contain" />;
+    return <Image source={{ uri: logo }} style={{ width: size, height: size, borderRadius: size }} resizeMode="contain" />;
   }
   return (
     <View style={[styles.badge, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]}>
