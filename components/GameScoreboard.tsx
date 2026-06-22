@@ -8,7 +8,7 @@ import type { Game } from "../types/games";
 function Divider() {
   return (
     <LinearGradient
-      colors={[T.bg, T.textMuted, T.bg]}
+      colors={["transparent", T.border, "transparent"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={styles.divider}
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   headerTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
-  divider: { height: 1, marginHorizontal: -14 },
+  divider: { height: 1.5, marginHorizontal: -14 },
   scoreRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
   crestCol: { flex: 1, alignItems: "center" },
   centerSlot: { width: 92, alignItems: "center" },
