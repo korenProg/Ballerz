@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   previewName: { fontSize: 13, fontWeight: "700", color: T.textPrimary, maxWidth: 110, textAlign: "center" },
   previewMid: { fontSize: 18, fontWeight: "900", color: T.textPrimary, paddingHorizontal: 10 },
   label: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14 },
+  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.textPrimary },
   inputTxt: { fontSize: 15, color: T.textPrimary },
   segment: { flexDirection: "row", backgroundColor: T.surface, borderRadius: 12, padding: 4, marginTop: 16 },
   segBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
