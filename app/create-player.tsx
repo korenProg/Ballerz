@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  PanResponder,
   LayoutChangeEvent,
   DimensionValue,
 } from "react-native";
@@ -47,7 +46,9 @@ function Slider({
 }) {
   const widthRef = useRef(0);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const setFromX = (x: number) => {
     const w = widthRef.current;
@@ -56,15 +57,6 @@ function Slider({
     onChangeRef.current(Math.round(ratio * 99));
   };
 
-  const responder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => setFromX(e.nativeEvent.locationX),
-      onPanResponderMove: (e) => setFromX(e.nativeEvent.locationX),
-    })
-  ).current;
-
   const onLayout = (e: LayoutChangeEvent) => {
     widthRef.current = e.nativeEvent.layout.width;
   };
@@ -72,7 +64,14 @@ function Slider({
   const pct = `${(value / 99) * 100}%` as DimensionValue;
 
   return (
-    <View style={styles.sliderArea} onLayout={onLayout} {...responder.panHandlers}>
+    <View
+      style={styles.sliderArea}
+      onLayout={onLayout}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={(e) => setFromX(e.nativeEvent.locationX)}
+      onResponderMove={(e) => setFromX(e.nativeEvent.locationX)}
+    >
       <View style={styles.sliderBar} pointerEvents="none" />
       <View style={[styles.sliderFill, { width: pct }]} pointerEvents="none" />
       <View

@@ -24,7 +24,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const slot = state.routes.length ? barWidth / state.routes.length : 0;
 
-  const translateX = useRef(new Animated.Value(0)).current;
+  const [translateX] = useState(() => new Animated.Value(0));
   const initialized = useRef(false);
 
   useEffect(() => {

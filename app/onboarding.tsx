@@ -156,7 +156,7 @@ export default function Onboarding() {
         {step === 0 && (
           <View style={styles.stepBody}>
             <Text style={styles.eyebrow}>STEP 1 OF 3</Text>
-            <Text style={styles.title}>Who's running the league?</Text>
+            <Text style={styles.title}>Who&apos;s running the league?</Text>
             <Text style={styles.sub}>This is you — the league admin.</Text>
 
             <Text style={styles.fieldLabel}>Full name</Text>
