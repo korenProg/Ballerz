@@ -4,33 +4,28 @@
     "slug": "Ballerz",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/ballerzLogo.png",
+    "icon": "./assets/images/xi_logo_white_png.png",
     "scheme": "ballerz",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/foregroundLogo.png",
-        "backgroundImage": "./assets/images/ballerzLogo.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#04050B",
+        "foregroundImage": "./assets/images/xi_logo_white_png.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/ballerzLogo.png",
+          "image": "./assets/images/xi_logo_white_png.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#000000",

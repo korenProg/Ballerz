@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   leagueBgImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.6,
   },
   leagueBgFade: {
