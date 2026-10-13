@@ -16,20 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
-import { T } from "../constants/theme";
-
-const LEAGUE_COLORS = [
-  "#0039a3",
-  "#dc2626",
-  "#059669",
-  "#7c3aed",
-  "#ea580c",
-  "#0d9488",
-  "#ca8a04",
-  "#e11d48",
-];
-
-const TEAM_SIZES = [5, 6, 7, 8, 11];
+import { T, LEAGUE_COLORS, TEAM_SIZES } from "../constants/theme";
 
 const TOTAL_STEPS = 3;
 
@@ -43,7 +30,7 @@ export default function Onboarding() {
   const [adminName, setAdminName] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [logoUri, setLogoUri] = useState<string | null>(null);
-  const [color, setColor] = useState(LEAGUE_COLORS[0]);
+  const [color, setColor] = useState<string>(LEAGUE_COLORS[0]);
   const [location, setLocation] = useState("");
   const [teamSize, setTeamSize] = useState(5);
 

@@ -38,6 +38,10 @@ export default function RootLayout() {
             name="game/[id]"
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="player/[id]"
+            options={{ headerShown: false }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

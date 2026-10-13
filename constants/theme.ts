@@ -7,6 +7,20 @@ export const T = {
   textPrimary: "#CCD0CF",
 } as const;
 
+// League crest colors offered during onboarding and in League settings.
+export const LEAGUE_COLORS = [
+  "#0039a3",
+  "#dc2626",
+  "#059669",
+  "#7c3aed",
+  "#ea580c",
+  "#0d9488",
+  "#ca8a04",
+  "#e11d48",
+] as const;
+
+export const TEAM_SIZES = [5, 6, 7, 8, 11] as const;
+
 /**
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.

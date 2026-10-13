@@ -97,6 +97,24 @@ export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null 
   }, [games, players]);
 };
 
+// Roster sorted by OVR descending, plus the same list grouped by position.
+// Same stability rule as useGamesByStatus: select the stable `players` slice
+// and derive here, rather than returning fresh arrays through useShallow.
+export const usePlayersByPosition = () => {
+  const players = useStore((s) => s.players);
+  return useMemo(() => {
+    const byOvrDesc = (a: Player, b: Player) => b.ovr - a.ovr;
+    const all = [...players].sort(byOvrDesc);
+    return {
+      all,
+      GK: all.filter((p) => p.position === "GK"),
+      DEF: all.filter((p) => p.position === "DEF"),
+      MID: all.filter((p) => p.position === "MID"),
+      FWD: all.filter((p) => p.position === "FWD"),
+    };
+  }, [players]);
+};
+
 // Select the stable `games` array (referentially stable across renders unless
 // games actually change) and derive the grouped object via useMemo. Returning
 // freshly-filtered arrays through useShallow would never compare equal, making

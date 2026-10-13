@@ -13,7 +13,7 @@ import {
   LayoutChangeEvent,
   DimensionValue,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -84,21 +84,31 @@ function Slider({
 
 export default function CreatePlayerScreen() {
   const router = useRouter();
+  // An `id` param turns this screen into the edit form for that player.
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const editing = useStore((s) => s.players.find((p) => p.id === id) ?? null);
   const addPlayer = useStore((s) => s.addPlayer);
+  const updatePlayer = useStore((s) => s.updatePlayer);
 
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [name, setName] = useState("");
+  const [photo, setPhoto] = useState<string | null>(editing?.photo ?? null);
+  const [name, setName] = useState(editing?.name ?? "");
   const [nameFocused, setNameFocused] = useState(false);
-  const [position, setPosition] = useState<Position>("MID");
-  const [foot, setFoot] = useState<"L" | "R">("R");
-  const [attrs, setAttrs] = useState<Record<AttrKey, number>>({
-    pac: 50,
-    sho: 50,
-    pas: 50,
-    dri: 50,
-    def: 50,
-    phy: 50,
-  });
+  const [position, setPosition] = useState<Position>(
+    (editing?.position as Position) ?? "MID"
+  );
+  const [foot, setFoot] = useState<"L" | "R">(editing?.foot ?? "R");
+  const [attrs, setAttrs] = useState<Record<AttrKey, number>>(
+    editing
+      ? {
+          pac: editing.pac,
+          sho: editing.sho,
+          pas: editing.pas,
+          dri: editing.dri,
+          def: editing.def,
+          phy: editing.phy,
+        }
+      : { pac: 50, sho: 50, pas: 50, dri: 50, def: 50, phy: 50 }
+  );
 
   const setAttr = (key: AttrKey) => (v: number) =>
     setAttrs((a) => ({ ...a, [key]: v }));
@@ -148,18 +158,26 @@ export default function CreatePlayerScreen() {
 
   function save() {
     if (!canSave) return;
-    addPlayer({
+    const base = {
       name: name.trim(),
       photo: photo ?? undefined,
       position,
       foot,
-      form: "neutral",
-      goals: 0,
-      assists: 0,
-      mvps: 0,
       ovr,
       ...attrs,
-    });
+    };
+    if (editing) {
+      // Leaves form, goals, assists, mvps and isMvp untouched.
+      updatePlayer(editing.id, base);
+    } else {
+      addPlayer({
+        ...base,
+        form: "neutral",
+        goals: 0,
+        assists: 0,
+        mvps: 0,
+      });
+    }
     router.back();
   }
 
@@ -173,7 +191,9 @@ export default function CreatePlayerScreen() {
           <TouchableOpacity hitSlop={8} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={26} color={T.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Player</Text>
+          <Text style={styles.headerTitle}>
+            {editing ? "Edit Player" : "New Player"}
+          </Text>
           <View style={{ width: 26 }} />
         </View>
 
