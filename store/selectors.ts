@@ -10,7 +10,7 @@ export const useLastGame = () =>
     const finished = s.games.filter((g) => g.status === "FT");
     if (!finished.length) return null;
     return finished.reduce((latest, g) =>
-      new Date(g.date ?? 0) > new Date(latest.date ?? 0) ? g : latest
+      parseGameDate(g.date) > parseGameDate(latest.date) ? g : latest
     );
   });
 
@@ -46,8 +46,8 @@ export const useRivalry = () =>
         if (g.homeScore > g.awayScore) entry.homeWins++;
         else if (g.awayScore > g.homeScore) entry.awayWins++;
         else entry.draws++;
-        const gDate = new Date(g.date ?? 0).getTime();
-        const lDate = new Date(entry.lastGame?.date ?? 0).getTime();
+        const gDate = parseGameDate(g.date);
+        const lDate = parseGameDate(entry.lastGame?.date);
         if (gDate > lDate) entry.lastGame = g;
       });
       const best = Object.values(counts).sort((a, b) => b.count - a.count)[0];
@@ -69,7 +69,7 @@ export const useLastGameRadar = (): { home: RadarTeam; away: RadarTeam } | null 
   const players = useStore((s) => s.players);
   return useMemo(() => {
     const last = games.filter((g) => g.status === "FT").sort((a, b) =>
-      new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+      parseGameDate(b.date) - parseGameDate(a.date)
     )[0];
     if (!last) return null;
 
