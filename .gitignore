@@ -50,3 +50,6 @@ app-example
 
 # Claude Code local settings (machine-specific; keep out of the repo)
 .claude/settings.local.json
+
+# Playwright MCP screenshots and snapshots
+.playwright-mcp/
