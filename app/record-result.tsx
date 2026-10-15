@@ -96,7 +96,7 @@ function Stepper({ value, onChange }: { value: number; onChange: (n: number) => 
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  scroll: { paddingHorizontal: 20, paddingBottom: 24 },
+  scroll: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 },
   matchup: { fontSize: 14, fontWeight: "700", color: T.textDim, textAlign: "center", marginBottom: 8 },
   label: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 18, marginBottom: 8 },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 },

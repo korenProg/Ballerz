@@ -232,7 +232,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
   days: { flexDirection: "row", gap: SPACE.xs },
   day: { alignItems: "center", flex: 1, paddingVertical: SPACE.sm, borderRadius: 12, gap: 2 },
   dayToday: { backgroundColor: T.surface },

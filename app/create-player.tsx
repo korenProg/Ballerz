@@ -297,7 +297,7 @@ export default function CreatePlayerScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg, paddingBottom: 12 },
-  body: { paddingHorizontal: 24, paddingTop: 12 },
+  body: { paddingHorizontal: 24 },
   flex: { flex: 1 },
 
 

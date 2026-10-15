@@ -204,7 +204,7 @@ export default function LeagueScreen() {
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
   pressed: { backgroundColor: T.surfaceAlt },
   crestRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: SPACE.lg },
   crestCopy: { flex: 1, gap: 2 },

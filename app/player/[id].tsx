@@ -146,7 +146,7 @@ export default function PlayerDetailScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
   identity: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: SPACE.sm },
   identityMain: { flex: 1, gap: 6 },
   name: { fontSize: 22, fontWeight: "700", color: T.text },

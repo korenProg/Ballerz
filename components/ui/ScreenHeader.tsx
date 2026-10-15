@@ -93,8 +93,7 @@ export default function ScreenHeader({
 }
 
 const styles = StyleSheet.create({
-  // The gap below the divider keeps page content from touching the bar.
-  wrap: { backgroundColor: T.bg, marginBottom: SPACE.md },
+  wrap: { backgroundColor: T.bg },
   divider: { height: 1 },
   bar: {
     height: HEADER_H,
