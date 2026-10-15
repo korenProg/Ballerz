@@ -10,6 +10,8 @@ import ListRow, { ROW_H } from "../../components/ui/ListRow";
 import RatingBadge from "../../components/ui/RatingBadge";
 import EmptyState from "../../components/ui/EmptyState";
 import Button from "../../components/ui/Button";
+import SearchField from "../../components/ui/SearchField";
+import { matchesSearch } from "../../utils/search";
 import { T, SPACE, RADIUS } from "../../constants/theme";
 import type { Player } from "../../types/players";
 
@@ -99,11 +101,15 @@ export default function PlayersScreen() {
   const router = useRouter();
   const roster = usePlayersByPosition();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [query, setQuery] = useState("");
 
   // One stable callback for the whole list; rows call it with their own id.
   const openPlayer = (id: string) => router.push({ pathname: "/player/[id]", params: { id } });
 
-  const players = roster[filter];
+  const searching = query.trim().length > 0;
+  const players = searching
+    ? roster[filter].filter((p) => matchesSearch(p.name, query))
+    : roster[filter];
   const empty = EMPTY[filter];
 
   const renderItem = ({ item, index }: ListRenderItemInfo<Player>) => (
@@ -128,6 +134,9 @@ export default function PlayersScreen() {
         subtitle={`${roster.all.length} in the squad`}
         actions={[{ icon: "add", label: "Add player", onPress: () => router.push("/create-player") }]}
       />
+      <View style={styles.search}>
+        <SearchField value={query} onChangeText={setQuery} placeholder="Search players" />
+      </View>
       <Tabs tabs={FILTERS} value={filter} onChange={setFilter} />
       <FlatList
         data={players}
@@ -136,12 +145,24 @@ export default function PlayersScreen() {
         getItemLayout={getItemLayout}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <EmptyState icon="people-outline" title={empty.title} sub={empty.sub}>
-            {filter === "all" ? (
-              <Button label="Add player" onPress={() => router.push("/create-player")} />
-            ) : null}
-          </EmptyState>
+          searching ? (
+            <EmptyState
+              icon="search-outline"
+              title={`No players match “${query.trim()}”`}
+              sub="Try a different name, or clear the search."
+            >
+              <Button variant="secondary" label="Clear search" onPress={() => setQuery("")} />
+            </EmptyState>
+          ) : (
+            <EmptyState icon="people-outline" title={empty.title} sub={empty.sub}>
+              {filter === "all" ? (
+                <Button label="Add player" onPress={() => router.push("/create-player")} />
+              ) : null}
+            </EmptyState>
+          )
         }
       />
     </View>
@@ -150,6 +171,7 @@ export default function PlayersScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
+  search: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.xs },
   list: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.xxxl },
   cell: { backgroundColor: T.surface, overflow: "hidden" },
   cellFirst: { borderTopLeftRadius: RADIUS.card, borderTopRightRadius: RADIUS.card },

@@ -11,6 +11,7 @@ type IoniconName = ComponentProps<typeof Ionicons>["name"];
 export type HeaderAction = { icon: IoniconName; label: string; onPress: () => void };
 
 export const HEADER_H = 56;
+const SIDE_W = 88;
 
 // The bar fades from a faint grey at the top into the black page, and its
 // divider glows in the middle and fades out towards both edges.
@@ -57,28 +58,38 @@ export default function ScreenHeader({
   return (
     <View style={[styles.wrap, { paddingTop: insets.top }]}>
       <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      {/* Both side slots are always SIDE_W wide, even when empty, so the
+          title block sits on the screen's true centre line. */}
       <View style={styles.bar}>
-        {nav ? (
-          <HeaderButton
-            icon={nav === "close" ? "close" : "chevron-back"}
-            label={nav === "close" ? "Close" : "Back"}
-            onPress={onNav ?? (() => router.back())}
-          />
-        ) : null}
-        {crest ?? null}
-        <View style={styles.titles}>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text style={styles.subtitle} numberOfLines={1}>
-              {subtitle}
-            </Text>
+        <View style={[styles.side, styles.sideLeft]}>
+          {nav ? (
+            <HeaderButton
+              icon={nav === "close" ? "close" : "chevron-back"}
+              label={nav === "close" ? "Close" : "Back"}
+              onPress={onNav ?? (() => router.back())}
+            />
           ) : null}
         </View>
-        {actions.slice(0, 2).map((a) => (
-          <HeaderButton key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} />
-        ))}
+        <View style={styles.center}>
+          <View style={styles.titleGroup}>
+            {crest ?? null}
+            <View style={styles.titles}>
+              <Text style={styles.title} numberOfLines={1}>
+                {title}
+              </Text>
+              {subtitle ? (
+                <Text style={styles.subtitle} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+        <View style={[styles.side, styles.sideRight]}>
+          {actions.slice(0, 2).map((a) => (
+            <HeaderButton key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} />
+          ))}
+        </View>
       </View>
       <LinearGradient
         colors={DIVIDER_FADE}
@@ -98,9 +109,14 @@ const styles = StyleSheet.create({
     height: HEADER_H,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACE.md,
     paddingHorizontal: SPACE.lg,
   },
+  // Fits two 40px buttons plus the gap between them.
+  side: { width: SIDE_W, flexDirection: "row", alignItems: "center", gap: SPACE.sm },
+  sideLeft: { justifyContent: "flex-start" },
+  sideRight: { justifyContent: "flex-end" },
+  center: { flex: 1, alignItems: "center", paddingHorizontal: SPACE.xs },
+  titleGroup: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, maxWidth: "100%" },
   btn: {
     width: 40,
     height: 40,
@@ -110,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: T.surface,
   },
   btnPressed: { backgroundColor: T.surfaceAlt },
-  titles: { flex: 1, justifyContent: "center" },
-  title: { fontSize: 20, fontWeight: "700", color: T.text },
-  subtitle: { fontSize: 13, fontWeight: "400", color: T.textDim, marginTop: 1 },
+  titles: { flexShrink: 1, alignItems: "center" },
+  title: { fontSize: 17, fontWeight: "700", color: T.text, textAlign: "center" },
+  subtitle: { fontSize: 12, fontWeight: "400", color: T.textDim, textAlign: "center", marginTop: 1 },
 });
