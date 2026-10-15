@@ -18,18 +18,24 @@ claiming a change works.
 | `npm run lint` | ESLint via `expo lint` |
 | `npx tsc --noEmit` | Typecheck — not wired into an npm script |
 
-There is no test suite. Lint + typecheck + a successful bundle is the whole
-automated safety net.
+| `npm run check` | Node test runner over pure logic in `utils/` |
+
+There is no UI test suite. Check + lint + typecheck + a successful bundle is the
+whole automated safety net.
 
 ## Verifying a change
 
-Run all three. The first two miss compile errors the React Compiler only raises
+Run all four. The first three miss compile errors the React Compiler only raises
 at bundle time:
 
 ```bash
+npm run check         # expect "ℹ fail 0"
 npm run lint          # expect "0 problems"
 npx tsc --noEmit      # expect no output
 ```
+
+`npm run check` prints a harmless MODULE_TYPELESS_PACKAGE_JSON warning — do not
+add `"type": "module"`. It needs Node >= 22.18 for TypeScript type stripping.
 
 Then force a real bundle against a running dev server:
 

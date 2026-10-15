@@ -13,10 +13,11 @@ npm run lint       # Run ESLint via expo lint
 npm run check      # Node built-in tests for utils/ (rating bands, next match, head-to-head)
 ```
 
-`npx tsc --noEmit` typechecks (not wired to an npm script). No test suite is
-configured, so lint + typecheck + a successful Metro bundle is the whole
-automated safety net — none of which catch runtime gesture or animation
-regressions. See the `running-ballerz` skill for the full verification recipe
+`npx tsc --noEmit` typechecks (not wired to an npm script). `npm run check` runs
+Node's built-in test runner over the pure logic in `utils/` (rating bands, next
+match, head-to-head). There is no UI test suite, so lint + typecheck + check + a
+successful Metro bundle is the automated safety net — none of which catch
+runtime gesture or animation regressions. See the `running-ballerz` skill for the full verification recipe
 and the Windows Metro traps.
 
 ## Project skills
@@ -36,7 +37,7 @@ and the Windows Metro traps.
 
 ```
 app/
-  _layout.tsx          # Root Stack: (tabs) + onboarding, create-player, create-game, record-result, game/[id]
+  _layout.tsx          # Root Stack: (tabs) + onboarding, create-player, create-game, record-result, game/[id], player/[id]
   onboarding.tsx       # First-launch 3-step wizard; redirects to (tabs) on completion
   create-player.tsx    # Full-screen (headerShown: false)
   create-game.tsx      # Full-screen (headerShown: false)
@@ -70,7 +71,7 @@ All writes go through named store actions (`addPlayer`, `updatePlayer`, `deleteP
 
 Derived/memoized reads that span multiple slices live in `store/selectors.ts`
 (`useLastGame`, `useMvpPlayer`, `useAppStats`, `useRivalry`, `useLastGameRadar`,
-`useGamesByStatus`). Use selectors for anything that requires filtering or
+`useGamesByStatus`, `useNextGame`, `usePlayersByPosition`). Use selectors for anything that requires filtering or
 aggregation. Aggregations only count games with `status === "FT"`.
 
 **A selector that builds a fresh array or object every call renders forever**
