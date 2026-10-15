@@ -189,7 +189,7 @@ export default function CreatePlayerScreen() {
       >
         <View style={styles.header}>
           <TouchableOpacity hitSlop={8} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color={T.textSecondary} />
+            <Ionicons name="chevron-back" size={26} color={T.textDim} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {editing ? "Edit Player" : "New Player"}
@@ -208,7 +208,7 @@ export default function CreatePlayerScreen() {
                 <Image source={{ uri: photo }} style={styles.photoImg} />
               ) : (
                 <>
-                  <Ionicons name="camera-outline" size={24} color={T.textSecondary} />
+                  <Ionicons name="camera-outline" size={24} color={T.textDim} />
                   <Text style={styles.photoTxt}>Add photo</Text>
                 </>
               )}
@@ -227,14 +227,14 @@ export default function CreatePlayerScreen() {
             <Ionicons
               name="person-outline"
               size={18}
-              color={nameFocused ? T.textPrimary : T.textMuted}
+              color={nameFocused ? T.text : T.textFaint}
             />
             <TextInput
               style={styles.inputField}
               value={name}
               onChangeText={setName}
               placeholder="e.g. Koren"
-              placeholderTextColor={T.textMuted}
+              placeholderTextColor={T.textFaint}
               autoFocus
               returnKeyType="done"
               onFocus={() => setNameFocused(true)}
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
 
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 },
-  headerTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary },
+  headerTitle: { fontSize: 16, fontWeight: "700", color: T.text },
 
   scrollContent: { paddingTop: 20, paddingBottom: 24 },
 
@@ -322,14 +322,14 @@ const styles = StyleSheet.create({
     borderRadius: 52,
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
     overflow: "hidden",
   },
   photoImg: { width: "100%", height: "100%" },
-  photoTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
+  photoTxt: { fontSize: 11, fontWeight: "700", color: T.textDim },
 
   ovrBadge: {
     width: 88,
@@ -337,29 +337,29 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     alignItems: "center",
     justifyContent: "center",
   },
-  ovrValue: { fontSize: 42, fontWeight: "900", color: T.textPrimary, lineHeight: 44 },
-  ovrLabel: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 3 },
-  ovrDivider: { width: 26, height: 1, backgroundColor: T.border, marginVertical: 7 },
-  ovrPos: { fontSize: 12, fontWeight: "800", color: T.textSecondary, letterSpacing: 1 },
+  ovrValue: { fontSize: 42, fontWeight: "700", color: T.text, lineHeight: 44 },
+  ovrLabel: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 3 },
+  ovrDivider: { width: 26, height: 1, backgroundColor: T.divider, marginVertical: 7 },
+  ovrPos: { fontSize: 12, fontWeight: "700", color: T.textDim, letterSpacing: 1 },
 
-  fieldLabel: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 22, marginBottom: 8 },
+  fieldLabel: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 22, marginBottom: 8 },
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     backgroundColor: T.surface,
     borderWidth: 1.5,
-    borderColor: T.border,
+    borderColor: T.divider,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 4,
   },
   inputWrapFocused: {
-    borderColor: T.textPrimary,
+    borderColor: T.text,
     backgroundColor: T.bg,
   },
   inputField: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     fontSize: 16,
     fontWeight: "600",
-    color: T.textPrimary,
+    color: T.text,
   },
 
   chipRow: { flexDirection: "row", gap: 8 },
@@ -377,24 +377,24 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     alignItems: "center",
   },
-  chipActive: { backgroundColor: T.border },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  chipTxtActive: { color: T.textPrimary, fontWeight: "800" },
+  chipActive: { backgroundColor: T.divider },
+  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  chipTxtActive: { color: T.text, fontWeight: "700" },
 
   attrCard: {
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 6,
   },
   attrRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 10 },
-  attrLabel: { width: 38, fontSize: 12, fontWeight: "800", color: T.textSecondary },
-  attrValue: { width: 26, fontSize: 14, fontWeight: "800", color: T.textPrimary, textAlign: "right" },
+  attrLabel: { width: 38, fontSize: 12, fontWeight: "700", color: T.textDim },
+  attrValue: { width: 26, fontSize: 14, fontWeight: "700", color: T.text, textAlign: "right" },
 
   sliderArea: { flex: 1, height: 24, justifyContent: "center" },
   sliderBar: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     top: 9,
     height: 6,
     borderRadius: 3,
-    backgroundColor: T.textPrimary,
+    backgroundColor: T.accent,
   },
   sliderThumb: {
     position: "absolute",
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     width: THUMB,
     height: THUMB,
     borderRadius: THUMB / 2,
-    backgroundColor: T.textPrimary,
+    backgroundColor: T.accent,
     borderWidth: 3,
     borderColor: T.bg,
   },
@@ -428,11 +428,11 @@ const styles = StyleSheet.create({
   footer: { flexDirection: "row", marginTop: 12 },
   saveBtn: {
     flex: 1,
-    backgroundColor: T.textPrimary,
+    backgroundColor: T.accent,
     paddingVertical: 15,
     borderRadius: 14,
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
+  saveBtnTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });

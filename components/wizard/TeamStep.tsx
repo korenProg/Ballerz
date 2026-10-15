@@ -40,7 +40,7 @@ export default function TeamStep({
         value={name}
         onChangeText={onName}
         placeholder={sideLabel === "Home" ? "e.g. Reds" : "e.g. Blues"}
-        placeholderTextColor={T.textMuted}
+        placeholderTextColor={T.textFaint}
       />
 
       <Text style={styles.label}>Color</Text>
@@ -63,7 +63,7 @@ export default function TeamStep({
           {logo ? (
             <Image source={{ uri: logo }} style={styles.logoSlotImg} resizeMode="contain" />
           ) : (
-            <Ionicons name="image-outline" size={20} color={T.textSecondary} />
+            <Ionicons name="image-outline" size={20} color={T.textDim} />
           )}
         </TouchableOpacity>
         {logo ? (
@@ -102,23 +102,23 @@ export default function TeamStep({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  title: { fontSize: 28, fontWeight: "900", color: T.textPrimary, marginTop: 4 },
-  sub: { fontSize: 13, color: T.textSecondary, marginBottom: 8 },
+  eyebrow: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 2 },
+  title: { fontSize: 28, fontWeight: "700", color: T.text, marginTop: 4 },
+  sub: { fontSize: 13, color: T.textDim, marginBottom: 8 },
   preview: { alignItems: "center", gap: 8, marginTop: 14, marginBottom: 6 },
-  previewName: { fontSize: 16, fontWeight: "800", color: T.textPrimary, maxWidth: 220 },
-  label: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.textPrimary },
+  previewName: { fontSize: 16, fontWeight: "700", color: T.text, maxWidth: 220 },
+  label: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 16, marginBottom: 8 },
+  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.text },
   swatchRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   swatch: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
-  swatchActive: { borderWidth: 2, borderColor: T.textPrimary },
+  swatchActive: { borderWidth: 2, borderColor: T.text },
   logoRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  logoSlot: { width: 56, height: 56, borderRadius: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  logoSlot: { width: 56, height: 56, borderRadius: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   logoSlotImg: { width: "100%", height: "100%" },
-  clearTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary, textDecorationLine: "underline" },
-  hintLink: { fontSize: 13, color: T.textSecondary, textDecorationLine: "underline" },
+  clearTxt: { fontSize: 13, fontWeight: "700", color: T.textDim, textDecorationLine: "underline" },
+  hintLink: { fontSize: 13, color: T.textDim, textDecorationLine: "underline" },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider },
+  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
   chipTxtOn: { color: "#fff" },
 });

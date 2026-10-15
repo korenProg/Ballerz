@@ -13,13 +13,6 @@ export const T = {
   accent: "#2FD47A",
   red: "#F04438",
   yellow: "#F5C518",
-
-  // Legacy names, remapped onto the new palette so every screen re-skins at
-  // once. Removed in Task 7 when no file reads them.
-  border: "#2B2B2B",
-  textPrimary: "#F2F2F2",
-  textSecondary: "#A3A3A3",
-  textMuted: "#8A8A8A",
 } as const;
 
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;

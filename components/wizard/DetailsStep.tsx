@@ -20,9 +20,9 @@ type DetailsStepProps = {
 function Stepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
     <View style={styles.stepper}>
-      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(Math.max(0, value - 1))}><Ionicons name="remove" size={18} color={T.textPrimary} /></TouchableOpacity>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(Math.max(0, value - 1))}><Ionicons name="remove" size={18} color={T.text} /></TouchableOpacity>
       <Text style={styles.stepVal}>{value}</Text>
-      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(value + 1)}><Ionicons name="add" size={18} color={T.textPrimary} /></TouchableOpacity>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(value + 1)}><Ionicons name="add" size={18} color={T.text} /></TouchableOpacity>
     </View>
   );
 }
@@ -66,7 +66,7 @@ export default function DetailsStep({
       </TouchableOpacity>
 
       <Text style={styles.label}>Location</Text>
-      <TextInput style={styles.input} value={location} onChangeText={onLocation} placeholder="e.g. City Park (optional)" placeholderTextColor={T.textMuted} />
+      <TextInput style={styles.input} value={location} onChangeText={onLocation} placeholder="e.g. City Park (optional)" placeholderTextColor={T.textFaint} />
 
       {mode === "result" && (
         <>
@@ -90,7 +90,7 @@ export default function DetailsStep({
             </View>
           )}
           {mvpId ? (
-            <TextInput style={[styles.input, { marginTop: 10 }]} value={mvpStat} onChangeText={onMvpStat} placeholder="MVP stat, e.g. 2 goals" placeholderTextColor={T.textMuted} />
+            <TextInput style={[styles.input, { marginTop: 10 }]} value={mvpStat} onChangeText={onMvpStat} placeholder="MVP stat, e.g. 2 goals" placeholderTextColor={T.textFaint} />
           ) : null}
         </>
       )}
@@ -99,30 +99,30 @@ export default function DetailsStep({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  title: { fontSize: 28, fontWeight: "900", color: T.textPrimary, marginTop: 4 },
-  sub: { fontSize: 13, color: T.textSecondary, marginBottom: 8 },
-  preview: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 16, marginTop: 12 },
+  eyebrow: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 2 },
+  title: { fontSize: 28, fontWeight: "700", color: T.text, marginTop: 4 },
+  sub: { fontSize: 13, color: T.textDim, marginBottom: 8 },
+  preview: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 16, padding: 16, marginTop: 12 },
   previewTeam: { flex: 1, alignItems: "center", gap: 6 },
-  previewName: { fontSize: 13, fontWeight: "700", color: T.textPrimary, maxWidth: 110, textAlign: "center" },
-  previewMid: { fontSize: 18, fontWeight: "900", color: T.textPrimary, paddingHorizontal: 10 },
-  label: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.textPrimary },
-  inputTxt: { fontSize: 15, color: T.textPrimary },
+  previewName: { fontSize: 13, fontWeight: "700", color: T.text, maxWidth: 110, textAlign: "center" },
+  previewMid: { fontSize: 18, fontWeight: "700", color: T.text, paddingHorizontal: 10 },
+  label: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 16, marginBottom: 8 },
+  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.text },
+  inputTxt: { fontSize: 15, color: T.text },
   segment: { flexDirection: "row", backgroundColor: T.surface, borderRadius: 12, padding: 4, marginTop: 16 },
   segBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
-  segBtnActive: { backgroundColor: T.border },
-  segTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  segTxtActive: { color: T.textPrimary },
+  segBtnActive: { backgroundColor: T.divider },
+  segTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  segTxtActive: { color: T.text },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 6 },
-  scoreColon: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
-  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
-  stepVal: { fontSize: 20, fontWeight: "900", color: T.textPrimary, minWidth: 24, textAlign: "center" },
+  scoreColon: { fontSize: 24, fontWeight: "700", color: T.text },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.divider, alignItems: "center", justifyContent: "center" },
+  stepVal: { fontSize: 20, fontWeight: "700", color: T.text, minWidth: 24, textAlign: "center" },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  chipTxtOn: { color: "#fff" },
-  chipMvpOn: { backgroundColor: "#ca8a04", borderColor: "#ca8a04" },
-  hint: { fontSize: 13, color: T.textSecondary },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider },
+  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  chipTxtOn: { color: "#000" },
+  chipMvpOn: { backgroundColor: T.yellow, borderColor: T.yellow },
+  hint: { fontSize: 13, color: T.textDim },
 });

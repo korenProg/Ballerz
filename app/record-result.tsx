@@ -47,7 +47,7 @@ export default function RecordResultScreen() {
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Record Result</Text>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}><Ionicons name="close" size={26} color={T.textPrimary} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={8}><Ionicons name="close" size={26} color={T.text} /></TouchableOpacity>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.matchup}>{game.homeTeam} vs {game.awayTeam}</Text>
@@ -72,7 +72,7 @@ export default function RecordResultScreen() {
           </View>
         )}
         {mvpId ? (
-          <TextInput style={styles.input} value={mvpStat} onChangeText={setMvpStat} placeholder="MVP stat, e.g. 2 goals" placeholderTextColor={T.textMuted} />
+          <TextInput style={styles.input} value={mvpStat} onChangeText={setMvpStat} placeholder="MVP stat, e.g. 2 goals" placeholderTextColor={T.textFaint} />
         ) : null}
       </ScrollView>
 
@@ -88,9 +88,9 @@ export default function RecordResultScreen() {
 function Stepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
     <View style={styles.stepper}>
-      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(Math.max(0, value - 1))}><Ionicons name="remove" size={18} color={T.textPrimary} /></TouchableOpacity>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(Math.max(0, value - 1))}><Ionicons name="remove" size={18} color={T.text} /></TouchableOpacity>
       <Text style={styles.stepVal}>{value}</Text>
-      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(value + 1)}><Ionicons name="add" size={18} color={T.textPrimary} /></TouchableOpacity>
+      <TouchableOpacity style={styles.stepBtn} onPress={() => onChange(value + 1)}><Ionicons name="add" size={18} color={T.text} /></TouchableOpacity>
     </View>
   );
 }
@@ -98,27 +98,27 @@ function Stepper({ value, onChange }: { value: number; onChange: (n: number) => 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
-  title: { fontSize: 18, fontWeight: "900", color: T.textPrimary },
+  title: { fontSize: 18, fontWeight: "700", color: T.text },
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },
-  matchup: { fontSize: 14, fontWeight: "700", color: T.textSecondary, textAlign: "center", marginBottom: 8 },
-  label: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 18, marginBottom: 8 },
+  matchup: { fontSize: 14, fontWeight: "700", color: T.textDim, textAlign: "center", marginBottom: 8 },
+  label: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 18, marginBottom: 8 },
   scoreRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 },
-  colon: { fontSize: 24, fontWeight: "900", color: T.textPrimary },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
-  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
-  stepVal: { fontSize: 20, fontWeight: "900", color: T.textPrimary, minWidth: 24, textAlign: "center" },
+  colon: { fontSize: 24, fontWeight: "700", color: T.text },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.divider, alignItems: "center", justifyContent: "center" },
+  stepVal: { fontSize: 20, fontWeight: "700", color: T.text, minWidth: 24, textAlign: "center" },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border },
-  chipOn: { backgroundColor: "#ca8a04", borderColor: "#ca8a04" },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  chipTxtOn: { color: "#fff" },
-  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.textPrimary, marginTop: 10 },
-  hint: { fontSize: 13, color: T.textSecondary },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider },
+  chipOn: { backgroundColor: T.yellow, borderColor: T.yellow },
+  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  chipTxtOn: { color: "#000" },
+  input: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: T.text, marginTop: 10 },
+  hint: { fontSize: 13, color: T.textDim },
   footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8 },
-  confirmBtn: { backgroundColor: T.textPrimary, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
-  confirmTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
+  confirmBtn: { backgroundColor: T.accent, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
+  confirmTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  notFound: { fontSize: 16, fontWeight: "700", color: T.textSecondary },
-  cancelBtn: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  cancelTxt: { color: T.textPrimary, fontWeight: "700" },
+  notFound: { fontSize: 16, fontWeight: "700", color: T.textDim },
+  cancelBtn: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+  cancelTxt: { color: T.text, fontWeight: "700" },
 });

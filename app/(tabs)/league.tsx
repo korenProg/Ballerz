@@ -10,18 +10,29 @@ import {
   KeyboardAvoidingView,
   Platform,
   type AlertButton,
+  type TextInputProps,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import Crest from "../../components/Crest";
-import { T, LEAGUE_COLORS, TEAM_SIZES } from "../../constants/theme";
+import ScreenHeader from "../../components/ui/ScreenHeader";
+import Section from "../../components/ui/Section";
+import Button from "../../components/ui/Button";
+import { T, SPACE, RADIUS, LEAGUE_COLORS, TEAM_SIZES } from "../../constants/theme";
+
+function Field({ label, ...input }: { label: string } & TextInputProps) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput style={styles.input} placeholderTextColor={T.textFaint} {...input} />
+    </View>
+  );
+}
 
 export default function LeagueScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const league = useStore((s) => s.league);
   const setLeague = useStore((s) => s.setLeague);
   const resetAll = useStore((s) => s.resetAll);
@@ -40,7 +51,6 @@ export default function LeagueScreen() {
     location !== league.defaultLocation ||
     teamSize !== league.defaultTeamSize ||
     adminName !== league.adminName;
-
   const canSave = dirty && name.trim().length > 0;
 
   async function pickFromLibrary() {
@@ -59,11 +69,7 @@ export default function LeagueScreen() {
       Alert.alert("Camera unavailable", "Allow camera access to take a photo.");
       return;
     }
-    const res = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+    const res = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!res.canceled) setLogoUri(res.assets[0].uri);
   }
 
@@ -72,13 +78,7 @@ export default function LeagueScreen() {
       { text: "Take Photo", onPress: takePhoto },
       { text: "Choose from Library", onPress: pickFromLibrary },
     ];
-    if (logoUri) {
-      buttons.push({
-        text: "Remove",
-        style: "destructive",
-        onPress: () => setLogoUri(null),
-      });
-    }
+    if (logoUri) buttons.push({ text: "Remove", style: "destructive", onPress: () => setLogoUri(null) });
     buttons.push({ text: "Cancel", style: "cancel" });
     Alert.alert("League logo", "Choose a source", buttons);
   }
@@ -115,134 +115,86 @@ export default function LeagueScreen() {
 
   return (
     <View style={styles.main}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <ScreenHeader title="League" subtitle="Settings on this device" />
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110 },
-          ]}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.title}>League</Text>
-          <Text style={styles.subtitle}>Settings for this device</Text>
-
-          <View style={styles.crestRow}>
+          <Section>
             <Pressable
-              style={({ pressed }) => [styles.crestBtn, pressed ? styles.pressed : null]}
+              accessibilityRole="button"
               onPress={pickLogo}
+              style={({ pressed }) => [styles.crestRow, pressed ? styles.pressed : null]}
             >
-              <Crest
-                name={name || "League"}
-                color={color}
-                logo={logoUri ?? undefined}
-                size={72}
-              />
-              <View style={styles.crestEditBadge}>
-                <Ionicons name="camera" size={12} color={T.bg} />
+              <Crest name={name || "League"} color={color} logo={logoUri ?? undefined} size={56} />
+              <View style={styles.crestCopy}>
+                <Text style={styles.crestTitle}>League crest</Text>
+                <Text style={styles.crestSub}>Tap to change</Text>
               </View>
+              <Ionicons name="chevron-forward" size={18} color={T.textFaint} />
             </Pressable>
-            <View style={styles.crestCopy}>
-              <Text style={styles.crestTitle}>League crest</Text>
-              <Text style={styles.crestSub}>
-                Tap to change. Without an image, the initials sit on your league color.
-              </Text>
+          </Section>
+
+          <Section title="Details" padded>
+            <View style={styles.fields}>
+              <Field label="League name" value={name} onChangeText={setName} placeholder="Sunday League" />
+              <Field label="Admin name" value={adminName} onChangeText={setAdminName} placeholder="Who runs the league" />
+              <Field
+                label="Default location"
+                value={location}
+                onChangeText={setLocation}
+                placeholder="The usual pitch"
+              />
             </View>
-          </View>
+          </Section>
 
-          <Text style={styles.fieldLabel}>League name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Sunday League"
-            placeholderTextColor={T.textMuted}
-          />
-
-          <Text style={styles.fieldLabel}>League color</Text>
-          <View style={styles.swatches}>
-            {LEAGUE_COLORS.map((c) => (
-              <Pressable
-                key={c}
-                style={[
-                  styles.swatch,
-                  { backgroundColor: c },
-                  color === c ? styles.swatchActive : null,
-                ]}
-                onPress={() => setColor(c)}
-              >
-                {color === c ? (
-                  <Ionicons name="checkmark" size={16} color="#fff" />
-                ) : null}
-              </Pressable>
-            ))}
-          </View>
-
-          <Text style={styles.fieldLabel}>Admin name</Text>
-          <TextInput
-            style={styles.input}
-            value={adminName}
-            onChangeText={setAdminName}
-            placeholder="Who runs the league"
-            placeholderTextColor={T.textMuted}
-          />
-
-          <Text style={styles.fieldLabel}>Default location</Text>
-          <TextInput
-            style={styles.input}
-            value={location}
-            onChangeText={setLocation}
-            placeholder="The usual pitch"
-            placeholderTextColor={T.textMuted}
-          />
-
-          <Text style={styles.fieldLabel}>Default team size</Text>
-          <View style={styles.sizes}>
-            {TEAM_SIZES.map((s) => (
-              <Pressable
-                key={s}
-                style={[styles.size, teamSize === s ? styles.sizeActive : null]}
-                onPress={() => setTeamSize(s)}
-              >
-                <Text
-                  style={[styles.sizeTxt, teamSize === s ? styles.sizeTxtActive : null]}
+          <Section title="League color" padded>
+            <View style={styles.swatches}>
+              {LEAGUE_COLORS.map((c) => (
+                <Pressable
+                  key={c}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Color ${c}`}
+                  accessibilityState={{ selected: color === c }}
+                  style={[styles.swatch, { backgroundColor: c }, color === c ? styles.swatchActive : null]}
+                  onPress={() => setColor(c)}
                 >
-                  {s}v{s}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                  {color === c ? <Ionicons name="checkmark" size={16} color="#fff" /> : null}
+                </Pressable>
+              ))}
+            </View>
+          </Section>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.saveBtn,
-              canSave ? null : styles.saveBtnDisabled,
-              pressed ? styles.pressed : null,
-            ]}
-            disabled={!canSave}
-            onPress={save}
-          >
-            <Text style={styles.saveTxt}>
-              {dirty ? "Save changes" : "Saved"}
-            </Text>
-          </Pressable>
+          <Section title="Default team size" padded>
+            <View style={styles.sizes}>
+              {TEAM_SIZES.map((s) => (
+                <Pressable
+                  key={s}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: teamSize === s }}
+                  style={[styles.size, teamSize === s ? styles.sizeActive : null]}
+                  onPress={() => setTeamSize(s)}
+                >
+                  <Text style={[styles.sizeTxt, teamSize === s ? styles.sizeTxtActive : null]}>
+                    {s}v{s}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </Section>
 
-          <View style={styles.dangerZone}>
-            <Text style={styles.dangerLabel}>DANGER ZONE</Text>
-            <Pressable
-              style={({ pressed }) => [styles.resetBtn, pressed ? styles.pressed : null]}
-              onPress={confirmReset}
-            >
-              <Ionicons name="trash-outline" size={18} color="#dc2626" />
-              <Text style={styles.resetTxt}>Reset all data</Text>
-            </Pressable>
-            <Text style={styles.dangerSub}>
-              Deletes every player, game and setting, then restarts onboarding.
-            </Text>
-          </View>
+          <Button label={dirty ? "Save changes" : "Saved"} disabled={!canSave} onPress={save} />
+
+          <Section title="Danger zone" padded>
+            <View style={styles.danger}>
+              <Text style={styles.dangerSub}>
+                Deletes every player, game and setting on this device, then restarts onboarding.
+              </Text>
+              <Button variant="destructive" icon="trash-outline" label="Reset all data" onPress={confirmReset} />
+            </View>
+          </Section>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -252,111 +204,46 @@ export default function LeagueScreen() {
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20 },
-  pressed: { opacity: 0.6 },
-
-  title: { fontSize: 30, fontWeight: "900", color: T.textPrimary, letterSpacing: 0.3 },
-  subtitle: { fontSize: 13, fontWeight: "600", color: T.textSecondary, marginTop: 2 },
-
-  crestRow: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 22 },
-  crestBtn: { position: "relative" },
-  crestEditBadge: {
-    position: "absolute",
-    right: -2,
-    bottom: -2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: T.textPrimary,
-    borderWidth: 2,
-    borderColor: T.bg,
-  },
-  crestCopy: { flex: 1, gap: 3 },
-  crestTitle: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
-  crestSub: { fontSize: 12, fontWeight: "600", color: T.textSecondary, lineHeight: 17 },
-
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: "900",
-    color: T.textMuted,
-    letterSpacing: 1,
-    marginTop: 22,
-    marginBottom: 8,
-  },
+  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  pressed: { backgroundColor: T.surfaceAlt },
+  crestRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: SPACE.lg },
+  crestCopy: { flex: 1, gap: 2 },
+  crestTitle: { fontSize: 15, fontWeight: "600", color: T.text },
+  crestSub: { fontSize: 13, fontWeight: "400", color: T.textDim },
+  fields: { gap: SPACE.md },
+  field: { gap: 6 },
+  fieldLabel: { fontSize: 12, fontWeight: "500", color: T.textFaint },
   input: {
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
-    borderRadius: 12,
+    backgroundColor: T.surfaceAlt,
+    borderRadius: RADIUS.control,
     paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingVertical: 12,
     fontSize: 15,
-    fontWeight: "600",
-    color: T.textPrimary,
+    fontWeight: "500",
+    color: T.text,
   },
-
   swatches: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   swatch: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
     borderColor: "transparent",
   },
-  swatchActive: { borderColor: T.textPrimary },
-
-  sizes: { flexDirection: "row", gap: 8 },
+  swatchActive: { borderColor: T.text },
+  sizes: { flexDirection: "row", gap: SPACE.sm },
   size: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
+    paddingVertical: 10,
+    borderRadius: RADIUS.control,
+    backgroundColor: T.surfaceAlt,
   },
-  sizeActive: { backgroundColor: T.textPrimary, borderColor: T.textPrimary },
-  sizeTxt: { fontSize: 13, fontWeight: "800", color: T.textSecondary },
-  sizeTxtActive: { color: T.bg },
-
-  saveBtn: {
-    marginTop: 28,
-    paddingVertical: 15,
-    borderRadius: 14,
-    alignItems: "center",
-    backgroundColor: T.textPrimary,
-  },
-  saveBtnDisabled: { opacity: 0.35 },
-  saveTxt: { fontSize: 15, fontWeight: "900", color: T.bg },
-
-  dangerZone: { marginTop: 38, gap: 8 },
-  dangerLabel: {
-    fontSize: 11,
-    fontWeight: "900",
-    color: "#dc2626",
-    letterSpacing: 1,
-  },
-  resetBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: "#dc2626",
-  },
-  resetTxt: { fontSize: 14, fontWeight: "800", color: "#dc2626" },
-  dangerSub: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: T.textSecondary,
-    textAlign: "center",
-    lineHeight: 17,
-  },
+  sizeActive: { backgroundColor: T.accent },
+  sizeTxt: { fontSize: 13, fontWeight: "600", color: T.textDim, fontVariant: ["tabular-nums"] },
+  sizeTxtActive: { color: "#000" },
+  danger: { gap: SPACE.md },
+  dangerSub: { fontSize: 13, fontWeight: "400", color: T.textDim, lineHeight: 18 },
 });

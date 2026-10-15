@@ -152,7 +152,7 @@ export default function Onboarding() {
               value={adminName}
               onChangeText={setAdminName}
               placeholder="e.g. Koren"
-              placeholderTextColor={T.textMuted}
+              placeholderTextColor={T.textFaint}
               autoFocus
               returnKeyType="next"
               onSubmitEditing={() => canContinue && next()}
@@ -171,7 +171,7 @@ export default function Onboarding() {
                 <Image source={{ uri: logoUri }} style={styles.logoImage} />
               ) : (
                 <>
-                  <Ionicons name="image-outline" size={26} color={T.textSecondary} />
+                  <Ionicons name="image-outline" size={26} color={T.textDim} />
                   <Text style={styles.logoPickerTxt}>Add logo</Text>
                 </>
               )}
@@ -183,7 +183,7 @@ export default function Onboarding() {
               value={leagueName}
               onChangeText={setLeagueName}
               placeholder="e.g. Sunday League"
-              placeholderTextColor={T.textMuted}
+              placeholderTextColor={T.textFaint}
               returnKeyType="next"
               onSubmitEditing={() => canContinue && next()}
             />
@@ -205,7 +205,7 @@ export default function Onboarding() {
                   activeOpacity={0.8}
                   onPress={() => setColor(c)}
                 >
-                  {color === c && <Ionicons name="checkmark" size={16} color={T.textPrimary} />}
+                  {color === c && <Ionicons name="checkmark" size={16} color={T.text} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -216,7 +216,7 @@ export default function Onboarding() {
               value={location}
               onChangeText={setLocation}
               placeholder="e.g. City Park Field (optional)"
-              placeholderTextColor={T.textMuted}
+              placeholderTextColor={T.textFaint}
             />
 
             <Text style={styles.fieldLabel}>Players per team</Text>
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   progressRow: { flexDirection: "row", gap: 8, marginTop: 8 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
-  progressSegActive: { backgroundColor: T.textPrimary },
+  progressSegActive: { backgroundColor: T.accent },
   scrollContent: { paddingBottom: 24 },
 
   welcomeBody: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
@@ -270,11 +270,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   welcomeLogoImg: { width: "100%", height: "100%" },
-  welcomeWordmark: { fontSize: 40, fontWeight: "900", color: T.textPrimary, letterSpacing: 0.5 },
-  welcomeTagline: { fontSize: 16, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
+  welcomeWordmark: { fontSize: 40, fontWeight: "700", color: T.text, letterSpacing: 0.5 },
+  welcomeTagline: { fontSize: 16, fontWeight: "700", color: T.text, textAlign: "center" },
   welcomeDesc: {
     fontSize: 14,
-    color: T.textSecondary,
+    color: T.textDim,
     textAlign: "center",
     lineHeight: 21,
     marginTop: 4,
@@ -282,20 +282,20 @@ const styles = StyleSheet.create({
   },
 
   stepBody: { marginTop: 36, gap: 6 },
-  eyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  title: { fontSize: 28, fontWeight: "900", color: T.textPrimary },
-  sub: { fontSize: 13, color: T.textSecondary, marginBottom: 18 },
+  eyebrow: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 2 },
+  title: { fontSize: 28, fontWeight: "700", color: T.text },
+  sub: { fontSize: 13, color: T.textDim, marginBottom: 18 },
 
-  fieldLabel: { fontSize: 12, fontWeight: "800", color: T.textSecondary, marginTop: 14, marginBottom: 8 },
+  fieldLabel: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 14, marginBottom: 8 },
   input: {
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: T.textPrimary,
+    color: T.text,
   },
 
   logoPicker: {
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 52,
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   logoImage: { width: "100%", height: "100%" },
-  logoPickerTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
+  logoPickerTxt: { fontSize: 11, fontWeight: "700", color: T.textDim },
 
   swatchRow: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   swatch: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  swatchActive: { borderWidth: 2, borderColor: T.textPrimary },
+  swatchActive: { borderWidth: 2, borderColor: T.text },
 
   sizeRow: { flexDirection: "row", gap: 8 },
   sizeChip: {
@@ -332,21 +332,21 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: T.divider,
     alignItems: "center",
   },
-  sizeChipActive: { backgroundColor: T.border },
-  sizeChipTxt: { fontSize: 13, fontWeight: "700", color: T.textSecondary },
-  sizeChipTxtActive: { color: T.textPrimary, fontWeight: "800" },
+  sizeChipActive: { backgroundColor: T.divider },
+  sizeChipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  sizeChipTxtActive: { color: T.text, fontWeight: "700" },
 
   footer: { flexDirection: "row", gap: 10, marginTop: 12 },
   nextBtn: {
     flex: 1,
-    backgroundColor: T.textPrimary,
+    backgroundColor: T.accent,
     paddingVertical: 15,
     borderRadius: 14,
     alignItems: "center",
   },
   nextBtnDisabled: { opacity: 0.4 },
-  nextBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
+  nextBtnTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });

@@ -87,7 +87,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             <Ionicons
               name={focused ? icons.filled : icons.outline}
               size={24}
-              color={focused ? T.textPrimary : T.textMuted}
+              color={focused ? T.accent : T.textFaint}
             />
           </Pressable>
         );
@@ -129,6 +129,6 @@ const styles = StyleSheet.create({
     width: PILL_W,
     height: PILL_H,
     borderRadius: 999,
-    backgroundColor: T.border,
+    backgroundColor: T.surfaceAlt,
   },
 });

@@ -117,7 +117,7 @@ export default function CreateGameScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-            <Ionicons name="close" size={26} color={T.textPrimary} />
+            <Ionicons name="close" size={26} color={T.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{editing ? "Edit Game" : "New Game"}</Text>
           <View style={{ width: 26 }} />
@@ -200,15 +200,15 @@ const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: T.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: T.text },
   progressRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 4 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
-  progressSegActive: { backgroundColor: T.textPrimary },
+  progressSegActive: { backgroundColor: T.accent },
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },
   footer: { flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8 },
-  backBtn: { paddingVertical: 15, paddingHorizontal: 22, borderRadius: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, alignItems: "center" },
-  backTxt: { fontSize: 14, fontWeight: "800", color: T.textPrimary },
-  nextBtn: { flex: 1, backgroundColor: T.textPrimary, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
+  backBtn: { paddingVertical: 15, paddingHorizontal: 22, borderRadius: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, alignItems: "center" },
+  backTxt: { fontSize: 14, fontWeight: "700", color: T.text },
+  nextBtn: { flex: 1, backgroundColor: T.accent, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
   nextDisabled: { opacity: 0.4 },
-  nextTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
+  nextTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });
