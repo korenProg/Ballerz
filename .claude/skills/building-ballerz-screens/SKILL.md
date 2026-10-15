@@ -26,22 +26,20 @@ Still placeholder stubs: `app/(tabs)/players.tsx`, `app/(tabs)/league.tsx`.
 
 ## Styling
 
-`T` from `constants/theme.ts` is the whole token set — six colors, nothing else:
+FotMob-style dark UI. `T` from `constants/theme.ts`: `bg #000000` ·
+`surface #1A1A1A` · `surfaceAlt #262626` · `divider #2B2B2B` · `text #F2F2F2` ·
+`textDim #A3A3A3` · `textFaint #8A8A8A` · `accent #2FD47A` · `red` · `yellow`.
+`TYPE`, `SPACE` and `RADIUS` hold the type scale, spacing and radii.
 
-`bg #04050B` · `surface #111525` · `border #2E385B` · `textPrimary #CCD0CF` ·
-`textSecondary #9BA8AB` · `textMuted #4A5C6A`
-
-There is **no** `radius`, `spacing` or `accent` token. Hard-code those per
-screen, matching whatever the neighbouring screens use. `Colors` and `Fonts`
-in the same file are leftover Expo template boilerplate — the app's screens
-use `T` directly; don't start using `Colors`.
-
-Reusable pieces already exist in `components/`: `Crest`, `GameCard`,
-`GameScoreboard`, and `wizard/{TeamStep,DetailsStep}`. Check there before
-building another one.
+Compose screens from `components/ui/` (`ScreenHeader`, `Section`, `ListRow`,
+`Tabs`, `RatingBadge`, `StatCompare`, `Button`, `IconButton`, `EmptyState`)
+before writing new styles. Cards have no border, weights stop at 700, numbers
+are tabular, and the green accent marks active, live and primary — nothing
+decorative. No watermark icons, no letter-spaced eyebrow labels, no gradients.
 
 Player photos and league logos are local `file://` URIs from
-`expo-image-picker`. Nothing is uploaded anywhere.
+`expo-image-picker`. `Crest` shows them, falling back to initials (team colour
+for teams, neutral grey with `variant="avatar"` for players).
 
 ## React Compiler: no refs during render
 

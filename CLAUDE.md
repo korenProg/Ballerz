@@ -10,6 +10,7 @@ npm run android    # Start with Android emulator
 npm run ios        # Start with iOS simulator
 npm run web        # Start web build
 npm run lint       # Run ESLint via expo lint
+npm run check      # Node built-in tests for utils/ (rating bands, next match, head-to-head)
 ```
 
 `npx tsc --noEmit` typechecks (not wired to an npm script). No test suite is
@@ -40,7 +41,8 @@ app/
   create-player.tsx    # Full-screen (headerShown: false)
   create-game.tsx      # Full-screen (headerShown: false)
   record-result.tsx    # Modal (presentation: "modal")
-  game/[id].tsx        # Dynamic route: single-game detail / live view
+  game/[id].tsx        # Dynamic route: single-game detail / live controls
+  player/[id].tsx      # Dynamic route: player detail
   (tabs)/
     _layout.tsx        # Bottom tab bar (Home, Games, Players, League)
     index.tsx          # Home dashboard
@@ -51,12 +53,9 @@ app/
 
 Every non-tab screen is registered as a `Stack.Screen` in `app/_layout.tsx` with `headerShown: false`; only `record-result` uses `presentation: "modal"`. The root layout redirects to `/onboarding` when `hasOnboarded` is false (checked in `HomeScreen` via a `<Redirect>`, `app/(tabs)/index.tsx`).
 
-**Implementation status:** built out — `(tabs)/index.tsx` (home dashboard),
-`(tabs)/games.tsx`, `create-player.tsx`, `create-game.tsx` (3-step wizard),
-`record-result.tsx`, `game/[id].tsx`, `onboarding.tsx`. Still centered-text
-placeholder stubs: **`(tabs)/players.tsx` and `(tabs)/league.tsx`** — the last
-two. The tab bar is a custom `FloatingTabBar` with an animated pill
-(`(tabs)/_layout.tsx`), not the default tab bar.
+**Implementation status:** every screen is built. The tab bar is a custom
+`FloatingTabBar` with an animated pill (`(tabs)/_layout.tsx`), not the default
+tab bar.
 
 ### State management
 
@@ -84,23 +83,29 @@ slice and derive with `useMemo` (`useGamesByStatus`, `useLastGameRadar`). The
 
 ### Design system
 
-The primary design token object is `T` exported from `constants/theme.ts` — a flat, dark-only palette (no light/dark variants, no `radius` or `accent` keys):
+FotMob-style, dark only. Spec: `docs/superpowers/specs/2026-10-13-fotmob-redesign-design.md`.
 
-| Token | Value |
+`constants/theme.ts` exports:
+
+| Export | Contents |
 |---|---|
-| `T.bg` | `#04050B` |
-| `T.surface` | `#111525` |
-| `T.border` | `#2E385B` |
-| `T.textPrimary` | `#CCD0CF` |
-| `T.textSecondary` | `#9BA8AB` |
-| `T.textMuted` | `#4A5C6A` |
+| `T` | `bg #000000`, `surface #1A1A1A`, `surfaceAlt #262626`, `divider #2B2B2B`, `text #F2F2F2`, `textDim #A3A3A3`, `textFaint #8A8A8A`, `accent #2FD47A`, `red #F04438`, `yellow #F5C518` |
+| `TYPE` | `screenTitle`, `sectionTitle`, `rowPrimary`, `rowSecondary`, `caption`, `score` text styles |
+| `SPACE` / `RADIUS` | 4-pt spacing scale; `card 16`, `control 12`, `badge 8` |
 
-`constants/theme.ts` also exports `Colors` (light/dark) and `Fonts`, plus the `hooks/use-color-scheme*` and `hooks/use-theme-color` helpers — these are leftover Expo template boilerplate; the app's own screens use the `T` palette directly. Radius/spacing values are hard-coded per screen (no shared scale).
+Rules: cards have no border; weights 400–700 only; every number uses
+`fontVariant: ["tabular-nums"]`; the league colour appears on crests only; the
+green accent is for active state, live and primary actions — use it sparingly.
 
-Styling is done with `StyleSheet.create` inline in each screen file. There is no
-global stylesheet, but shared components do exist in `components/`: `Crest`,
-`GameCard`, `GameScoreboard`, and `wizard/{TeamStep,DetailsStep}`. Check there
-before building another one.
+Build screens from `components/ui/`: `ScreenHeader`, `IconButton`, `Section`,
+`ListRow`, `Tabs`, `RatingBadge`, `StatCompare`, `Button`, `EmptyState`.
+`components/Crest.tsx` renders team crests and (`variant="avatar"`) neutral
+player avatars. `GameCard` is a compact match row; `GameScoreboard` is the
+card-less match header. `Colors`/`Fonts` in `theme.ts` are Expo template
+leftovers — don't use them.
+
+Styling is `StyleSheet.create` per file. Pure logic that screens need lives in
+import-free files under `utils/` so `npm run check` can test it with Node.
 
 ### Player attributes
 
