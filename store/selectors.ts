@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useStore } from "./index";
 import type { Player } from "../types/players";
 import type { Game } from "../types/games";
-import { parseGameDate } from "../utils/game";
+import { computeRivalry, parseGameDate, pickNextGame } from "../utils/game";
 
 export const useLastGame = () =>
   useStore((s) => {
@@ -29,32 +29,16 @@ export const useAppStats = () =>
     }))
   );
 
-const normalizeTeamKey = (a: string, b: string) =>
-  [a, b].map((t) => t.toLowerCase().trim()).sort().join("||");
+// Most-played pairing with wins credited per team. computeRivalry builds a
+// fresh object, so select the stable games slice and memoize the derivation.
+export const useRivalry = () => {
+  const games = useStore((s) => s.games);
+  return useMemo(() => computeRivalry(games), [games]);
+};
 
-export const useRivalry = () =>
-  useStore(
-    useShallow((s) => {
-      const counts: Record<string, { home: string; away: string; count: number; homeWins: number; awayWins: number; draws: number; lastGame: typeof s.games[0] | null }> = {};
-      s.games.filter((g) => g.status === "FT").forEach((g) => {
-        const key = normalizeTeamKey(g.homeTeam, g.awayTeam);
-        if (!counts[key]) {
-          counts[key] = { home: g.homeTeam, away: g.awayTeam, count: 0, homeWins: 0, awayWins: 0, draws: 0, lastGame: null };
-        }
-        const entry = counts[key];
-        entry.count++;
-        if (g.homeScore > g.awayScore) entry.homeWins++;
-        else if (g.awayScore > g.homeScore) entry.awayWins++;
-        else entry.draws++;
-        const gDate = parseGameDate(g.date);
-        const lDate = parseGameDate(entry.lastGame?.date);
-        if (gDate > lDate) entry.lastGame = g;
-      });
-      const best = Object.values(counts).sort((a, b) => b.count - a.count)[0];
-      if (!best || best.count < 2) return null;
-      return best;
-    })
-  );
+// Home's "Next match". pickNextGame returns an existing game object (or null),
+// so the selector result is referentially stable.
+export const useNextGame = () => useStore((s) => pickNextGame(s.games));
 
 type RadarTeam = { label: string; color: string; pac: number; sho: number; pas: number; dri: number; def: number; phy: number };
 

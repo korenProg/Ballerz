@@ -1,26 +1,31 @@
 import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native";
 import { Redirect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useStore } from "../../store";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { T } from "../../constants/theme";
+import { useLastGame, useNextGame, useRivalry } from "../../store/selectors";
+import GameScoreboard from "../../components/GameScoreboard";
+import Crest from "../../components/Crest";
+import ScreenHeader from "../../components/ui/ScreenHeader";
+import IconButton from "../../components/ui/IconButton";
+import Section from "../../components/ui/Section";
+import ListRow from "../../components/ui/ListRow";
+import Tabs from "../../components/ui/Tabs";
+import RatingBadge from "../../components/ui/RatingBadge";
+import StatCompare from "../../components/ui/StatCompare";
+import Button from "../../components/ui/Button";
+import { T, SPACE } from "../../constants/theme";
+import { formatDate, parseGameDate } from "../../utils/game";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
-import GameCard from "../../components/GameCard";
-import { formatDate, parseGameDate } from "../../utils/game";
 
-const DAY_LETTERS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const RANK_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
+const DAY_LETTERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const LEADERBOARD_MODES = [
-  { key: "mvps", label: "MVPs", icon: "trophy", title: "Top MVPs" },
-  { key: "rating", label: "Rating", icon: "star", title: "Top Rated" },
-  { key: "streak", label: "Streak", icon: "flame", title: "Win Streaks" },
+const LEADER_TABS = [
+  { key: "mvps", label: "MVPs" },
+  { key: "rating", label: "Rating" },
+  { key: "streak", label: "Streak" },
 ] as const;
-
-type LeaderboardMode = (typeof LEADERBOARD_MODES)[number]["key"];
+type LeaderKey = (typeof LEADER_TABS)[number]["key"];
 
 function winStreak(playerId: string, finishedGames: Game[]) {
   let streak = 0;
@@ -35,30 +40,23 @@ function winStreak(playerId: string, finishedGames: Game[]) {
   return streak;
 }
 
-function WeekStrip({ gameDates, leagueColor }: { gameDates: Set<string>; leagueColor: string }) {
+function DayStrip({ gameDates }: { gameDates: Set<string> }) {
   const today = new Date();
   const todayStr = formatDate(today);
-
   return (
-    <View style={styles.weekRow}>
-      {Array.from({ length: 6 }, (_, i) => {
+    <View style={styles.days}>
+      {Array.from({ length: 7 }, (_, i) => {
         const day = new Date(today);
-        day.setDate(today.getDate() + (i - 1));
-        const dateStr = formatDate(day);
-        const hasGame = gameDates.has(dateStr);
-        const isToday = dateStr === todayStr;
-
+        day.setDate(today.getDate() + i - 1);
+        const key = formatDate(day);
+        const isToday = key === todayStr;
         return (
-          <View
-            key={i}
-            style={[
-              styles.dayCard,
-              isToday && !hasGame && styles.dayCardToday,
-              hasGame && { backgroundColor: leagueColor, borderColor: leagueColor },
-            ]}
-          >
-            <Text style={[styles.dayNum, (hasGame || isToday) && styles.dayNumActive]}>{day.getDate()}</Text>
-            <Text style={[styles.dayLabel, (hasGame || isToday) && styles.dayLabelActive]}>{DAY_LETTERS[day.getDay()]}</Text>
+          <View key={key} style={[styles.day, isToday ? styles.dayToday : null]}>
+            <Text style={[styles.dayLetter, isToday ? styles.dayTextToday : null]}>
+              {DAY_LETTERS[day.getDay()]}
+            </Text>
+            <Text style={[styles.dayNum, isToday ? styles.dayTextToday : null]}>{day.getDate()}</Text>
+            <View style={[styles.dot, gameDates.has(key) ? styles.dotOn : null]} />
           </View>
         );
       })}
@@ -66,207 +64,107 @@ function WeekStrip({ gameDates, leagueColor }: { gameDates: Set<string>; leagueC
   );
 }
 
-function LeagueStatsCard({
-  leagueName,
-  logoUri,
-  gamesPlayed,
-  playersCount,
-}: {
-  leagueName: string;
-  logoUri: string | null;
-  gamesPlayed: number;
-  playersCount: number;
-}) {
+function MatchSection({ title, game }: { title: string; game: Game }) {
   const router = useRouter();
-
   return (
-    <View style={styles.leagueCard}>
-      {logoUri && (
-        <>
-          <Image source={{ uri: logoUri }} style={styles.leagueBgImage} resizeMode="cover" blurRadius={8} />
-          <LinearGradient
-            colors={["rgba(17,21,37,0)", "rgba(17,21,37,0.7)", T.surface]}
-            locations={[0, 0.55, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.leagueBgFade}
-            pointerEvents="none"
-          />
-        </>
-      )}
-
-      <View style={styles.leagueHeader}>
-        <Text style={styles.leagueEyebrow}>YOUR LEAGUE</Text>
-        <Text style={styles.leagueName} numberOfLines={1}>{leagueName || "My League"}</Text>
-      </View>
-
-      <View style={styles.leagueStatsRow}>
-        <View style={styles.leagueStat}>
-          <Text style={styles.leagueStatValue}>{gamesPlayed}</Text>
-          <Text style={styles.leagueStatLabel}>Games</Text>
-        </View>
-
-        <View style={styles.leagueStat}>
-          <Text style={styles.leagueStatValue}>{playersCount}</Text>
-          <Text style={styles.leagueStatLabel}>Players</Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.manageLeagueBtn} activeOpacity={0.8} onPress={() => router.push("/league")}>
-        <Text style={styles.manageLeagueTxt}>Manage League</Text>
-      </TouchableOpacity>
-    </View>
+    <Section title={title}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: "/game/[id]", params: { id: game.id } })}
+        style={({ pressed }) => [styles.match, pressed ? styles.pressed : null]}
+      >
+        <GameScoreboard game={game} />
+      </Pressable>
+    </Section>
   );
 }
 
-function CreateGameCard() {
-  const router = useRouter();
+function HeadToHead() {
+  const rivalry = useRivalry();
+  if (!rivalry) return null;
+  const { teamA, teamB, winsA, winsB, draws, count, lastGame } = rivalry;
+  const look = (team: string) =>
+    lastGame.homeTeam.toLowerCase().trim() === team.toLowerCase().trim()
+      ? { color: lastGame.homeColor, logo: lastGame.homeLogo }
+      : { color: lastGame.awayColor, logo: lastGame.awayLogo };
+  const a = look(teamA);
+  const b = look(teamB);
   return (
-    <View style={styles.gameCard}>
-      <Ionicons
-        name="football"
-        size={220}
-        color={T.textSecondary + "22"}
-        style={styles.cardWatermark}
-      />
-
-      <View style={styles.emptyState}>
-        <View style={styles.emptyStateIcon}>
-          <Ionicons name="football" size={24} color={T.textSecondary} />
+    <Section title="Head to head" padded>
+      <View style={styles.h2hTeams}>
+        <View style={styles.h2hTeam}>
+          <Crest name={teamA} color={a.color} logo={a.logo} size={28} />
+          <Text style={styles.h2hName} numberOfLines={1}>
+            {teamA}
+          </Text>
         </View>
-        <Text style={styles.emptyStateTitle}>No games yet</Text>
-        <Text style={styles.emptyStateSub}>Create your first game to get the season going</Text>
-        <TouchableOpacity
-          style={styles.emptyStateBtn}
-          activeOpacity={0.8}
-          onPress={() => router.push("/create-game")}
-        >
-          <Text style={styles.emptyStateBtnTxt}>Create Game</Text>
-        </TouchableOpacity>
+        <Text style={styles.h2hMeta}>{count} games</Text>
+        <View style={[styles.h2hTeam, styles.h2hTeamRight]}>
+          <Text style={styles.h2hName} numberOfLines={1}>
+            {teamB}
+          </Text>
+          <Crest name={teamB} color={b.color} logo={b.logo} size={28} />
+        </View>
       </View>
-    </View>
+      <StatCompare label="Wins" home={winsA} away={winsB} homeColor={a.color} awayColor={b.color} />
+      <Text style={styles.h2hDraws}>
+        {draws} {draws === 1 ? "draw" : "draws"}
+      </Text>
+    </Section>
   );
 }
 
-function LastGameCard({ game }: { game: Game }) {
-  return (
-    <View style={styles.lastGameWrap}>
-      <GameCard game={game} />
-    </View>
-  );
-}
-
-function MvpLeaderboardCard({ players, games }: { players: Player[]; games: Game[] }) {
+function Leaders({ players, games }: { players: Player[]; games: Game[] }) {
   const router = useRouter();
-  const [mode, setMode] = useState<LeaderboardMode>(() =>
+  const [mode, setMode] = useState<LeaderKey>(() =>
     players.some((p) => p.mvps > 0) ? "mvps" : "rating"
   );
-
-  const activeMode = LEADERBOARD_MODES.find((m) => m.key === mode) ?? LEADERBOARD_MODES[0];
-
-  const finishedGames = [...games]
+  const finished = games
     .filter((g) => g.status === "FT")
     .sort((a, b) => parseGameDate(b.date) - parseGameDate(a.date));
-
   const statOf = (p: Player) =>
-    mode === "mvps" ? p.mvps : mode === "rating" ? p.ovr : winStreak(p.id, finishedGames);
-
-  const top = [...players]
-    .sort((a, b) => statOf(b) - statOf(a) || b.ovr - a.ovr)
-    .slice(0, 3);
+    mode === "mvps" ? p.mvps : mode === "rating" ? p.ovr : winStreak(p.id, finished);
+  const top = [...players].sort((a, b) => statOf(b) - statOf(a) || b.ovr - a.ovr).slice(0, 5);
 
   return (
-    <View style={styles.leaderboardCard}>
-      <Ionicons
-        name={activeMode.icon}
-        size={220}
-        color={T.textSecondary + "22"}
-        style={styles.cardWatermark}
-      />
-
-      {top.length ? (
-        <>
-          <View style={styles.leaderboardHeader}>
-            <Text style={styles.leaderboardEyebrow}>LEADERBOARD</Text>
-            <Text style={styles.leaderboardTitle}>{activeMode.title}</Text>
-          </View>
-
-          <View style={styles.leaderboardModes}>
-            {LEADERBOARD_MODES.map((m) => (
-              <TouchableOpacity
-                key={m.key}
-                style={[styles.leaderboardModeChip, mode === m.key && styles.leaderboardModeChipActive]}
-                activeOpacity={0.8}
-                onPress={() => setMode(m.key)}
-              >
-                <Ionicons name={m.icon} size={12} color={mode === m.key ? T.textPrimary : T.textSecondary} />
-                <Text style={[styles.leaderboardModeTxt, mode === m.key && styles.leaderboardModeTxtActive]}>
-                  {m.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {top.map((player, i) => (
-            <View key={player.id} style={[styles.leaderboardRow, i === 0 && styles.leaderboardRowFirst]}>
-              <View style={styles.leaderboardAvatarWrap}>
-                {player.photo ? (
-                  <Image source={{ uri: player.photo }} style={[styles.leaderboardPhoto, { borderColor: RANK_COLORS[i] }]} />
-                ) : (
-                  <View style={[styles.leaderboardPhotoFallback, { borderColor: RANK_COLORS[i] }]}>
-                    <Text style={styles.leaderboardInitial}>{player.name.charAt(0).toUpperCase()}</Text>
-                  </View>
-                )}
-                <View style={[styles.leaderboardRankBadge, { backgroundColor: RANK_COLORS[i] }]}>
-                  <Text style={styles.leaderboardRankTxt}>{i + 1}</Text>
-                </View>
-              </View>
-
-              <View style={styles.leaderboardInfo}>
-                <Text style={styles.leaderboardName} numberOfLines={1}>{player.name}</Text>
-                <Text style={styles.leaderboardPosition}>{player.position}</Text>
-              </View>
-
-              <View style={styles.leaderboardMvpPill}>
-                <Ionicons name={activeMode.icon} size={12} color={RANK_COLORS[i]} />
-                <Text style={styles.leaderboardMvpValue}>{statOf(player)}</Text>
-              </View>
+    <Section title="Leaders" footer="All players" onFooterPress={() => router.push("/players")}>
+      <Tabs tabs={LEADER_TABS} value={mode} onChange={setMode} />
+      {top.map((p, i) => (
+        <ListRow
+          key={p.id}
+          onPress={() => router.push({ pathname: "/player/[id]", params: { id: p.id } })}
+          leading={
+            <View style={styles.rankWrap}>
+              <Text style={styles.rank}>{i + 1}</Text>
+              <Crest name={p.name} logo={p.photo} size={32} variant="avatar" />
             </View>
-          ))}
-        </>
-      ) : (
-        <View style={styles.emptyState}>
-          <View style={styles.emptyStateIcon}>
-            <Ionicons name="people" size={24} color={T.textSecondary} />
-          </View>
-          <Text style={styles.emptyStateTitle}>No players yet</Text>
-          <Text style={styles.emptyStateSub}>Add your first players to kick off the leaderboard</Text>
-          <TouchableOpacity
-            style={styles.emptyStateBtn}
-            activeOpacity={0.8}
-            onPress={() => router.push("/create-player")}
-          >
-            <Text style={styles.emptyStateBtnTxt}>Add Player</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+          }
+          title={p.name}
+          subtitle={p.position}
+          trailing={
+            mode === "rating" ? (
+              <RatingBadge value={p.ovr} />
+            ) : i === 0 ? (
+              <RatingBadge value={statOf(p)} color={T.accent} />
+            ) : (
+              <Text style={styles.stat}>{statOf(p)}</Text>
+            )
+          }
+          divider={i < top.length - 1}
+        />
+      ))}
+    </Section>
   );
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const hasOnboarded = useStore((s) => s.hasOnboarded);
-  const adminName = useStore((s) => s.league.adminName);
-  const logoUri = useStore((s) => s.league.logoUri);
-  const leagueColor = useStore((s) => s.league.color);
-  const leagueName = useStore((s) => s.league.name);
+  const league = useStore((s) => s.league);
   const games = useStore((s) => s.games);
   const players = useStore((s) => s.players);
-  const resetAll = useStore((s) => s.resetAll);
-  const insets = useSafeAreaInsets();
-  // Measured so the under-bar fade gradient sits exactly below the fixed header.
-  const [headerH, setHeaderH] = useState(0);
-  // Pull-to-refresh loading animation at the top.
+  const nextGame = useNextGame();
+  const lastResult = useLastGame();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = () => {
     setRefreshing(true);
@@ -276,346 +174,99 @@ export default function HomeScreen() {
   if (!hasOnboarded) return <Redirect href="/onboarding" />;
 
   const gameDates = new Set(games.map((g) => g.date).filter((d): d is string => !!d));
-  const lastGame = games.length
-    ? [...games].sort((a, b) => parseGameDate(b.date) - parseGameDate(a.date))[0]
-    : null;
-  const gamesPlayed = games.filter((g) => g.status === "FT").length;
+  const played = games.filter((g) => g.status === "FT").length;
+  const hasPlayers = players.length > 0;
 
   return (
     <View style={styles.main}>
-      {/* Background glow near the top that fades into the app bg (behind content). */}
-      <LinearGradient
-        colors={["rgba(17,21,37,0.9)", "rgba(17,21,37,0.35)", "transparent"]}
-        locations={[0, 0.55, 1]}
-        style={[styles.headerFade, { top: headerH }]}
-        pointerEvents="none"
-      />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: headerH }]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={leagueColor}
-            colors={[leagueColor]}
+      <ScreenHeader
+        leading={
+          <Crest
+            name={league.name || "League"}
+            color={league.color}
+            logo={league.logoUri ?? undefined}
+            size={36}
           />
         }
-      >
-        <WeekStrip gameDates={gameDates} leagueColor={leagueColor} />
-
-        <LeagueStatsCard
-          leagueName={leagueName}
-          logoUri={logoUri}
-          gamesPlayed={gamesPlayed}
-          playersCount={players.length}
-        />
-
-        {lastGame ? <LastGameCard game={lastGame} /> : players.length > 0 ? <CreateGameCard /> : null}
-
-        <MvpLeaderboardCard players={players} games={games} />
-      </ScrollView>
-
-      {/* Bottom divider for the bar: glows in the center, fades at the edges. */}
-      <LinearGradient
-        colors={["transparent", T.border, "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[styles.headerBorder, { top: headerH }]}
-        pointerEvents="none"
+        title={league.name || "My League"}
+        subtitle={`${played} played · ${players.length} players`}
+        action={
+          <IconButton icon="settings-outline" label="League settings" onPress={() => router.push("/league")} />
+        }
       />
-
-      {/* Fixed, solid top bar. */}
-      <View
-        style={[styles.headerBar, { paddingTop: insets.top + 8 }]}
-        onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} colors={[T.accent]} />
+        }
       >
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greeting}>{timegreet()}</Text>
-          <Text style={styles.name}>{adminName}</Text>
-        </View>
+        <DayStrip gameDates={gameDates} />
 
-        <View style={styles.headerActions}>
-          {/* TEMP: dev-only reset button — remove before release */}
-          <TouchableOpacity onPress={resetAll} hitSlop={8}>
-            <Ionicons name="trash-outline" size={18} color={T.textMuted} />
-          </TouchableOpacity>
+        {nextGame ? (
+          <MatchSection title={nextGame.status === "Live" ? "Live now" : "Next match"} game={nextGame} />
+        ) : null}
+        {lastResult ? <MatchSection title="Last result" game={lastResult} /> : null}
 
-          {logoUri ? (
-            <Image source={{ uri: logoUri }} style={styles.logo} />
-          ) : (
-            <View style={styles.logoFallback}>
-              <Ionicons name="trophy" size={20} color={T.textSecondary} />
+        {!nextGame && !lastResult ? (
+          <Section title="No games yet" padded>
+            <View style={styles.prompt}>
+              <Text style={styles.body}>
+                {hasPlayers
+                  ? "Set up your first match to get the season going."
+                  : "Add your players first, then set up a match."}
+              </Text>
+              <Button
+                label={hasPlayers ? "Create game" : "Add player"}
+                onPress={() => router.push(hasPlayers ? "/create-game" : "/create-player")}
+              />
             </View>
-          )}
-        </View>
-      </View>
+          </Section>
+        ) : null}
+
+        <HeadToHead />
+        {hasPlayers ? <Leaders players={players} games={games} /> : null}
+      </ScrollView>
     </View>
   );
 }
 
-const timegreet = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-};
-
 const styles = StyleSheet.create({
-  main: { flexDirection: "column", flex: 1, backgroundColor: T.bg },
-  scrollContent: { paddingBottom: 24 },
-  headerFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: 140,
+  main: { flex: 1, backgroundColor: T.bg },
+  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  days: { flexDirection: "row", justifyContent: "space-between" },
+  day: { alignItems: "center", width: 44, paddingVertical: SPACE.sm, borderRadius: 12, gap: 2 },
+  dayToday: { backgroundColor: T.surface },
+  dayLetter: { fontSize: 12, fontWeight: "500", color: T.textFaint },
+  dayNum: { fontSize: 15, fontWeight: "600", color: T.textDim, fontVariant: ["tabular-nums"] },
+  dayTextToday: { color: T.text },
+  dot: { width: 5, height: 5, borderRadius: 3, marginTop: 2 },
+  dotOn: { backgroundColor: T.accent },
+  match: { paddingHorizontal: SPACE.lg },
+  pressed: { backgroundColor: T.surfaceAlt },
+  prompt: { gap: SPACE.md },
+  body: { fontSize: 14, fontWeight: "400", color: T.textDim, lineHeight: 20 },
+  h2hTeams: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, marginBottom: SPACE.sm },
+  h2hTeam: { flex: 1, flexDirection: "row", alignItems: "center", gap: SPACE.sm },
+  h2hTeamRight: { justifyContent: "flex-end" },
+  h2hName: { fontSize: 15, fontWeight: "600", color: T.text, flexShrink: 1 },
+  h2hMeta: { fontSize: 12, fontWeight: "500", color: T.textFaint },
+  h2hDraws: { fontSize: 12, fontWeight: "500", color: T.textFaint, textAlign: "center" },
+  rankWrap: { flexDirection: "row", alignItems: "center", gap: SPACE.md },
+  rank: {
+    width: 14,
+    textAlign: "center",
+    fontSize: 13,
+    fontWeight: "600",
+    color: T.textFaint,
+    fontVariant: ["tabular-nums"],
   },
-  headerBorder: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: 1.5,
-    zIndex: 2,
+  stat: {
+    minWidth: 36,
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "600",
+    color: T.text,
+    fontVariant: ["tabular-nums"],
   },
-  headerBar: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 3,
-    backgroundColor: T.surface,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 14 },
-  greetingContainer: { alignItems: "flex-start" },
-  greeting: { fontSize: 14, color: T.textSecondary, marginBottom: 2 },
-  name: { fontSize: 22, fontWeight: "bold", color: T.textPrimary },
-  logo: { width: 44, height: 44, borderRadius: 22 },
-  logoFallback: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 24,
-    gap: 8,
-  },
-  dayCard: {
-    flex: 1,
-    aspectRatio: 0.8,
-    borderRadius: 14,
-    backgroundColor: T.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  dayCardToday: {
-    backgroundColor: T.border,
-    borderColor: T.border,
-  },
-  dayLabel: { fontSize: 11, fontWeight: "700", color: T.textMuted },
-  dayLabelActive: { color: "rgba(255,255,255,0.8)" },
-  dayNum: { fontSize: 20, fontWeight: "800", color: T.textPrimary },
-  dayNumActive: { color: "#fff" },
-
-  leagueCard: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    borderRadius: 20,
-    padding: 24,
-    paddingVertical: 28,
-    backgroundColor: T.surface,
-    gap: 24,
-    overflow: "hidden",
-  },
-  leagueBgImage: {
-    ...StyleSheet.absoluteFill,
-    opacity: 0.6,
-  },
-  leagueBgFade: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  leagueHeader: { gap: 6 },
-  leagueEyebrow: { fontSize: 12, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  leagueName: { fontSize: 28, fontWeight: "900", color: T.textPrimary },
-  leagueStatsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-evenly",
-  },
-  leagueStat: { alignItems: "center", gap: 4 },
-  leagueStatValue: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  leagueStatLabel: { fontSize: 11, color: T.textMuted, fontWeight: "700" },
-  manageLeagueBtn: {
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: T.textPrimary,
-    alignItems: "center",
-  },
-  manageLeagueTxt: { fontSize: 13, fontWeight: "800", color: T.bg },
-
-  lastGameWrap: { marginHorizontal: 20, marginTop: 24 },
-  gameCard: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    borderRadius: 20,
-    padding: 18,
-    backgroundColor: T.surface,
-    overflow: "hidden",
-  },
-  gameCardHeader: { alignItems: "center", marginBottom: 18 },
-  gameCardLocation: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
-  gameCardSub: { fontSize: 11, color: T.textMuted, marginTop: 2 },
-  gameCardMiddle: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-  },
-  teamCol: { alignItems: "center", gap: 8, maxWidth: 90 },
-  centerCol: { alignItems: "center", gap: 8 },
-  teamBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: T.border,
-  },
-  teamBadgeTxt: { fontSize: 16, fontWeight: "900", color: "#fff" },
-  gameScore: { fontSize: 32, fontWeight: "900", color: T.textPrimary },
-  teamName: { fontSize: 13, fontWeight: "700", color: T.textPrimary },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: T.border,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
-  statusTxt: { fontSize: 10, fontWeight: "800", color: "#fff", letterSpacing: 1 },
-
-  leaderboardCard: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 24,
-    borderRadius: 20,
-    padding: 18,
-    backgroundColor: T.surface,
-    gap: 14,
-    overflow: "hidden",
-  },
-  cardWatermark: {
-    position: "absolute",
-    top: -60,
-    right: -60,
-    transform: [{ rotate: "-15deg" }],
-  },
-  leaderboardModes: { flexDirection: "row", gap: 8 },
-  leaderboardModeChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.05)",
-  },
-  leaderboardModeChipActive: { backgroundColor: T.border },
-  leaderboardModeTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
-  leaderboardModeTxtActive: { color: T.textPrimary, fontWeight: "800" },
-  leaderboardHeader: { gap: 4, marginBottom: 2 },
-  leaderboardEyebrow: { fontSize: 11, fontWeight: "800", color: T.textSecondary, letterSpacing: 2 },
-  leaderboardTitle: { fontSize: 20, fontWeight: "900", color: T.textPrimary },
-  leaderboardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 16,
-    padding: 12,
-  },
-  leaderboardRowFirst: {
-    backgroundColor: "rgba(255,215,0,0.07)",
-    borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.3)",
-  },
-  leaderboardAvatarWrap: { position: "relative" },
-  leaderboardPhoto: { width: 48, height: 48, borderRadius: 24, borderWidth: 2 },
-  leaderboardPhotoFallback: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    backgroundColor: T.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  leaderboardInitial: { fontSize: 18, fontWeight: "800", color: T.textPrimary },
-  leaderboardRankBadge: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: T.surface,
-  },
-  leaderboardRankTxt: { fontSize: 10, fontWeight: "900", color: T.bg },
-  leaderboardInfo: { flex: 1, gap: 2 },
-  leaderboardName: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
-  leaderboardPosition: { fontSize: 11, color: T.textMuted, fontWeight: "700" },
-  leaderboardMvpPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 999,
-  },
-  leaderboardMvpValue: { fontSize: 15, fontWeight: "900", color: T.textPrimary },
-  emptyState: { alignItems: "center", gap: 6, paddingVertical: 12 },
-  emptyStateIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  emptyStateTitle: { fontSize: 16, fontWeight: "900", color: T.textPrimary },
-  emptyStateSub: { fontSize: 12, color: T.textSecondary, textAlign: "center" },
-  emptyStateBtn: {
-    marginTop: 12,
-    backgroundColor: T.textPrimary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  emptyStateBtnTxt: { fontSize: 13, fontWeight: "800", color: T.bg },
 });

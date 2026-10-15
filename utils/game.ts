@@ -55,3 +55,54 @@ export function pickNextGame<G extends { status: string; date?: string }>(
   }
   return best;
 }
+
+type RivalryGame = {
+  status: string;
+  date?: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+};
+
+export type Rivalry<G> = {
+  teamA: string;
+  teamB: string;
+  count: number;
+  winsA: number;
+  winsB: number;
+  draws: number;
+  lastGame: G;
+};
+
+const teamKey = (team: string) => team.toLowerCase().trim();
+
+// The most-played pairing among finished games, with wins credited to the
+// team that won (home/away flips between fixtures). Needs 2+ meetings.
+export function computeRivalry<G extends RivalryGame>(games: readonly G[]): Rivalry<G> | null {
+  const pairs = new Map<string, Rivalry<G>>();
+  for (const g of games) {
+    if (g.status !== "FT") continue;
+    const [a, b] = [g.homeTeam, g.awayTeam].sort((x, y) => teamKey(x).localeCompare(teamKey(y)));
+    const key = `${teamKey(a)}||${teamKey(b)}`;
+    let r = pairs.get(key);
+    if (!r) {
+      r = { teamA: a.trim(), teamB: b.trim(), count: 0, winsA: 0, winsB: 0, draws: 0, lastGame: g };
+      pairs.set(key, r);
+    }
+    r.count++;
+    if (g.homeScore === g.awayScore) {
+      r.draws++;
+    } else {
+      const winner = g.homeScore > g.awayScore ? g.homeTeam : g.awayTeam;
+      if (teamKey(winner) === teamKey(r.teamA)) r.winsA++;
+      else r.winsB++;
+    }
+    if (parseGameDate(g.date) > parseGameDate(r.lastGame.date)) r.lastGame = g;
+  }
+  let best: Rivalry<G> | null = null;
+  for (const r of pairs.values()) {
+    if (r.count >= 2 && (best === null || r.count > best.count)) best = r;
+  }
+  return best;
+}
