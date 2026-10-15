@@ -115,7 +115,7 @@ export default function LeagueScreen() {
 
   return (
     <View style={styles.main}>
-      <ScreenHeader title="League" subtitle="Settings on this device" />
+      <ScreenHeader title="League" subtitle="Settings" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           contentContainerStyle={styles.scroll}

@@ -34,7 +34,6 @@ export default function DetailsStep({
 }: DetailsStepProps) {
   return (
     <View>
-      <Text style={styles.eyebrow}>STEP 3 OF 3</Text>
       <Text style={styles.title}>Match details</Text>
       <Text style={styles.sub}>Confirm and save.</Text>
 
@@ -99,7 +98,6 @@ export default function DetailsStep({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 2 },
   title: { fontSize: 28, fontWeight: "700", color: T.text, marginTop: 4 },
   sub: { fontSize: 13, color: T.textDim, marginBottom: 8 },
   preview: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 16, padding: 16, marginTop: 12 },

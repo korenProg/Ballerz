@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePlayersByPosition } from "../../store/selectors";
 import Crest from "../../components/Crest";
 import ScreenHeader from "../../components/ui/ScreenHeader";
-import IconButton from "../../components/ui/IconButton";
 import Tabs from "../../components/ui/Tabs";
 import ListRow, { ROW_H } from "../../components/ui/ListRow";
 import RatingBadge from "../../components/ui/RatingBadge";
@@ -127,9 +126,7 @@ export default function PlayersScreen() {
       <ScreenHeader
         title="Players"
         subtitle={`${roster.all.length} in the squad`}
-        action={
-          <IconButton icon="add" label="Add player" tone="filled" onPress={() => router.push("/create-player")} />
-        }
+        actions={[{ icon: "add", label: "Add player", onPress: () => router.push("/create-player") }]}
       />
       <Tabs tabs={FILTERS} value={filter} onChange={setFilter} />
       <FlatList

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { T } from "../constants/theme";
+import ScreenHeader from "../components/ui/ScreenHeader";
 
 export default function RecordResultScreen() {
   const router = useRouter();
@@ -22,7 +23,8 @@ export default function RecordResultScreen() {
 
   if (!game) {
     return (
-      <SafeAreaView style={styles.main}>
+      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+        <ScreenHeader safeTop={false} nav="close" title="Record result" />
         <View style={styles.center}><Text style={styles.notFound}>Game not found</Text>
           <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}><Text style={styles.cancelTxt}>Close</Text></TouchableOpacity>
         </View>
@@ -45,10 +47,7 @@ export default function RecordResultScreen() {
 
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Record Result</Text>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}><Ionicons name="close" size={26} color={T.text} /></TouchableOpacity>
-      </View>
+      <ScreenHeader safeTop={false} nav="close" title="Record result" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.matchup}>{game.homeTeam} vs {game.awayTeam}</Text>
 
@@ -97,8 +96,6 @@ function Stepper({ value, onChange }: { value: number; onChange: (n: number) => 
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
-  title: { fontSize: 18, fontWeight: "700", color: T.text },
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },
   matchup: { fontSize: 14, fontWeight: "700", color: T.textDim, textAlign: "center", marginBottom: 8 },
   label: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 18, marginBottom: 8 },

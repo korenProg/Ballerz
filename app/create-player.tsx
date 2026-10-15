@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { calculateOvr } from "../utils/ovr";
 import { T } from "../constants/theme";
+import ScreenHeader from "../components/ui/ScreenHeader";
 
 const POSITIONS = ["GK", "DEF", "MID", "FWD"] as const;
 type Position = (typeof POSITIONS)[number];
@@ -183,19 +184,11 @@ export default function CreatePlayerScreen() {
 
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+      <ScreenHeader safeTop={false} nav="close" title={editing ? "Edit player" : "New player"} />
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={[styles.flex, styles.body]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.header}>
-          <TouchableOpacity hitSlop={8} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color={T.textDim} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {editing ? "Edit Player" : "New Player"}
-          </Text>
-          <View style={{ width: 26 }} />
-        </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -303,11 +296,10 @@ export default function CreatePlayerScreen() {
 }
 
 const styles = StyleSheet.create({
-  main: { flex: 1, backgroundColor: T.bg, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 },
+  main: { flex: 1, backgroundColor: T.bg, paddingBottom: 12 },
+  body: { paddingHorizontal: 24, paddingTop: 12 },
   flex: { flex: 1 },
 
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 },
-  headerTitle: { fontSize: 16, fontWeight: "700", color: T.text },
 
   scrollContent: { paddingTop: 20, paddingBottom: 24 },
 

@@ -7,7 +7,6 @@ import { useStore } from "../../store";
 import { useGamesByStatus } from "../../store/selectors";
 import GameCard from "../../components/GameCard";
 import ScreenHeader from "../../components/ui/ScreenHeader";
-import IconButton from "../../components/ui/IconButton";
 import Tabs from "../../components/ui/Tabs";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -104,14 +103,8 @@ export default function GamesScreen() {
     <View style={styles.main}>
       <ScreenHeader
         title="Games"
-        action={
-          <IconButton
-            icon="add"
-            label="Create game"
-            tone="filled"
-            onPress={() => router.push("/create-game")}
-          />
-        }
+        subtitle={`${total} ${total === 1 ? "game" : "games"}`}
+        actions={[{ icon: "add", label: "Create game", onPress: () => router.push("/create-game") }]}
       />
       {total === 0 ? (
         <EmptyState icon="football-outline" title="No games yet" sub="Create your first game to get the season going">

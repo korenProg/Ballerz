@@ -5,7 +5,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import Crest from "../../components/Crest";
 import ScreenHeader from "../../components/ui/ScreenHeader";
-import IconButton from "../../components/ui/IconButton";
 import Section from "../../components/ui/Section";
 import RatingBadge from "../../components/ui/RatingBadge";
 import Button from "../../components/ui/Button";
@@ -44,12 +43,10 @@ export default function PlayerDetailScreen() {
   const setMvp = useStore((s) => s.setMvp);
   const deletePlayer = useStore((s) => s.deletePlayer);
 
-  const back = <IconButton icon="chevron-back" label="Back" onPress={() => router.back()} />;
-
   if (!player) {
     return (
       <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <ScreenHeader safeTop={false} leading={back} />
+        <ScreenHeader safeTop={false} nav="back" title="Player" />
         <EmptyState icon="help-circle-outline" title="Player not found" sub="They may have been deleted." />
       </SafeAreaView>
     );
@@ -72,14 +69,16 @@ export default function PlayerDetailScreen() {
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
       <ScreenHeader
         safeTop={false}
-        leading={back}
-        action={
-          <IconButton
-            icon="create-outline"
-            label="Edit player"
-            onPress={() => router.push({ pathname: "/create-player", params: { id: player.id } })}
-          />
-        }
+        nav="back"
+        title="Player"
+        subtitle={player.position}
+        actions={[
+          {
+            icon: "create-outline",
+            label: "Edit player",
+            onPress: () => router.push({ pathname: "/create-player", params: { id: player.id } }),
+          },
+        ]}
       />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.identity}>

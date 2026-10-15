@@ -6,7 +6,6 @@ import { useLastGame, useNextGame, useRivalry } from "../../store/selectors";
 import GameScoreboard from "../../components/GameScoreboard";
 import Crest from "../../components/Crest";
 import ScreenHeader from "../../components/ui/ScreenHeader";
-import IconButton from "../../components/ui/IconButton";
 import Section from "../../components/ui/Section";
 import ListRow from "../../components/ui/ListRow";
 import Tabs from "../../components/ui/Tabs";
@@ -180,7 +179,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.main}>
       <ScreenHeader
-        leading={
+        crest={
           <Crest
             name={league.name || "League"}
             color={league.color}
@@ -190,9 +189,9 @@ export default function HomeScreen() {
         }
         title={league.name || "My League"}
         subtitle={`${played} played · ${players.length} players`}
-        action={
-          <IconButton icon="settings-outline" label="League settings" onPress={() => router.push("/league")} />
-        }
+        actions={[
+          { icon: "settings-outline", label: "League settings", onPress: () => router.push("/league") },
+        ]}
       />
       <ScrollView
         contentContainerStyle={styles.scroll}

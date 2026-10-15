@@ -4,13 +4,13 @@ import {
   KeyboardAvoidingView, Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { formatDate, parseDMY } from "../utils/game";
 import { T } from "../constants/theme";
+import ScreenHeader from "../components/ui/ScreenHeader";
 import TeamStep from "../components/wizard/TeamStep";
 import DetailsStep from "../components/wizard/DetailsStep";
 
@@ -114,14 +114,13 @@ export default function CreateGameScreen() {
 
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+      <ScreenHeader
+        safeTop={false}
+        nav="close"
+        title={editing ? "Edit game" : "New game"}
+        subtitle={`Step ${step + 1} of 3`}
+      />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-            <Ionicons name="close" size={26} color={T.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{editing ? "Edit Game" : "New Game"}</Text>
-          <View style={{ width: 26 }} />
-        </View>
 
         <View style={styles.progressRow}>
           {[0, 1, 2].map((i) => (
@@ -138,7 +137,7 @@ export default function CreateGameScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {step === 0 && (
             <TeamStep
-              stepNum={1} sideLabel="Home" colors={TEAM_COLORS}
+              sideLabel="Home" colors={TEAM_COLORS}
               name={homeTeam} onName={setHomeTeam} color={homeColor} onColor={setHomeColor}
               logo={homeLogo} onPickLogo={() => pickLogo(setHomeLogo)} onClearLogo={() => setHomeLogo(null)}
               players={players} selectedIds={homePlayerIds} onToggle={(pid) => toggle("home", pid)}
@@ -147,7 +146,7 @@ export default function CreateGameScreen() {
           )}
           {step === 1 && (
             <TeamStep
-              stepNum={2} sideLabel="Away" colors={TEAM_COLORS}
+              sideLabel="Away" colors={TEAM_COLORS}
               name={awayTeam} onName={setAwayTeam} color={awayColor} onColor={setAwayColor}
               logo={awayLogo} onPickLogo={() => pickLogo(setAwayLogo)} onClearLogo={() => setAwayLogo(null)}
               players={players} selectedIds={awayPlayerIds} onToggle={(pid) => toggle("away", pid)}
@@ -199,8 +198,6 @@ export default function CreateGameScreen() {
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: T.text },
   progressRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 4 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
   progressSegActive: { backgroundColor: T.accent },

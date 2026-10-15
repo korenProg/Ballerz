@@ -5,7 +5,6 @@ import { T } from "../../constants/theme";
 import type { Player } from "../../types/players";
 
 type TeamStepProps = {
-  stepNum: 1 | 2;
   sideLabel: "Home" | "Away";
   colors: string[];
   name: string; onName: (s: string) => void;
@@ -19,13 +18,12 @@ type TeamStepProps = {
 };
 
 export default function TeamStep({
-  stepNum, sideLabel, colors, name, onName, color, onColor,
+  sideLabel, colors, name, onName, color, onColor,
   logo, onPickLogo, onClearLogo, players, selectedIds, onToggle,
   defaultTeamSize, onAddPlayers,
 }: TeamStepProps) {
   return (
     <View>
-      <Text style={styles.eyebrow}>STEP {stepNum} OF 3</Text>
       <Text style={styles.title}>{sideLabel} team</Text>
       <Text style={styles.sub}>Set up the {sideLabel.toLowerCase()} side.</Text>
 
@@ -102,7 +100,6 @@ export default function TeamStep({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 2 },
   title: { fontSize: 28, fontWeight: "700", color: T.text, marginTop: 4 },
   sub: { fontSize: 13, color: T.textDim, marginBottom: 8 },
   preview: { alignItems: "center", gap: 8, marginTop: 14, marginBottom: 6 },

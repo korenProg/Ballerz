@@ -13,6 +13,7 @@ import ListRow from "../../components/ui/ListRow";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import { T, SPACE, RADIUS } from "../../constants/theme";
+import { shortDate } from "../../utils/game";
 import type { GamePlayer } from "../../types/games";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
@@ -76,12 +77,10 @@ export default function GameDetailScreen() {
   const game = useStore((s) => s.games.find((g) => g.id === id) ?? null);
   const updateGame = useStore((s) => s.updateGame);
 
-  const back = <IconButton icon="chevron-back" label="Back" onPress={() => router.back()} />;
-
   if (!game) {
     return (
       <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <ScreenHeader safeTop={false} leading={back} />
+        <ScreenHeader safeTop={false} nav="back" title="Match" />
         <EmptyState icon="help-circle-outline" title="Game not found" sub="It may have been deleted." />
       </SafeAreaView>
     );
@@ -98,14 +97,16 @@ export default function GameDetailScreen() {
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
       <ScreenHeader
         safeTop={false}
-        leading={back}
-        action={
-          <IconButton
-            icon="create-outline"
-            label="Edit game"
-            onPress={() => router.push(`/create-game?id=${game.id}` as const)}
-          />
-        }
+        nav="back"
+        title="Match"
+        subtitle={game.date ? shortDate(game.date) : undefined}
+        actions={[
+          {
+            icon: "create-outline",
+            label: "Edit game",
+            onPress: () => router.push(`/create-game?id=${game.id}` as const),
+          },
+        ]}
       />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <GameScoreboard game={game} />
