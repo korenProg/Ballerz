@@ -35,7 +35,8 @@ export function HeaderButton({ icon, label, onPress }: HeaderAction) {
 
 // The one top bar every screen uses. Screens pass data, never their own
 // buttons, so every bar has the same height, spacing and button style.
-// Inside a SafeAreaView that already pads the top, pass safeTop={false}.
+// It always pads the status-bar area itself so its gradient runs to the very
+// top of the screen; wrap screens in SafeAreaView with edges={["bottom"]} only.
 export default function ScreenHeader({
   title,
   subtitle,
@@ -43,7 +44,6 @@ export default function ScreenHeader({
   onNav,
   crest,
   actions = [],
-  safeTop = true,
 }: {
   title: string;
   subtitle?: string;
@@ -51,12 +51,11 @@ export default function ScreenHeader({
   onNav?: () => void;
   crest?: ReactNode;
   actions?: HeaderAction[];
-  safeTop?: boolean;
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.wrap, { paddingTop: safeTop ? insets.top : 0 }]}>
+    <View style={[styles.wrap, { paddingTop: insets.top }]}>
       <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <View style={styles.bar}>
         {nav ? (

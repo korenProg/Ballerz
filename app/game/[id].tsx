@@ -79,8 +79,8 @@ export default function GameDetailScreen() {
 
   if (!game) {
     return (
-      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <ScreenHeader safeTop={false} nav="back" title="Match" />
+      <SafeAreaView style={styles.main} edges={["bottom"]}>
+        <ScreenHeader nav="back" title="Match" />
         <EmptyState icon="help-circle-outline" title="Game not found" sub="It may have been deleted." />
       </SafeAreaView>
     );
@@ -94,9 +94,8 @@ export default function GameDetailScreen() {
   if (game.league) details.push({ icon: "trophy-outline", label: game.league });
 
   return (
-    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.main} edges={["bottom"]}>
       <ScreenHeader
-        safeTop={false}
         nav="back"
         title="Match"
         subtitle={game.date ? shortDate(game.date) : undefined}

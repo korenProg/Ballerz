@@ -23,8 +23,8 @@ export default function RecordResultScreen() {
 
   if (!game) {
     return (
-      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <ScreenHeader safeTop={false} nav="close" title="Record result" />
+      <SafeAreaView style={styles.main} edges={["bottom"]}>
+        <ScreenHeader nav="close" title="Record result" />
         <View style={styles.center}><Text style={styles.notFound}>Game not found</Text>
           <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}><Text style={styles.cancelTxt}>Close</Text></TouchableOpacity>
         </View>
@@ -46,8 +46,8 @@ export default function RecordResultScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <ScreenHeader safeTop={false} nav="close" title="Record result" />
+    <SafeAreaView style={styles.main} edges={["bottom"]}>
+      <ScreenHeader nav="close" title="Record result" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.matchup}>{game.homeTeam} vs {game.awayTeam}</Text>
 

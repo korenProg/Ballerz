@@ -45,8 +45,8 @@ export default function PlayerDetailScreen() {
 
   if (!player) {
     return (
-      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <ScreenHeader safeTop={false} nav="back" title="Player" />
+      <SafeAreaView style={styles.main} edges={["bottom"]}>
+        <ScreenHeader nav="back" title="Player" />
         <EmptyState icon="help-circle-outline" title="Player not found" sub="They may have been deleted." />
       </SafeAreaView>
     );
@@ -66,9 +66,8 @@ export default function PlayerDetailScreen() {
     ]);
 
   return (
-    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.main} edges={["bottom"]}>
       <ScreenHeader
-        safeTop={false}
         nav="back"
         title="Player"
         subtitle={player.position}

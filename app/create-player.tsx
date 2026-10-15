@@ -183,8 +183,8 @@ export default function CreatePlayerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <ScreenHeader safeTop={false} nav="close" title={editing ? "Edit player" : "New player"} />
+    <SafeAreaView style={styles.main} edges={["bottom"]}>
+      <ScreenHeader nav="close" title={editing ? "Edit player" : "New player"} />
       <KeyboardAvoidingView
         style={[styles.flex, styles.body]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
