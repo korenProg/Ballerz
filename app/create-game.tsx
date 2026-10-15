@@ -186,7 +186,7 @@ export default function CreateGameScreen() {
             </TouchableOpacity>
           )}
           <TouchableOpacity style={[styles.nextBtn, !canContinue && styles.nextDisabled]} activeOpacity={0.8} disabled={!canContinue} onPress={next}>
-            <Text style={styles.nextTxt}>
+            <Text style={[styles.nextTxt, !canContinue && styles.nextTxtDisabled]}>
               {step < 2 ? "Continue" : mode === "result" ? "Save Result" : "Create Game"}
             </Text>
           </TouchableOpacity>
@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
   backBtn: { paddingVertical: 15, paddingHorizontal: 22, borderRadius: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, alignItems: "center" },
   backTxt: { fontSize: 14, fontWeight: "700", color: T.text },
   nextBtn: { flex: 1, backgroundColor: T.accent, paddingVertical: 15, borderRadius: 14, alignItems: "center" },
-  nextDisabled: { opacity: 0.4 },
+  nextDisabled: { backgroundColor: T.surfaceAlt },
+  nextTxtDisabled: { color: T.textFaint },
   nextTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });

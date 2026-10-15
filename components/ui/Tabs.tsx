@@ -20,6 +20,7 @@ export default function Tabs<K extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             onPress={() => onChange(t.key)}
+            hitSlop={{ left: 10, right: 10, top: 6, bottom: 6 }}
             style={styles.tab}
           >
             <Text style={[styles.label, active ? styles.labelActive : null]}>{t.label}</Text>

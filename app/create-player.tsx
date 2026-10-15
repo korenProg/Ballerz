@@ -294,7 +294,7 @@ export default function CreatePlayerScreen() {
             disabled={!canSave}
             onPress={save}
           >
-            <Text style={styles.saveBtnTxt}>Save Player</Text>
+            <Text style={[styles.saveBtnTxt, !canSave && styles.saveBtnTxtDisabled]}>Save Player</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  ovrValue: { fontSize: 42, fontWeight: "700", color: T.text, lineHeight: 44 },
+  ovrValue: { fontSize: 42, fontWeight: "700", color: T.text, lineHeight: 44, fontVariant: ["tabular-nums"] },
   ovrLabel: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 3 },
   ovrDivider: { width: 26, height: 1, backgroundColor: T.divider, marginVertical: 7 },
   ovrPos: { fontSize: 12, fontWeight: "700", color: T.textDim, letterSpacing: 1 },
@@ -380,9 +380,9 @@ const styles = StyleSheet.create({
     borderColor: T.divider,
     alignItems: "center",
   },
-  chipActive: { backgroundColor: T.divider },
+  chipActive: { backgroundColor: T.accent },
   chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
-  chipTxtActive: { color: T.text, fontWeight: "700" },
+  chipTxtActive: { color: "#000", fontWeight: "700" },
 
   attrCard: {
     backgroundColor: T.surface,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   attrRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 10 },
   attrLabel: { width: 38, fontSize: 12, fontWeight: "700", color: T.textDim },
-  attrValue: { width: 26, fontSize: 14, fontWeight: "700", color: T.text, textAlign: "right" },
+  attrValue: { width: 26, fontSize: 14, fontWeight: "700", color: T.text, textAlign: "right", fontVariant: ["tabular-nums"] },
 
   sliderArea: { flex: 1, height: 24, justifyContent: "center" },
   sliderBar: {
@@ -433,6 +433,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
-  saveBtnDisabled: { opacity: 0.4 },
+  saveBtnDisabled: { backgroundColor: T.surfaceAlt },
+  saveBtnTxtDisabled: { color: T.textFaint },
   saveBtnTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });

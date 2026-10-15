@@ -10,6 +10,7 @@ import Tabs from "../../components/ui/Tabs";
 import ListRow, { ROW_H } from "../../components/ui/ListRow";
 import RatingBadge from "../../components/ui/RatingBadge";
 import EmptyState from "../../components/ui/EmptyState";
+import Button from "../../components/ui/Button";
 import { T, SPACE, RADIUS } from "../../constants/theme";
 import type { Player } from "../../types/players";
 
@@ -138,7 +139,13 @@ export default function PlayersScreen() {
         getItemLayout={getItemLayout}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState icon="people-outline" title={empty.title} sub={empty.sub} />}
+        ListEmptyComponent={
+          <EmptyState icon="people-outline" title={empty.title} sub={empty.sub}>
+            {filter === "all" ? (
+              <Button label="Add player" onPress={() => router.push("/create-player")} />
+            ) : null}
+          </EmptyState>
+        }
       />
     </View>
   );

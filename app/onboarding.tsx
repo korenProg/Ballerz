@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
     borderColor: T.divider,
     alignItems: "center",
   },
-  sizeChipActive: { backgroundColor: T.divider },
+  sizeChipActive: { backgroundColor: T.accent },
   sizeChipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
-  sizeChipTxtActive: { color: T.text, fontWeight: "700" },
+  sizeChipTxtActive: { color: "#000", fontWeight: "700" },
 
   footer: { flexDirection: "row", gap: 10, marginTop: 12 },
   nextBtn: {

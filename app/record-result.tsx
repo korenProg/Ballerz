@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   colon: { fontSize: 24, fontWeight: "700", color: T.text },
   stepper: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
   stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: T.divider, alignItems: "center", justifyContent: "center" },
-  stepVal: { fontSize: 20, fontWeight: "700", color: T.text, minWidth: 24, textAlign: "center" },
+  stepVal: { fontSize: 20, fontWeight: "700", color: T.text, minWidth: 24, textAlign: "center", fontVariant: ["tabular-nums"] },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider },
   chipOn: { backgroundColor: T.yellow, borderColor: T.yellow },

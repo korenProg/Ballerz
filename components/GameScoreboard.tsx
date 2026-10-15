@@ -27,7 +27,12 @@ export default function GameScoreboard({ game }: { game: Game }) {
       <View style={styles.row}>
         <Side name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} />
         <View style={styles.center}>
-          <Text style={pending ? styles.date : styles.score} numberOfLines={1}>
+          <Text
+            style={pending ? styles.date : styles.score}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             {pending ? shortDate(game.date) : `${game.homeScore} - ${game.awayScore}`}
           </Text>
           <Text style={[styles.status, live ? styles.live : null]}>{STATUS_LABEL[game.status]}</Text>

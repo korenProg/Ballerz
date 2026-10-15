@@ -144,7 +144,7 @@ function Leaders({ players, games }: { players: Player[]; games: Game[] }) {
           trailing={
             mode === "rating" ? (
               <RatingBadge value={p.ovr} />
-            ) : i === 0 ? (
+            ) : i === 0 && statOf(p) > 0 ? (
               <RatingBadge value={statOf(p)} color={T.accent} />
             ) : (
               <Text style={styles.stat}>{statOf(p)}</Text>
@@ -234,8 +234,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
-  days: { flexDirection: "row", justifyContent: "space-between" },
-  day: { alignItems: "center", width: 44, paddingVertical: SPACE.sm, borderRadius: 12, gap: 2 },
+  days: { flexDirection: "row", gap: SPACE.xs },
+  day: { alignItems: "center", flex: 1, paddingVertical: SPACE.sm, borderRadius: 12, gap: 2 },
   dayToday: { backgroundColor: T.surface },
   dayLetter: { fontSize: 12, fontWeight: "500", color: T.textFaint },
   dayNum: { fontSize: 15, fontWeight: "600", color: T.textDim, fontVariant: ["tabular-nums"] },

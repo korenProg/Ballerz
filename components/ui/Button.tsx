@@ -19,7 +19,7 @@ export default function Button({
   icon?: ComponentProps<typeof Ionicons>["name"];
   disabled?: boolean;
 }) {
-  const fg = FG[variant];
+  const fg = disabled ? T.textFaint : FG[variant];
   return (
     <Pressable
       accessibilityRole="button"
@@ -30,7 +30,7 @@ export default function Button({
         styles.btn,
         variant === "primary" ? styles.primary : styles.neutral,
         disabled ? styles.disabled : null,
-        pressed ? styles.pressed : null,
+        pressed && !disabled ? styles.pressed : null,
       ]}
     >
       {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: T.accent },
   neutral: { backgroundColor: T.surfaceAlt },
-  disabled: { opacity: 0.4 },
+  disabled: { backgroundColor: T.surfaceAlt },
   pressed: { opacity: 0.7 },
   label: { fontSize: 15, fontWeight: "700" },
 });
