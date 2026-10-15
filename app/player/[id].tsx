@@ -1,26 +1,26 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-  Alert,
-  type DimensionValue,
-} from "react-native";
+import { View, Text, ScrollView, StyleSheet, Alert, type DimensionValue } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import Crest from "../../components/Crest";
-import { T } from "../../constants/theme";
+import ScreenHeader from "../../components/ui/ScreenHeader";
+import IconButton from "../../components/ui/IconButton";
+import Section from "../../components/ui/Section";
+import RatingBadge from "../../components/ui/RatingBadge";
+import Button from "../../components/ui/Button";
+import EmptyState from "../../components/ui/EmptyState";
+import { T, SPACE } from "../../constants/theme";
+import { ratingColor } from "../../utils/rating";
+import type { Player } from "../../types/players";
 
 const ATTR_ROWS = [
-  ["pac", "PACE"],
-  ["sho", "SHOOTING"],
-  ["pas", "PASSING"],
-  ["dri", "DRIBBLING"],
-  ["def", "DEFENDING"],
-  ["phy", "PHYSICAL"],
+  ["pac", "Pace"],
+  ["sho", "Shooting"],
+  ["pas", "Passing"],
+  ["dri", "Dribbling"],
+  ["def", "Defending"],
+  ["phy", "Physical"],
 ] as const;
 
 const STATS = [
@@ -29,49 +29,31 @@ const STATS = [
   ["mvps", "MVPs"],
 ] as const;
 
-const FORM_LABEL = {
-  hot: { label: "In form", icon: "flame", color: "#ea580c" },
-  cold: { label: "Off form", icon: "snow", color: "#38bdf8" },
-  neutral: { label: "Steady", icon: "remove", color: T.textMuted },
-} as const;
+const FORM_LABEL: Record<Player["form"], string> = {
+  hot: "In form",
+  cold: "Off form",
+  neutral: "Steady form",
+};
 
-// Green through red, so a bar reads as good or bad at a glance.
-function attrColor(v: number): string {
-  if (v >= 80) return "#059669";
-  if (v >= 65) return "#84cc16";
-  if (v >= 50) return "#ca8a04";
-  if (v >= 35) return "#ea580c";
-  return "#dc2626";
-}
+const FOOT_LABEL: Record<Player["foot"], string> = { L: "Left foot", R: "Right foot" };
 
 export default function PlayerDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const player = useStore((s) => s.players.find((p) => p.id === id) ?? null);
-  const leagueColor = useStore((s) => s.league.color);
   const setMvp = useStore((s) => s.setMvp);
   const deletePlayer = useStore((s) => s.deletePlayer);
+
+  const back = <IconButton icon="chevron-back" label="Back" onPress={() => router.back()} />;
 
   if (!player) {
     return (
       <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-        <View style={styles.header}>
-          <Pressable hitSlop={8} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color={T.textSecondary} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Player</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.missingWrap}>
-          <Ionicons name="help-circle-outline" size={34} color={T.textMuted} />
-          <Text style={styles.missingTitle}>Player not found</Text>
-          <Text style={styles.missingSub}>They may have been deleted.</Text>
-        </View>
+        <ScreenHeader safeTop={false} leading={back} />
+        <EmptyState icon="help-circle-outline" title="Player not found" sub="They may have been deleted." />
       </SafeAreaView>
     );
   }
-
-  const form = FORM_LABEL[player.form] ?? FORM_LABEL.neutral;
 
   const confirmDelete = () =>
     Alert.alert("Delete player?", player.name, [
@@ -88,120 +70,76 @@ export default function PlayerDetailScreen() {
 
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <View style={styles.header}>
-        <Pressable hitSlop={8} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={26} color={T.textSecondary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Player</Text>
-        <Pressable
-          hitSlop={8}
-          onPress={() =>
-            router.push({ pathname: "/create-player", params: { id: player.id } })
-          }
-        >
-          <Ionicons name="create-outline" size={22} color={T.textSecondary} />
-        </Pressable>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.identity}>
-          <Crest
-            name={player.name}
-            color={leagueColor}
-            logo={player.photo}
-            size={84}
+      <ScreenHeader
+        safeTop={false}
+        leading={back}
+        action={
+          <IconButton
+            icon="create-outline"
+            label="Edit player"
+            onPress={() => router.push({ pathname: "/create-player", params: { id: player.id } })}
           />
+        }
+      />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.identity}>
+          <Crest name={player.name} logo={player.photo} size={72} variant="avatar" />
           <View style={styles.identityMain}>
             <Text style={styles.name} numberOfLines={2}>
               {player.name}
             </Text>
-            <View style={styles.identityMeta}>
-              <View style={styles.pill}>
-                <Text style={styles.pillTxt}>{player.position}</Text>
+            <Text style={styles.meta} numberOfLines={1}>
+              {player.position} · {FOOT_LABEL[player.foot]} · {FORM_LABEL[player.form] ?? FORM_LABEL.neutral}
+            </Text>
+            {player.isMvp ? (
+              <View style={styles.mvp}>
+                <Ionicons name="star" size={12} color="#000" />
+                <Text style={styles.mvpTxt}>League MVP</Text>
               </View>
-              <View style={styles.pill}>
-                <Text style={styles.pillTxt}>{player.foot} foot</Text>
-              </View>
-              {player.isMvp ? (
-                <View style={[styles.pill, styles.pillMvp]}>
-                  <Text style={[styles.pillTxt, styles.pillTxtMvp]}>MVP</Text>
-                </View>
-              ) : null}
-            </View>
-            <View style={styles.formLine}>
-              <Ionicons name={form.icon} size={14} color={form.color} />
-              <Text style={styles.formTxt}>{form.label}</Text>
-            </View>
+            ) : null}
           </View>
-          <View style={styles.ovrBox}>
-            <Text style={styles.ovrValue}>{player.ovr}</Text>
-            <Text style={styles.ovrLabel}>OVR</Text>
-          </View>
+          <RatingBadge value={player.ovr} size="lg" />
         </View>
 
-        <Text style={styles.sectionLabel}>Attributes</Text>
-        <View style={styles.card}>
-          {ATTR_ROWS.map(([key, label]) => {
-            const value = player[key];
-            const width = `${value}%` as DimensionValue;
-            return (
-              <View key={key} style={styles.attrRow}>
-                <Text style={styles.attrLabel}>{label}</Text>
-                <View style={styles.attrTrack}>
-                  <View
-                    style={[
-                      styles.attrFill,
-                      { width, backgroundColor: attrColor(value) },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.attrValue}>{value}</Text>
+        <Section title="Season" padded>
+          <View style={styles.stats}>
+            {STATS.map(([key, label]) => (
+              <View key={key} style={styles.stat}>
+                <Text style={styles.statValue}>{player[key]}</Text>
+                <Text style={styles.statLabel}>{label}</Text>
               </View>
-            );
-          })}
+            ))}
+          </View>
+        </Section>
+
+        <Section title="Attributes" padded>
+          <View style={styles.attrs}>
+            {ATTR_ROWS.map(([key, label]) => {
+              const value = player[key];
+              const width = `${value}%` as DimensionValue;
+              return (
+                <View key={key} style={styles.attr}>
+                  <Text style={styles.attrLabel}>{label}</Text>
+                  <View style={styles.track}>
+                    <View style={[styles.fill, { width, backgroundColor: ratingColor(value) }]} />
+                  </View>
+                  <Text style={styles.attrValue}>{value}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </Section>
+
+        <View style={styles.actions}>
+          <Button
+            variant="secondary"
+            icon="trophy-outline"
+            label={player.isMvp ? "Current league MVP" : "Set as league MVP"}
+            disabled={!!player.isMvp}
+            onPress={() => setMvp(player.id)}
+          />
+          <Button variant="destructive" icon="trash-outline" label="Delete player" onPress={confirmDelete} />
         </View>
-
-        <Text style={styles.sectionLabel}>Season</Text>
-        <View style={styles.statsRow}>
-          {STATS.map(([key, label]) => (
-            <View key={key} style={styles.statBox}>
-              <Text style={styles.statValue}>{player[key]}</Text>
-              <Text style={styles.statLabel}>{label}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.action,
-            player.isMvp ? styles.actionDisabled : null,
-            pressed ? styles.actionPressed : null,
-          ]}
-          disabled={player.isMvp}
-          onPress={() => setMvp(player.id)}
-        >
-          <Ionicons name="trophy-outline" size={18} color={T.textPrimary} />
-          <Text style={styles.actionTxt}>
-            {player.isMvp ? "Current league MVP" : "Set as league MVP"}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.action,
-            styles.actionDanger,
-            pressed ? styles.actionPressed : null,
-          ]}
-          onPress={confirmDelete}
-        >
-          <Ionicons name="trash-outline" size={18} color="#dc2626" />
-          <Text style={[styles.actionTxt, styles.actionTxtDanger]}>
-            Delete player
-          </Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -209,110 +147,38 @@ export default function PlayerDetailScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  header: {
+  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  identity: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: SPACE.sm },
+  identityMain: { flex: 1, gap: 6 },
+  name: { fontSize: 22, fontWeight: "700", color: T.text },
+  meta: { fontSize: 13, fontWeight: "400", color: T.textDim },
+  mvp: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  headerTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary },
-  headerSpacer: { width: 22 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-
-  identity: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 18 },
-  identityMain: { flex: 1, gap: 7 },
-  name: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  identityMeta: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
-  pill: {
-    paddingHorizontal: 9,
+    gap: 4,
+    paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
+    borderRadius: 6,
+    backgroundColor: T.yellow,
   },
-  pillMvp: { backgroundColor: "#ca8a04", borderColor: "#ca8a04" },
-  pillTxt: { fontSize: 11, fontWeight: "800", color: T.textSecondary },
-  pillTxtMvp: { color: "#fff" },
-  formLine: { flexDirection: "row", alignItems: "center", gap: 5 },
-  formTxt: { fontSize: 12, fontWeight: "700", color: T.textSecondary },
-  ovrBox: { alignItems: "center", minWidth: 42 },
-  ovrValue: { fontSize: 30, fontWeight: "900", color: T.textPrimary },
-  ovrLabel: { fontSize: 9, fontWeight: "800", color: T.textMuted, letterSpacing: 0.8 },
-
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: "900",
-    color: T.textMuted,
-    letterSpacing: 1,
-    marginTop: 18,
-    marginBottom: 8,
-  },
-  card: {
-    backgroundColor: T.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: T.border,
-    padding: 14,
-    gap: 11,
-  },
-  attrRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  attrLabel: {
-    width: 78,
-    fontSize: 10,
-    fontWeight: "800",
-    color: T.textSecondary,
-    letterSpacing: 0.4,
-  },
-  attrTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: T.bg,
-    overflow: "hidden",
-  },
-  attrFill: { height: 6, borderRadius: 3 },
+  mvpTxt: { fontSize: 11, fontWeight: "700", color: "#000" },
+  stats: { flexDirection: "row" },
+  stat: { flex: 1, alignItems: "center", gap: 2 },
+  statValue: { fontSize: 22, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"] },
+  statLabel: { fontSize: 12, fontWeight: "500", color: T.textFaint },
+  attrs: { gap: 12 },
+  attr: { flexDirection: "row", alignItems: "center", gap: 10 },
+  attrLabel: { width: 82, fontSize: 13, fontWeight: "500", color: T.textDim },
+  track: { flex: 1, height: 6, borderRadius: 3, backgroundColor: T.surfaceAlt, overflow: "hidden" },
+  fill: { height: 6, borderRadius: 3 },
   attrValue: {
-    width: 24,
+    width: 26,
     textAlign: "right",
-    fontSize: 13,
-    fontWeight: "900",
-    color: T.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
+    color: T.text,
+    fontVariant: ["tabular-nums"],
   },
-
-  statsRow: { flexDirection: "row", gap: 10 },
-  statBox: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
-  },
-  statValue: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  statLabel: { fontSize: 11, fontWeight: "700", color: T.textSecondary, marginTop: 2 },
-
-  action: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 12,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
-  },
-  actionPressed: { opacity: 0.6 },
-  actionDisabled: { opacity: 0.45 },
-  actionDanger: { borderColor: "#dc2626" },
-  actionTxt: { fontSize: 14, fontWeight: "800", color: T.textPrimary },
-  actionTxtDanger: { color: "#dc2626" },
-
-  missingWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6 },
-  missingTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary, marginTop: 6 },
-  missingSub: { fontSize: 13, fontWeight: "600", color: T.textSecondary },
+  actions: { gap: SPACE.sm },
 });
