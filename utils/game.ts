@@ -47,7 +47,8 @@ export function pickNextGame<G extends { status: string; date?: string }>(
   let bestKey = Infinity;
   for (const g of games) {
     if (g.status !== "Pending") continue;
-    const key = g.date ? parseGameDate(g.date) : Infinity;
+    const parsed = g.date ? parseGameDate(g.date) : Infinity;
+    const key = Number.isNaN(parsed) ? Infinity : parsed;
     if (best === null || key < bestKey) {
       best = g;
       bestKey = key;

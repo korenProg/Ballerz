@@ -31,6 +31,10 @@ test("undated fixtures rank after dated ones", () => {
   assert.equal(pickNextGame([g("u", "Pending", undefined)])?.id, "u");
 });
 
+test("a malformed date ranks after valid dates", () => {
+  assert.equal(pickNextGame([g("x", "Pending", "abc"), g("d", "Pending", "20/10/2026")])?.id, "d");
+});
+
 test("no live or upcoming game means no next game", () => {
   assert.equal(pickNextGame([g("c", "FT", "01/10/2026")]), null);
   assert.equal(pickNextGame([]), null);
