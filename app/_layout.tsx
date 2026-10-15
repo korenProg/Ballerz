@@ -1,10 +1,14 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useStore } from '@/store';
+import { T } from '@/constants/theme';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -12,6 +16,15 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [hydrated, setHydrated] = useState(() => useStore.persist.hasHydrated());
+
+  useEffect(() => {
+    // Covers hydration finishing between the initial render and this subscription.
+    if (useStore.persist.hasHydrated()) queueMicrotask(() => setHydrated(true));
+    return useStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+
+  if (!hydrated) return <View style={{ flex: 1, backgroundColor: T.bg }} />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
