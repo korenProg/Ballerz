@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "flex-start" },
   side: { flex: 1, alignItems: "center", gap: SPACE.sm },
   team: { fontSize: 15, fontWeight: "600", color: T.text, textAlign: "center" },
-  center: { width: 120, alignItems: "center", paddingTop: 4, gap: 4 },
+  center: { minWidth: 120, alignItems: "center", paddingTop: 4, gap: 4 },
   score: TYPE.score,
   date: { fontSize: 24, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"], paddingTop: 8 },
   status: { fontSize: 13, fontWeight: "500", color: T.textDim },
