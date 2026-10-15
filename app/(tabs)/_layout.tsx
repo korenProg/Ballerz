@@ -115,6 +115,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: T.bg,
     paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: T.divider,
   },
   tab: {
     flex: 1,
