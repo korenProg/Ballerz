@@ -25,3 +25,33 @@ export function teamInitials(name: string): string {
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// "18/10/2026" -> "18 Oct". Missing or malformed -> "TBD".
+export function shortDate(date?: string): string {
+  if (!date) return "TBD";
+  const [day, month] = date.split("/").map(Number);
+  if (!day || !month || month < 1 || month > 12) return "TBD";
+  return `${day} ${MONTHS[month - 1]}`;
+}
+
+// Home's "Next match": a live game first, else the soonest upcoming one.
+// Undated upcoming games rank after every dated one.
+export function pickNextGame<G extends { status: string; date?: string }>(
+  games: readonly G[]
+): G | null {
+  const live = games.find((g) => g.status === "Live");
+  if (live) return live;
+  let best: G | null = null;
+  let bestKey = Infinity;
+  for (const g of games) {
+    if (g.status !== "Pending") continue;
+    const key = g.date ? parseGameDate(g.date) : Infinity;
+    if (best === null || key < bestKey) {
+      best = g;
+      bestKey = key;
+    }
+  }
+  return best;
+}
