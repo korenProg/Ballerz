@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { T, SPACE } from "../../constants/theme";
 
@@ -11,7 +12,14 @@ export type HeaderAction = { icon: IoniconName; label: string; onPress: () => vo
 
 export const HEADER_H = 56;
 
-function HeaderButton({ icon, label, onPress }: HeaderAction) {
+// The bar fades from a faint grey at the top into the black page, and its
+// divider glows in the middle and fades out towards both edges.
+const BAR_FADE = ["#171717", T.bg] as const;
+const DIVIDER_FADE = ["transparent", "#3D3D3D", "transparent"] as const;
+
+// The round grey button used for every top-bar action. Exported so screens
+// without a top bar (the step wizards) can still offer a matching close.
+export function HeaderButton({ icon, label, onPress }: HeaderAction) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -49,6 +57,7 @@ export default function ScreenHeader({
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: safeTop ? insets.top : 0 }]}>
+      <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <View style={styles.bar}>
         {nav ? (
           <HeaderButton
@@ -72,16 +81,20 @@ export default function ScreenHeader({
           <HeaderButton key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} />
         ))}
       </View>
+      <LinearGradient
+        colors={DIVIDER_FADE}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.divider}
+        pointerEvents="none"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    backgroundColor: T.bg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: T.divider,
-  },
+  wrap: { backgroundColor: T.bg },
+  divider: { height: 1 },
   bar: {
     height: HEADER_H,
     flexDirection: "row",

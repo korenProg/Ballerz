@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { formatDate, parseDMY } from "../utils/game";
 import { T } from "../constants/theme";
-import ScreenHeader from "../components/ui/ScreenHeader";
+import { HeaderButton } from "../components/ui/ScreenHeader";
 import TeamStep from "../components/wizard/TeamStep";
 import DetailsStep from "../components/wizard/DetailsStep";
 
@@ -114,24 +114,25 @@ export default function CreateGameScreen() {
 
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <ScreenHeader
-        safeTop={false}
-        nav="close"
-        title={editing ? "Edit game" : "New game"}
-        subtitle={`Step ${step + 1} of 3`}
-      />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
 
         <View style={styles.progressRow}>
-          {[0, 1, 2].map((i) => (
-            <TouchableOpacity
-              key={i}
-              style={[styles.progressSeg, i <= step && styles.progressSegActive]}
-              disabled={i >= step}
-              hitSlop={8}
-              onPress={() => setStep(i)}
-            />
-          ))}
+          <HeaderButton
+            icon="close"
+            label={editing ? "Close edit game" : "Close new game"}
+            onPress={() => router.back()}
+          />
+          <View style={styles.progressSegs}>
+            {[0, 1, 2].map((i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.progressSeg, i <= step && styles.progressSegActive]}
+                disabled={i >= step}
+                hitSlop={8}
+                onPress={() => setStep(i)}
+              />
+            ))}
+          </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -198,7 +199,8 @@ export default function CreateGameScreen() {
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
-  progressRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 4 },
+  progressRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 8, marginBottom: 4 },
+  progressSegs: { flex: 1, flexDirection: "row", gap: 8 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
   progressSegActive: { backgroundColor: T.accent },
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },

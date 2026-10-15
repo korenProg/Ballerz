@@ -17,7 +17,6 @@ import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { T, LEAGUE_COLORS, TEAM_SIZES } from "../constants/theme";
-import ScreenHeader from "../components/ui/ScreenHeader";
 
 const TOTAL_STEPS = 3;
 
@@ -119,16 +118,9 @@ export default function Onboarding() {
   }
 
   return (
-    <SafeAreaView style={styles.mainBare} edges={["top", "bottom"]}>
-      <ScreenHeader
-        safeTop={false}
-        nav={step > 0 ? "back" : undefined}
-        onNav={() => setStep(step - 1)}
-        title="Set up your league"
-        subtitle={`Step ${step + 1} of ${TOTAL_STEPS}`}
-      />
+    <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
-        style={[styles.flex, styles.body]}
+        style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
       <View style={styles.progressRow}>
@@ -260,8 +252,6 @@ export default function Onboarding() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 },
-  mainBare: { flex: 1, backgroundColor: T.bg, paddingBottom: 12 },
-  body: { paddingHorizontal: 24 },
   flex: { flex: 1 },
   progressRow: { flexDirection: "row", gap: 8, marginTop: 8 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: T.surface },
