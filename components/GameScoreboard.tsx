@@ -1,86 +1,46 @@
 import { View, Text, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { T } from "../constants/theme";
-import type { Game } from "../types/games";
 import Crest from "./Crest";
+import { T, TYPE, SPACE } from "../constants/theme";
+import { shortDate } from "../utils/game";
+import type { Game } from "../types/games";
 
-function Divider() {
+const STATUS_LABEL = { FT: "Full time", Live: "Live", Pending: "Upcoming" } as const;
+
+function Side({ name, color, logo }: { name: string; color: string; logo?: string }) {
   return (
-    <LinearGradient
-      colors={["transparent", T.border, "transparent"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.divider}
-    />
+    <View style={styles.side}>
+      <Crest name={name} color={color} logo={logo} size={52} />
+      <Text style={styles.team} numberOfLines={2}>
+        {name}
+      </Text>
+    </View>
   );
 }
 
-
-export default function GameScoreboard({ game, size = "row" }: { game: Game; size?: "row" | "full" }) {
-  const full = size === "full";
-  const crestSize = full ? 60 : 42;
-  const header = [game.league, game.location].filter(Boolean).join(" - ");
-
+// Card-less match header: crests either side, big tabular score, status under it.
+export default function GameScoreboard({ game }: { game: Game }) {
+  const pending = game.status === "Pending";
+  const live = game.status === "Live";
   return (
     <View style={styles.wrap}>
-      {full && (
-        <View style={styles.header}>
-          <View style={styles.headerSide}>
-            <Ionicons name="location-outline" size={11} color={T.textSecondary} />
-            <Text style={styles.headerTxt} numberOfLines={1}>{header || "Match"}</Text>
-          </View>
-          {game.date ? (
-            <View style={styles.headerSide}>
-              <Ionicons name="calendar-outline" size={11} color={T.textSecondary} />
-              <Text style={styles.headerTxt}>{game.date}</Text>
-            </View>
-          ) : null}
+      <View style={styles.row}>
+        <Side name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} />
+        <View style={styles.center}>
+          <Text style={pending ? styles.date : styles.score} numberOfLines={1}>
+            {pending ? shortDate(game.date) : `${game.homeScore} - ${game.awayScore}`}
+          </Text>
+          <Text style={[styles.status, live ? styles.live : null]}>{STATUS_LABEL[game.status]}</Text>
         </View>
-      )}
-      {full && <Divider />}
-
-      <View style={styles.middle}>
-      {/* Top band: badges + score on one horizontal line */}
-      <View style={styles.scoreRow}>
-        <View style={styles.crestCol}>
-          <Crest name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} size={crestSize} />
-        </View>
-        <View style={styles.centerSlot}>
-          {game.status === "Pending" ? (
-            <Text style={full ? styles.vsFull : styles.vs} numberOfLines={1}>vs</Text>
-          ) : (
-            <Text style={full ? styles.scoreFull : styles.score} numberOfLines={1}>{game.homeScore} : {game.awayScore}</Text>
-          )}
-        </View>
-        <View style={styles.crestCol}>
-          <Crest name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} size={crestSize} />
-        </View>
+        <Side name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} />
       </View>
-
-      {/* Bottom band: team names + status pill on one horizontal line */}
-      <View style={styles.namesRow}>
-        <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.homeTeam}</Text>
-        <View style={styles.centerSlot}>
-          <View style={styles.pill}>
-            {game.status === "Live" ? (
-              <><View style={styles.liveDot} /><Text style={styles.pillTxt}>LIVE</Text></>
-            ) : (
-              <Text style={styles.pillTxt}>{game.status === "FT" ? "FT" : "SOON"}</Text>
-            )}
-          </View>
-        </View>
-        <Text style={[styles.teamName, full && styles.teamNameFull]} numberOfLines={2}>{game.awayTeam}</Text>
-      </View>
-      </View>
-
-      {full && game.mvp?.name ? (
-        <View style={styles.mvpSection}>
-          <Divider />
-          <View style={styles.mvpRow}>
-            <Ionicons name="star" size={11} color="#f5c518" />
-            <Text style={styles.mvpName}>{game.mvp.name}</Text>
-          </View>
+      {game.status === "FT" && game.mvp?.name ? (
+        <View style={styles.mvp}>
+          <Ionicons name="star" size={13} color={T.yellow} />
+          <Text style={styles.mvpTxt} numberOfLines={1}>
+            {game.mvp.name}
+            {game.mvp.stat ? ` · ${game.mvp.stat}` : ""}
+          </Text>
         </View>
       ) : null}
     </View>
@@ -88,26 +48,15 @@ export default function GameScoreboard({ game, size = "row" }: { game: Game; siz
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 8 },
-  middle: { gap: 10, paddingVertical: 10 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  headerSide: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
-  headerTxt: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
-  divider: { height: 1.5, marginHorizontal: -14 },
-  scoreRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
-  crestCol: { flex: 1, alignItems: "center" },
-  centerSlot: { width: 92, alignItems: "center" },
-  namesRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
-  teamName: { flex: 1, fontSize: 13, fontWeight: "700", color: T.textPrimary, textAlign: "center" },
-  teamNameFull: { fontSize: 14, fontWeight: "800", color: "#fff" },
-  score: { fontSize: 22, fontWeight: "900", color: T.textPrimary },
-  scoreFull: { fontSize: 34, fontWeight: "900", color: "#fff", letterSpacing: 1 },
-  vs: { fontSize: 16, fontWeight: "800", color: T.textSecondary },
-  vsFull: { fontSize: 24, fontWeight: "900", color: "#fff" },
-  pill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(0,0,0,0.22)", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
-  pillTxt: { fontSize: 10, fontWeight: "800", color: "#c6ccd8", letterSpacing: 1 },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ef4444" },
-  mvpSection: { gap: 8 },
-  mvpRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  mvpName: { fontSize: 11, fontWeight: "700", color: T.textSecondary },
+  wrap: { gap: SPACE.md, paddingVertical: SPACE.lg },
+  row: { flexDirection: "row", alignItems: "flex-start" },
+  side: { flex: 1, alignItems: "center", gap: SPACE.sm },
+  team: { fontSize: 15, fontWeight: "600", color: T.text, textAlign: "center" },
+  center: { width: 120, alignItems: "center", paddingTop: 4, gap: 4 },
+  score: TYPE.score,
+  date: { fontSize: 24, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"], paddingTop: 8 },
+  status: { fontSize: 13, fontWeight: "500", color: T.textDim },
+  live: { color: T.accent },
+  mvp: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  mvpTxt: { fontSize: 13, fontWeight: "400", color: T.textDim, flexShrink: 1 },
 });

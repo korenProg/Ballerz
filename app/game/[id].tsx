@@ -1,21 +1,71 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import type { ComponentProps } from "react";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import GameScoreboard from "../../components/GameScoreboard";
-import { T } from "../../constants/theme";
+import Crest from "../../components/Crest";
+import ScreenHeader from "../../components/ui/ScreenHeader";
+import IconButton from "../../components/ui/IconButton";
+import Section from "../../components/ui/Section";
+import ListRow from "../../components/ui/ListRow";
+import Button from "../../components/ui/Button";
+import EmptyState from "../../components/ui/EmptyState";
+import { T, SPACE, RADIUS } from "../../constants/theme";
 import type { GamePlayer } from "../../types/games";
 
-function Lineup({ title, players, color }: { title: string; players?: GamePlayer[]; color: string }) {
-  if (!players || players.length === 0) return null;
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+
+function LineupColumn({
+  team,
+  color,
+  logo,
+  players,
+}: {
+  team: string;
+  color: string;
+  logo?: string;
+  players: GamePlayer[];
+}) {
   return (
-    <View style={styles.lineupCol}>
-      <View style={[styles.lineupDot, { backgroundColor: color }]} />
-      <Text style={styles.lineupTitle}>{title}</Text>
+    <View style={styles.col}>
+      <View style={styles.colHead}>
+        <Crest name={team} color={color} logo={logo} size={20} />
+        <Text style={styles.colTeam} numberOfLines={1}>
+          {team}
+        </Text>
+      </View>
       {players.map((p) => (
-        <Text key={p.id} style={styles.lineupName} numberOfLines={1}>{p.name}</Text>
+        <View key={p.id} style={styles.colRow}>
+          <Text style={styles.colName} numberOfLines={1}>
+            {p.name}
+          </Text>
+          <Text style={styles.colPos}>{p.position}</Text>
+        </View>
       ))}
+    </View>
+  );
+}
+
+function ScoreStepper({
+  team,
+  onMinus,
+  onPlus,
+}: {
+  team: string;
+  onMinus: () => void;
+  onPlus: () => void;
+}) {
+  return (
+    <View style={styles.stepper}>
+      <Text style={styles.stepTeam} numberOfLines={1}>
+        {team}
+      </Text>
+      <View style={styles.stepBtns}>
+        <IconButton icon="remove" label={`Remove a goal from ${team}`} onPress={onMinus} />
+        <IconButton icon="add" label={`Add a goal for ${team}`} onPress={onPlus} />
+      </View>
     </View>
   );
 }
@@ -26,77 +76,88 @@ export default function GameDetailScreen() {
   const game = useStore((s) => s.games.find((g) => g.id === id) ?? null);
   const updateGame = useStore((s) => s.updateGame);
 
+  const back = <IconButton icon="chevron-back" label="Back" onPress={() => router.back()} />;
+
   if (!game) {
     return (
-      <SafeAreaView style={styles.main}>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundTxt}>Game not found</Text>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backBtnTxt}>Go back</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+        <ScreenHeader safeTop={false} leading={back} />
+        <EmptyState icon="help-circle-outline" title="Game not found" sub="It may have been deleted." />
       </SafeAreaView>
     );
   }
 
+  const home = game.homePlayers ?? [];
+  const away = game.awayPlayers ?? [];
+  const details: { icon: IoniconName; label: string }[] = [];
+  if (game.date) details.push({ icon: "calendar-outline", label: game.date });
+  if (game.location) details.push({ icon: "location-outline", label: game.location });
+  if (game.league) details.push({ icon: "trophy-outline", label: game.league });
+
   return (
     <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}><Ionicons name="chevron-back" size={26} color={T.textPrimary} /></TouchableOpacity>
-        <Text style={styles.headerTitle}>{game.location || "Match"}</Text>
-        <TouchableOpacity onPress={() => router.push(`/create-game?id=${game.id}` as const)} hitSlop={8}><Ionicons name="create-outline" size={22} color={T.textPrimary} /></TouchableOpacity>
-      </View>
+      <ScreenHeader
+        safeTop={false}
+        leading={back}
+        action={
+          <IconButton
+            icon="create-outline"
+            label="Edit game"
+            onPress={() => router.push(`/create-game?id=${game.id}` as const)}
+          />
+        }
+      />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <GameScoreboard game={game} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {game.date ? <Text style={styles.dateTxt}>{game.date}</Text> : null}
-        <View style={styles.board}><GameScoreboard game={game} size="full" /></View>
-
-        <View style={styles.lineups}>
-          <Lineup title={game.homeTeam} players={game.homePlayers} color={game.homeColor} />
-          <Lineup title={game.awayTeam} players={game.awayPlayers} color={game.awayColor} />
-        </View>
-
-        {game.status === "FT" && game.mvp?.name ? (
-          <View style={styles.mvpCard}>
-            <Ionicons name="star" size={18} color="#ca8a04" />
-            <View>
-              <Text style={styles.mvpLabel}>MVP</Text>
-              <Text style={styles.mvpName}>{game.mvp.name}{game.mvp.stat ? ` · ${game.mvp.stat}` : ""}</Text>
-            </View>
-          </View>
+        {game.status === "Pending" ? (
+          <Button label="Start game" icon="play" onPress={() => updateGame(game.id, { status: "Live" })} />
         ) : null}
 
-        {game.status === "Pending" && (
-          <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={() => updateGame(game.id, { status: "Live" })}>
-            <Ionicons name="play" size={18} color={T.bg} />
-            <Text style={styles.primaryBtnTxt}>Start Game</Text>
-          </TouchableOpacity>
-        )}
-
-        {game.status === "Live" && (
-          <>
-            <View style={styles.liveControls}>
-              <View style={styles.liveTeam}>
-                <Text style={styles.liveTeamName} numberOfLines={1}>{game.homeTeam}</Text>
-                <View style={styles.liveBtns}>
-                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { homeScore: Math.max(0, game.homeScore - 1) })}><Ionicons name="remove" size={20} color={T.textPrimary} /></TouchableOpacity>
-                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { homeScore: game.homeScore + 1 })}><Ionicons name="add" size={20} color={T.textPrimary} /></TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.liveTeam}>
-                <Text style={styles.liveTeamName} numberOfLines={1}>{game.awayTeam}</Text>
-                <View style={styles.liveBtns}>
-                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { awayScore: Math.max(0, game.awayScore - 1) })}><Ionicons name="remove" size={20} color={T.textPrimary} /></TouchableOpacity>
-                  <TouchableOpacity style={styles.liveBtn} onPress={() => updateGame(game.id, { awayScore: game.awayScore + 1 })}><Ionicons name="add" size={20} color={T.textPrimary} /></TouchableOpacity>
-                </View>
-              </View>
+        {game.status === "Live" ? (
+          <Section title="Live score" padded>
+            <View style={styles.steppers}>
+              <ScoreStepper
+                team={game.homeTeam}
+                onMinus={() => updateGame(game.id, { homeScore: Math.max(0, game.homeScore - 1) })}
+                onPlus={() => updateGame(game.id, { homeScore: game.homeScore + 1 })}
+              />
+              <ScoreStepper
+                team={game.awayTeam}
+                onMinus={() => updateGame(game.id, { awayScore: Math.max(0, game.awayScore - 1) })}
+                onPlus={() => updateGame(game.id, { awayScore: game.awayScore + 1 })}
+              />
             </View>
-            <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={() => router.push(`/record-result?id=${game.id}` as const)}>
-              <Ionicons name="flag" size={18} color={T.bg} />
-              <Text style={styles.primaryBtnTxt}>Finish</Text>
-            </TouchableOpacity>
-          </>
-        )}
+            <Button
+              label="Finish"
+              icon="flag"
+              onPress={() => router.push(`/record-result?id=${game.id}` as const)}
+            />
+          </Section>
+        ) : null}
+
+        {home.length > 0 || away.length > 0 ? (
+          <Section title="Lineups" padded>
+            <View style={styles.lineups}>
+              <LineupColumn team={game.homeTeam} color={game.homeColor} logo={game.homeLogo} players={home} />
+              <View style={styles.colDivider} />
+              <LineupColumn team={game.awayTeam} color={game.awayColor} logo={game.awayLogo} players={away} />
+            </View>
+          </Section>
+        ) : null}
+
+        {details.length > 0 ? (
+          <Section title="Details">
+            {details.map((d, i) => (
+              <ListRow
+                key={d.icon}
+                title={d.label}
+                leading={<Ionicons name={d.icon} size={18} color={T.textDim} />}
+                divider={i < details.length - 1}
+              />
+            ))}
+          </Section>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -104,28 +165,24 @@ export default function GameDetailScreen() {
 
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: T.bg },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 },
-  headerTitle: { fontSize: 16, fontWeight: "800", color: T.textPrimary },
-  scroll: { paddingHorizontal: 20, paddingBottom: 32, alignItems: "stretch" },
-  dateTxt: { fontSize: 12, color: T.textSecondary, textAlign: "center", marginBottom: 12 },
-  board: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 20, padding: 14, overflow: "hidden" },
-  lineups: { flexDirection: "row", gap: 12, marginTop: 16 },
-  lineupCol: { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 14, gap: 4 },
-  lineupDot: { width: 10, height: 10, borderRadius: 5, marginBottom: 4 },
-  lineupTitle: { fontSize: 13, fontWeight: "800", color: T.textPrimary, marginBottom: 4 },
-  lineupName: { fontSize: 13, color: T.textSecondary },
-  primaryBtn: { flexDirection: "row", gap: 8, backgroundColor: T.textPrimary, paddingVertical: 15, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 20 },
-  primaryBtnTxt: { fontSize: 14, fontWeight: "800", color: T.bg },
-  notFound: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  notFoundTxt: { fontSize: 16, fontWeight: "700", color: T.textSecondary },
-  backBtn: { backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  backBtnTxt: { color: T.textPrimary, fontWeight: "700" },
-  liveControls: { flexDirection: "row", gap: 12, marginTop: 16 },
-  liveTeam: { flex: 1, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 14, gap: 10, alignItems: "center" },
-  liveTeamName: { fontSize: 13, fontWeight: "800", color: T.textPrimary },
-  liveBtns: { flexDirection: "row", gap: 10 },
-  liveBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: T.border, alignItems: "center", justifyContent: "center" },
-  mvpCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: 16, padding: 16, marginTop: 16 },
-  mvpLabel: { fontSize: 10, fontWeight: "800", color: T.textSecondary, letterSpacing: 1 },
-  mvpName: { fontSize: 15, fontWeight: "800", color: T.textPrimary },
+  scroll: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  lineups: { flexDirection: "row", gap: SPACE.md },
+  col: { flex: 1, gap: 10 },
+  colHead: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, marginBottom: 2 },
+  colTeam: { fontSize: 14, fontWeight: "600", color: T.text, flexShrink: 1 },
+  colRow: { flexDirection: "row", alignItems: "center", gap: SPACE.sm },
+  colName: { flex: 1, fontSize: 14, fontWeight: "400", color: T.text },
+  colPos: { fontSize: 12, fontWeight: "500", color: T.textFaint },
+  colDivider: { width: StyleSheet.hairlineWidth, backgroundColor: T.divider },
+  steppers: { flexDirection: "row", gap: SPACE.md, marginBottom: SPACE.md },
+  stepper: {
+    flex: 1,
+    alignItems: "center",
+    gap: SPACE.sm,
+    backgroundColor: T.surfaceAlt,
+    borderRadius: RADIUS.control,
+    padding: SPACE.md,
+  },
+  stepTeam: { fontSize: 14, fontWeight: "600", color: T.text },
+  stepBtns: { flexDirection: "row", gap: SPACE.sm },
 });
