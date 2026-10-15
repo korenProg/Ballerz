@@ -22,8 +22,6 @@ for `record-result`; `gestureEnabled: false` for `onboarding`. Tab screens live
 in `app/(tabs)/` and need no registration — the tab bar is the custom
 `FloatingTabBar` in `app/(tabs)/_layout.tsx`, not the default one.
 
-Still placeholder stubs: `app/(tabs)/players.tsx`, `app/(tabs)/league.tsx`.
-
 ## Styling
 
 FotMob-style dark UI. `T` from `constants/theme.ts`: `bg #000000` ·
