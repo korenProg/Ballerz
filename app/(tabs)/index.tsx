@@ -184,7 +184,7 @@ export default function HomeScreen() {
             name={league.name || "League"}
             color={league.color}
             logo={league.logoUri ?? undefined}
-            size={28}
+            size={36}
           />
         }
         title={league.name || "My League"}

@@ -61,6 +61,8 @@ export default function ScreenHeader({
       {/* Both side slots are always SIDE_W wide, even when empty, so the
           title block sits on the screen's true centre line. */}
       <View style={styles.bar}>
+        {/* The crest lives in the left slot (where back/close sit on other
+            pages) so it never pushes the title off the centre line. */}
         <View style={[styles.side, styles.sideLeft]}>
           {nav ? (
             <HeaderButton
@@ -68,21 +70,20 @@ export default function ScreenHeader({
               label={nav === "close" ? "Close" : "Back"}
               onPress={onNav ?? (() => router.back())}
             />
-          ) : null}
+          ) : (
+            crest ?? null
+          )}
         </View>
         <View style={styles.center}>
-          <View style={styles.titleGroup}>
-            {crest ?? null}
-            <View style={styles.titles}>
-              <Text style={styles.title} numberOfLines={1}>
-                {title}
+          <View style={styles.titles}>
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text style={styles.subtitle} numberOfLines={1}>
+                {subtitle}
               </Text>
-              {subtitle ? (
-                <Text style={styles.subtitle} numberOfLines={1}>
-                  {subtitle}
-                </Text>
-              ) : null}
-            </View>
+            ) : null}
           </View>
         </View>
         <View style={[styles.side, styles.sideRight]}>
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
   sideLeft: { justifyContent: "flex-start" },
   sideRight: { justifyContent: "flex-end" },
   center: { flex: 1, alignItems: "center", paddingHorizontal: SPACE.xs },
-  titleGroup: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, maxWidth: "100%" },
   btn: {
     width: 40,
     height: 40,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: T.surface,
   },
   btnPressed: { backgroundColor: T.surfaceAlt },
-  titles: { flexShrink: 1, alignItems: "center" },
+  titles: { maxWidth: "100%", alignItems: "center" },
   title: { fontSize: 17, fontWeight: "700", color: T.text, textAlign: "center" },
   subtitle: { fontSize: 12, fontWeight: "400", color: T.textDim, textAlign: "center", marginTop: 1 },
 });
