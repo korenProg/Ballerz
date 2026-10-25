@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { T, SPACE } from "../../constants/theme";
 
@@ -18,18 +19,33 @@ const SIDE_W = 88;
 const BAR_FADE = ["#171717", T.bg] as const;
 const DIVIDER_FADE = ["transparent", "#3D3D3D", "transparent"] as const;
 
-// The round grey button used for every top-bar action. Exported so screens
+// iOS 26+ draws the real Liquid Glass material; everywhere else (older iOS,
+// Android, web) the buttons stay as the grey circles.
+const GLASS = isLiquidGlassAvailable();
+
+// The round button used for every top-bar action. Exported so screens
 // without a top bar (the step wizards) can still offer a matching close.
 export function HeaderButton({ icon, label, onPress }: HeaderAction) {
+  const glyph = <Ionicons name={icon} size={20} color={T.text} />;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={6}
       onPress={onPress}
-      style={({ pressed }) => [styles.btn, pressed ? styles.btnPressed : null]}
+      style={({ pressed }) =>
+        GLASS
+          ? [styles.glassHit, pressed ? styles.glassPressed : null]
+          : [styles.btn, pressed ? styles.btnPressed : null]
+      }
     >
-      <Ionicons name={icon} size={20} color={T.text} />
+      {GLASS ? (
+        <GlassView style={styles.btn} glassEffectStyle="regular" colorScheme="dark" isInteractive>
+          {glyph}
+        </GlassView>
+      ) : (
+        glyph
+      )}
     </Pressable>
   );
 }
@@ -126,6 +142,9 @@ const styles = StyleSheet.create({
     backgroundColor: T.surface,
   },
   btnPressed: { backgroundColor: T.surfaceAlt },
+  // With glass, the GlassView is the visible circle; the Pressable just hosts it.
+  glassHit: { width: 40, height: 40, borderRadius: 20 },
+  glassPressed: { opacity: 0.8 },
   titles: { maxWidth: "100%", alignItems: "center" },
   title: { fontSize: 17, fontWeight: "700", color: T.text, textAlign: "center" },
   subtitle: { fontSize: 12, fontWeight: "400", color: T.textDim, textAlign: "center", marginTop: 1 },

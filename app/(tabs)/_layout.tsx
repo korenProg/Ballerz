@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, StyleSheet, Pressable, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
@@ -97,17 +98,43 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
+// On iOS and Android the tabs are the platform's own native tab bar, so they
+// match the system (Liquid Glass on iOS 26, Material on Android). Web has no
+// native bar, so it keeps the custom FloatingTabBar above.
 export default function TabLayout() {
+  if (Platform.OS === 'web') {
+    return (
+      <Tabs
+        screenOptions={{ headerShown: false }}
+        tabBar={(props) => <FloatingTabBar {...props} />}
+      >
+        <Tabs.Screen name="index" options={{ title: 'Home' }} />
+        <Tabs.Screen name="games" options={{ title: 'Games' }} />
+        <Tabs.Screen name="players" options={{ title: 'Players' }} />
+        <Tabs.Screen name="league" options={{ title: 'League' }} />
+      </Tabs>
+    );
+  }
+
   return (
-    <Tabs
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => <FloatingTabBar {...props} />}
-    >
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="games" options={{ title: 'Games' }} />
-      <Tabs.Screen name="players" options={{ title: 'Players' }} />
-      <Tabs.Screen name="league" options={{ title: 'League' }} />
-    </Tabs>
+    <NativeTabs tintColor={T.accent} minimizeBehavior="onScrollDown">
+      <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="games">
+        <NativeTabs.Trigger.Icon sf="soccerball" md="sports_soccer" />
+        <NativeTabs.Trigger.Label>Games</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="players">
+        <NativeTabs.Trigger.Icon sf={{ default: 'person.2', selected: 'person.2.fill' }} md="group" />
+        <NativeTabs.Trigger.Label>Players</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="league">
+        <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
+        <NativeTabs.Trigger.Label>League</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
 

@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/xi_logo_white_png.png",
     "scheme": "ballerz",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
