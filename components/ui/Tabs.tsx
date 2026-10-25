@@ -16,6 +16,7 @@ export default function Tabs<K extends string>({
   return (
     <ScrollView
       horizontal
+      style={styles.scroller}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.bar}
       accessibilityRole="tablist"
@@ -44,6 +45,9 @@ export default function Tabs<K extends string>({
 }
 
 const styles = StyleSheet.create({
+  // ScrollView defaults to flexGrow: 1, which would stretch the pill row to
+  // fill half the screen and push the list below it down. Size to content.
+  scroller: { flexGrow: 0, flexShrink: 0 },
   bar: {
     flexDirection: "row",
     gap: SPACE.sm,
