@@ -4,24 +4,30 @@ import { Text } from "./Text";
 import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
 
 // Borderless grey card. `padded` insets the children; leave it off for
-// ListRows, which carry their own padding and dividers.
+// ListRows, which carry their own padding and dividers. `divider` draws a
+// hairline between the title and the content.
 export default function Section({
   title,
   footer,
   onFooterPress,
   padded = false,
+  divider = false,
   children,
 }: {
   title?: string;
   footer?: string;
   onFooterPress?: () => void;
   padded?: boolean;
+  divider?: boolean;
   children: ReactNode;
 }) {
-  const bodyStyle = padded ? (title ? styles.paddedUnderTitle : styles.padded) : null;
+  const lined = divider && !!title;
+  // Below a divider the content gets full padding, as at the top of a card.
+  const bodyStyle = padded ? (title && !lined ? styles.paddedUnderTitle : styles.padded) : null;
   return (
     <View style={styles.card}>
-      {title ? <Text style={styles.title}>{title}</Text> : null}
+      {title ? <Text style={[styles.title, lined ? styles.titleLined : null]}>{title}</Text> : null}
+      {lined ? <View style={styles.divider} /> : null}
       <View style={bodyStyle}>{children}</View>
       {footer && onFooterPress ? (
         <Pressable
@@ -39,6 +45,8 @@ export default function Section({
 const styles = StyleSheet.create({
   card: { backgroundColor: T.surface, borderRadius: RADIUS.card, overflow: "hidden" },
   title: { ...TYPE.sectionTitle, paddingHorizontal: SPACE.lg, paddingTop: SPACE.lg, paddingBottom: SPACE.sm },
+  titleLined: { paddingBottom: SPACE.md },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: T.divider },
   padded: { padding: SPACE.lg },
   paddedUnderTitle: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.xs, paddingBottom: SPACE.lg },
   footer: {

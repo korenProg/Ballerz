@@ -67,7 +67,7 @@ function DayStrip({ gameDates }: { gameDates: Set<string> }) {
 function MatchSection({ title, game }: { title: string; game: Game }) {
   const router = useRouter();
   return (
-    <Section title={title}>
+    <Section title={title} divider>
       <Pressable
         accessibilityRole="button"
         onPress={() => router.push({ pathname: "/game/[id]", params: { id: game.id } })}
@@ -90,7 +90,7 @@ function HeadToHead() {
   const a = look(teamA);
   const b = look(teamB);
   return (
-    <Section title="Head to head" padded>
+    <Section title="Head to head" padded divider>
       <View style={styles.h2hTeams}>
         <View style={styles.h2hTeam}>
           <Crest name={teamA} color={a.color} logo={a.logo} size={28} />
@@ -127,7 +127,7 @@ function Leaders({ players, games }: { players: Player[]; games: Game[] }) {
   const top = [...players].sort((a, b) => statOf(b) - statOf(a) || b.ovr - a.ovr).slice(0, 5);
 
   return (
-    <Section title="Leaders" footer="All players" onFooterPress={() => router.push("/players")}>
+    <Section title="Leaders" footer="All players" onFooterPress={() => router.push("/players")} divider>
       <Tabs tabs={LEADER_TABS} value={mode} onChange={setMode} />
       {top.map((p, i) => (
         <ListRow
@@ -210,7 +210,7 @@ export default function HomeScreen() {
         {lastResult ? <MatchSection title="Last result" game={lastResult} /> : null}
 
         {!nextGame && !lastResult ? (
-          <Section title="No games yet" padded>
+          <Section title="No games yet" padded divider>
             <View style={styles.prompt}>
               <Text style={styles.body}>
                 {hasPlayers
