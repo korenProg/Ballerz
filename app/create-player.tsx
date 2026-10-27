@@ -1,8 +1,6 @@
 import { useState, type ComponentType, type ReactNode } from "react";
 import {
   View,
-  Text,
-  TextInput,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +8,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
+import { Text, TextInput } from "../components/ui/Text";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +18,7 @@ import NativeSegmentedControl, {
 import Slider from "@react-native-community/slider";
 import { useStore } from "../store";
 import { calculateOvr } from "../utils/ovr";
-import { T, SPACE, SHEET } from "../constants/theme";
+import { T, SPACE, SHEET, FONT } from "../constants/theme";
 import ScreenHeader from "../components/ui/ScreenHeader";
 import RatingBadge from "../components/ui/RatingBadge";
 import PlayerAvatar from "../components/PlayerAvatar";
@@ -243,6 +242,8 @@ export default function CreatePlayerScreen() {
                 selectedIndex={POSITIONS.indexOf(position)}
                 onChange={(e) => setPosition(POSITIONS[e.nativeEvent.selectedSegmentIndex])}
                 appearance="dark"
+                fontStyle={{ fontFamily: FONT }}
+                activeFontStyle={{ fontFamily: FONT }}
                 style={styles.segmentWide}
               />
             </Row>
@@ -253,6 +254,8 @@ export default function CreatePlayerScreen() {
                 selectedIndex={FEET.indexOf(foot)}
                 onChange={(e) => setFoot(FEET[e.nativeEvent.selectedSegmentIndex])}
                 appearance="dark"
+                fontStyle={{ fontFamily: FONT }}
+                activeFontStyle={{ fontFamily: FONT }}
                 style={styles.segmentNarrow}
               />
             </Row>

@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text } from "./Text";
 import { T, SPACE } from "../../constants/theme";
 
 function Value({ v, color }: { v: number; color: string | null }) {

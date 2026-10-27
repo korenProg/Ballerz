@@ -1,5 +1,6 @@
 import { memo, useState, type ComponentProps } from "react";
-import { View, Text, FlatList, StyleSheet, type ListRenderItemInfo } from "react-native";
+import { View, FlatList, StyleSheet, type ListRenderItemInfo } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayersByPosition } from "../../store/selectors";

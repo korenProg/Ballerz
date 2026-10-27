@@ -5,7 +5,7 @@ import { View, StyleSheet, Pressable, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
-import { T } from '../../constants/theme';
+import { T, FONT } from '../../constants/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -120,7 +120,7 @@ export default function TabLayout() {
   }
 
   return (
-    <NativeTabs tintColor={T.accent} minimizeBehavior="onScrollDown">
+    <NativeTabs tintColor={T.accent} minimizeBehavior="onScrollDown" labelStyle={{ fontFamily: FONT }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>

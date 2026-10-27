@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { View, TextInput, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { TextInput } from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { T, SPACE } from "../../constants/theme";

@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text } from "./ui/Text";
 import Crest from "./Crest";
 import { T, SPACE } from "../constants/theme";
 import { shortDate } from "../utils/game";

@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
@@ -12,6 +10,7 @@ import {
   type AlertButton,
   type TextInputProps,
 } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";

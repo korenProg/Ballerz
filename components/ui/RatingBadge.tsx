@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text } from "./Text";
 import { RADIUS } from "../../constants/theme";
 import { ratingColor } from "../../utils/rating";
 

@@ -105,6 +105,9 @@ player avatars. `GameCard` is a compact match row; `GameScoreboard` is the
 card-less match header. `Colors`/`Fonts` in `theme.ts` are Expo template
 leftovers — don't use them.
 
+The font is Helvetica (`FONT` in `theme.ts`): import `Text`/`TextInput` from
+`components/ui/Text`, never from `react-native` — lint rejects the latter.
+
 Styling is `StyleSheet.create` per file. Pure logic that screens need lives in
 import-free files under `utils/` so `npm run check` can test it with Node.
 

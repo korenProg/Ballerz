@@ -24,7 +24,16 @@ export const SHEET = {
   label: "#8E8E93",
 } as const;
 
-export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
+// The app's typeface. iOS ships Helvetica Neue (every weight); Android has no
+// Helvetica, so it keeps its system sans; web asks for Helvetica and falls
+// back to Arial. Applied by components/ui/Text.tsx, never per style.
+export const FONT = Platform.select({
+  ios: "Helvetica Neue",
+  android: "sans-serif",
+  default: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+});
+
+export const SPACE ={ xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
 export const RADIUS = { card: 16, control: 12, badge: 8, pill: 999 } as const;
 

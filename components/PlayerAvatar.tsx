@@ -1,4 +1,5 @@
-import { Text, Image, StyleSheet } from "react-native";
+import { Image, StyleSheet } from "react-native";
+import { Text } from "./ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { initials } from "../utils/initials";

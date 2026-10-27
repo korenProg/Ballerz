@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
+import { Text } from "./Text";
 import { T, TYPE, SPACE } from "../../constants/theme";
 
 export const ROW_H = 64;

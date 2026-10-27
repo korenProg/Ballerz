@@ -1,4 +1,5 @@
-import { ScrollView, Text, Pressable, StyleSheet } from "react-native";
+import { ScrollView, Pressable, StyleSheet } from "react-native";
+import { Text } from "./Text";
 import { T, SPACE, RADIUS } from "../../constants/theme";
 
 // Pill filters. Inactive pills are surfaceAlt so they read both on the black

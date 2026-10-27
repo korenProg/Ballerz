@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native";
+import { View, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { Redirect, useRouter } from "expo-router";
 import { useStore } from "../../store";
 import { useLastGame, useNextGame, useRivalry } from "../../store/selectors";

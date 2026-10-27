@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
-import { Pressable, Text, StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { Text } from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { T, RADIUS, SPACE } from "../../constants/theme";
 

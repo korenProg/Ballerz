@@ -1,8 +1,13 @@
 import { useState } from "react";
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  KeyboardAvoidingView, Platform,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { Text } from "../components/ui/Text";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
