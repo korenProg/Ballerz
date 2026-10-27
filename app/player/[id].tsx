@@ -145,7 +145,11 @@ export default function PlayerDetailScreen() {
 
         <Section title="Attributes" padded>
           <View style={styles.radar}>
-            <AttributeRadar axes={AXES.map(([key, label]) => ({ label, value: player[key] }))} size={radarSize} />
+            <AttributeRadar
+              labels={AXES.map(([, label]) => label)}
+              series={[{ color: T.accent, values: AXES.map(([key]) => player[key]) }]}
+              size={radarSize}
+            />
           </View>
         </Section>
 

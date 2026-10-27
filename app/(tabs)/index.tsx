@@ -14,7 +14,7 @@ import ListRow from "../../components/ui/ListRow";
 import Tabs from "../../components/ui/Tabs";
 import RatingBadge from "../../components/ui/RatingBadge";
 import ResultChip from "../../components/ui/ResultChip";
-import RivalryVersus from "../../components/RivalryVersus";
+import RivalryCarousel from "../../components/RivalryCarousel";
 import Button from "../../components/ui/Button";
 import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
 import { formatDate, parseGameDate } from "../../utils/game";
@@ -29,6 +29,7 @@ const LEADER_TABS = [
   { key: "streak", label: "Streak" },
 ] as const;
 type LeaderKey = (typeof LEADER_TABS)[number]["key"];
+const MAX_RIVALRIES = 5;
 
 function winStreak(playerId: string, finishedGames: Game[]) {
   let streak = 0;
@@ -143,15 +144,16 @@ function TeamOfTheLeague() {
   );
 }
 
-// The two players who have met most often on opposite sides (3+ games).
+// Players who have met on opposite sides 3+ times, most meetings first;
+// swipe between them when there are several.
 function HeadToHead({ players }: { players: Player[] }) {
   const router = useRouter();
-  const rivalry = usePlayerRivalries()[0];
-  if (!rivalry) return null;
+  const rivalries = usePlayerRivalries().slice(0, MAX_RIVALRIES);
+  if (rivalries.length === 0) return null;
   return (
     <Section title="Head to head" padded divider>
-      <RivalryVersus
-        rivalry={rivalry}
+      <RivalryCarousel
+        rivalries={rivalries}
         roster={players}
         onOpen={(id) => router.push({ pathname: "/player/[id]", params: { id } })}
       />

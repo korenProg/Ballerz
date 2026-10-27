@@ -1,12 +1,13 @@
 import { useState, type ComponentProps } from "react";
-import { View, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Text } from "../../components/ui/Text";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import GameScoreboard from "../../components/GameScoreboard";
-import RivalryVersus from "../../components/RivalryVersus";
+import RivalryCarousel from "../../components/RivalryCarousel";
+import AttributeRadar from "../../components/AttributeRadar";
 import LineupPitch from "../../components/LineupPitch";
 import PlayerAvatar from "../../components/PlayerAvatar";
 import ScreenHeader from "../../components/ui/ScreenHeader";
@@ -19,6 +20,7 @@ import { chooseAction } from "../../components/ui/chooseAction";
 import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
 import { shortDate, parseDMY } from "../../utils/game";
 import { MIN_MEETINGS } from "../../utils/rivalries";
+import { ATTRS, teamProfile, winProbability, type TeamProfile, type WinProbability } from "../../utils/matchPreview";
 import { usePlayerRivalries } from "../../store/selectors";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
@@ -26,12 +28,12 @@ import type { Player } from "../../types/players";
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
 const TABS = [
-  { key: "facts", label: "Facts" },
-  { key: "lineup", label: "Lineup" },
-  { key: "h2h", label: "H2H" },
+  { key: "stats", label: "Stats" },
+  { key: "lineups", label: "Lineups" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 const MAX_RIVALRIES = 5;
+const RADAR_LABELS = ATTRS.map((k) => k.toUpperCase());
 
 function ScoreStepper({ team, onMinus, onPlus }: { team: string; onMinus: () => void; onPlus: () => void }) {
   return (
@@ -143,23 +145,92 @@ function PlayerHeadToHead({
   const here = all
     .filter((r) => (home.has(r.a.id) && away.has(r.b.id)) || (home.has(r.b.id) && away.has(r.a.id)))
     .slice(0, MAX_RIVALRIES);
-  if (here.length === 0) {
-    return (
-      <Section padded>
-        <Text style={styles.h2hEmpty}>
+  return (
+    <Section title="Head to head" padded>
+      {here.length === 0 ? (
+        <Text style={styles.note}>
           No rivalries in this game yet. Two players become rivals after {MIN_MEETINGS} games on opposite sides.
         </Text>
-      </Section>
-    );
-  }
+      ) : (
+        <RivalryCarousel rivalries={here} roster={roster} onOpen={onOpen} />
+      )}
+    </Section>
+  );
+}
+
+// FotMob's win probability: three shares and a bar in the team colours.
+function WinChance({ game, chance, colors }: { game: Game; chance: WinProbability; colors: [string, string] }) {
+  const parts = [
+    { key: "home", pct: chance.home, color: colors[0], label: game.homeTeam, align: null },
+    { key: "draw", pct: chance.draw, color: T.surfaceAlt, label: "Draw", align: styles.chanceMiddle },
+    { key: "away", pct: chance.away, color: colors[1], label: game.awayTeam, align: styles.chanceRight },
+  ];
   return (
-    <>
-      {here.map((r) => (
-        <Section key={`${r.a.id}|${r.b.id}`} padded>
-          <RivalryVersus rivalry={r} roster={roster} onOpen={onOpen} />
-        </Section>
-      ))}
-    </>
+    <Section title="Win probability" padded>
+      <View style={styles.chanceRow}>
+        {parts.map((p) => (
+          <View key={p.key} style={[styles.chanceCell, p.align]}>
+            <Text style={styles.chancePct}>{p.pct}%</Text>
+            <Text style={styles.chanceLabel} numberOfLines={1}>
+              {p.label}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <View style={styles.chanceBar}>
+        {parts
+          .filter((p) => p.pct > 0)
+          .map((p) => (
+            <View key={p.key} style={{ flex: p.pct, backgroundColor: p.color }} />
+          ))}
+      </View>
+      <Text style={styles.chanceNote}>From the lineups&apos; ratings, recent form, positions and numbers.</Text>
+    </Section>
+  );
+}
+
+// Both lineups' average attributes on one hexagon.
+function TeamAttributes({
+  game,
+  home,
+  away,
+  colors,
+}: {
+  game: Game;
+  home: TeamProfile;
+  away: TeamProfile;
+  colors: [string, string];
+}) {
+  const { width } = useWindowDimensions();
+  const size = Math.min(width - SPACE.lg * 4, 300);
+  const teams = [
+    { key: "home", name: game.homeTeam, color: colors[0], ovr: home.ovr },
+    { key: "away", name: game.awayTeam, color: colors[1], ovr: away.ovr },
+  ];
+  return (
+    <Section title="Team attributes" padded>
+      <View style={styles.legend}>
+        {teams.map((t) => (
+          <View key={t.key} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: t.color }]} />
+            <Text style={styles.legendName} numberOfLines={1}>
+              {t.name}
+            </Text>
+            <Text style={styles.legendOvr}>{t.ovr}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={styles.radar}>
+        <AttributeRadar
+          labels={RADAR_LABELS}
+          series={[
+            { color: colors[0], values: ATTRS.map((k) => home.attrs[k]), name: game.homeTeam },
+            { color: colors[1], values: ATTRS.map((k) => away.attrs[k]), name: game.awayTeam },
+          ]}
+          size={size}
+        />
+      </View>
+    </Section>
   );
 }
 
@@ -168,9 +239,10 @@ export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = useStore((s) => s.games.find((g) => g.id === id) ?? null);
   const roster = useStore((s) => s.players);
+  const games = useStore((s) => s.games);
   const updateGame = useStore((s) => s.updateGame);
   const deleteGame = useStore((s) => s.deleteGame);
-  const [tab, setTab] = useState<TabKey>("facts");
+  const [tab, setTab] = useState<TabKey>("stats");
 
   if (!game) {
     return (
@@ -184,6 +256,16 @@ export default function GameDetailScreen() {
   const home = game.homePlayers ?? [];
   const away = game.awayPlayers ?? [];
   const openPlayer = (pid: string) => router.push({ pathname: "/player/[id]", params: { id: pid } });
+  // The game itself is left out of the history, so its own result never feeds its prediction.
+  const history = games.filter((g) => g.id !== game.id);
+  const homeProfile = teamProfile(home, roster, history);
+  const awayProfile = teamProfile(away, roster, history);
+  const chance = winProbability(homeProfile, awayProfile);
+  // Same-coloured kits would make the two shapes indistinguishable.
+  const colors: [string, string] = [
+    game.homeColor,
+    game.awayColor.toLowerCase() === game.homeColor.toLowerCase() ? T.text : game.awayColor,
+  ];
 
   const confirmDelete = () =>
     chooseAction(`Delete ${game.homeTeam} v ${game.awayTeam}? This can't be undone.`, [
@@ -221,7 +303,7 @@ export default function GameDetailScreen() {
 
         <Tabs tabs={TABS} value={tab} onChange={setTab} />
 
-        {tab === "facts" ? (
+        {tab === "stats" ? (
           <>
             {game.status === "Live" ? (
               <Section title="Live score" padded>
@@ -243,11 +325,18 @@ export default function GameDetailScreen() {
             {game.status === "FT" && game.mvp?.name ? (
               <PlayerOfTheMatch game={game} roster={roster} onOpen={openPlayer} />
             ) : null}
+            {chance ? <WinChance game={game} chance={chance} colors={colors} /> : null}
+            {homeProfile.size > 0 && awayProfile.size > 0 ? (
+              <TeamAttributes game={game} home={homeProfile} away={awayProfile} colors={colors} />
+            ) : null}
+            {home.length > 0 && away.length > 0 ? (
+              <PlayerHeadToHead game={game} roster={roster} onOpen={openPlayer} />
+            ) : null}
             <MatchInfo game={game} />
           </>
         ) : null}
 
-        {tab === "lineup" ? (
+        {tab === "lineups" ? (
           home.length > 0 || away.length > 0 ? (
             <LineupPitch
               home={{ name: game.homeTeam, color: game.homeColor, logo: game.homeLogo, players: home }}
@@ -257,12 +346,11 @@ export default function GameDetailScreen() {
             />
           ) : (
             <Section padded>
-              <Text style={styles.h2hEmpty}>No lineups were picked for this game.</Text>
+              <Text style={styles.note}>No lineups were picked for this game.</Text>
             </Section>
           )
         ) : null}
 
-        {tab === "h2h" ? <PlayerHeadToHead game={game} roster={roster} onOpen={openPlayer} /> : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -311,5 +399,21 @@ const styles = StyleSheet.create({
   infoCell: { width: "50%", flexDirection: "row", alignItems: "center", gap: SPACE.sm, paddingRight: SPACE.sm },
   infoTxt: { flex: 1, fontSize: 14, fontWeight: "400", color: T.text },
 
-  h2hEmpty: { ...TYPE.rowSecondary, textAlign: "center" },
+  note: { ...TYPE.rowSecondary, textAlign: "center" },
+
+  chanceRow: { flexDirection: "row" },
+  chanceCell: { flex: 1, gap: 2 },
+  chanceMiddle: { alignItems: "center" },
+  chanceRight: { alignItems: "flex-end" },
+  chancePct: { fontSize: 22, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"] },
+  chanceLabel: { fontSize: 12, fontWeight: "500", color: T.textFaint },
+  chanceBar: { flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", gap: 2, marginTop: SPACE.md },
+  chanceNote: { ...TYPE.caption, marginTop: SPACE.md },
+
+  legend: { flexDirection: "row", gap: SPACE.lg, marginBottom: SPACE.sm },
+  legendItem: { flex: 1, flexDirection: "row", alignItems: "center", gap: SPACE.sm },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendName: { flexShrink: 1, fontSize: 14, fontWeight: "600", color: T.text },
+  legendOvr: { fontSize: 14, fontWeight: "700", color: T.textDim, fontVariant: ["tabular-nums"] },
+  radar: { alignItems: "center" },
 });
