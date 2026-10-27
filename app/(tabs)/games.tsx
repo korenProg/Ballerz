@@ -2,7 +2,7 @@ import { useState, type ComponentProps } from "react";
 import { View, Text, SectionList, Pressable, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Swipeable } from "react-native-gesture-handler";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { useStore } from "../../store";
 import { useGamesByStatus } from "../../store/selectors";
 import GameCard from "../../components/GameCard";

@@ -20,7 +20,7 @@ const PILL_W = 54;
 const PILL_H = 32;
 const TAB_H = 34;
 
-function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const [barWidth, setBarWidth] = useState(0);
   const slot = state.routes.length ? barWidth / state.routes.length : 0;
@@ -66,13 +66,13 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         const icons = TAB_ICONS[route.name];
 
         const onPress = () => {
-          const event = navigation.emit({
+          const event = emitter.emit({
             type: 'tabPress',
             target: route.key,
             canPreventDefault: true,
           });
           if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            navigateToTab(route.key);
           }
         };
 
