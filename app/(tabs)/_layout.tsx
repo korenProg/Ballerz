@@ -101,6 +101,9 @@ function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: BottomTa
 // On iOS and Android the tabs are the platform's own native tab bar, so they
 // match the system (Liquid Glass on iOS 26, Material on Android). Web has no
 // native bar, so it keeps the custom FloatingTabBar above.
+// The native bar floats over the screen, and iOS only auto-insets the first
+// scroll view it finds (on Games that's the pill filters), so every tab sets
+// contentInsetAdjustmentBehavior="automatic" on its main list itself.
 export default function TabLayout() {
   if (Platform.OS === 'web') {
     return (

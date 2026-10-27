@@ -114,6 +114,7 @@ export default function GamesScreen() {
         <>
           <Tabs tabs={FILTERS} value={filter} onChange={setFilter} />
           <SectionList
+            contentInsetAdjustmentBehavior="automatic"
             sections={visible}
             keyExtractor={(g) => g.id}
             renderSectionHeader={({ section }) =>

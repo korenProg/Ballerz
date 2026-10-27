@@ -194,6 +194,7 @@ export default function HomeScreen() {
         ]}
       />
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={

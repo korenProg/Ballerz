@@ -139,6 +139,7 @@ export default function PlayersScreen() {
       </View>
       <Tabs tabs={FILTERS} value={filter} onChange={setFilter} />
       <FlatList
+        contentInsetAdjustmentBehavior="automatic"
         data={players}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
