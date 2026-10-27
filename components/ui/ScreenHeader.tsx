@@ -1,22 +1,13 @@
-import type { ComponentProps, ReactNode } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { ReactNode } from "react";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { T, SPACE, SHEET } from "../../constants/theme";
+import { HeaderButton, type HeaderAction } from "./HeaderButton";
+import HeaderMenu, { type HeaderMenuProps } from "./HeaderMenu";
 
-type IoniconName = ComponentProps<typeof Ionicons>["name"];
-
-export type HeaderAction = {
-  icon: IoniconName;
-  label: string;
-  onPress: () => void;
-  // The confirming action (e.g. a sheet's ✓): accent-tinted.
-  prominent?: boolean;
-  disabled?: boolean;
-};
+export { HeaderButton, type HeaderAction };
 
 export const HEADER_H = 56;
 const SIDE_W = 88;
@@ -25,59 +16,6 @@ const SIDE_W = 88;
 // divider glows in the middle and fades out towards both edges.
 const BAR_FADE = ["#171717", T.bg] as const;
 const DIVIDER_FADE = ["transparent", "#3D3D3D", "transparent"] as const;
-
-// iOS 26+ draws the real Liquid Glass material; everywhere else (older iOS,
-// Android, web) the buttons stay as the grey circles.
-const GLASS = isLiquidGlassAvailable();
-
-// The round button used for every top-bar action. Exported so screens
-// without a top bar (the step wizards) can still offer a matching close.
-export function HeaderButton({
-  icon,
-  label,
-  onPress,
-  prominent = false,
-  disabled = false,
-  onSheet = false,
-}: HeaderAction & { onSheet?: boolean }) {
-  const lit = prominent && !disabled;
-  const glyph = <Ionicons name={icon} size={20} color={lit ? "#000" : T.text} />;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled }}
-      disabled={disabled}
-      hitSlop={6}
-      onPress={onPress}
-      style={({ pressed }) =>
-        GLASS
-          ? [styles.glassHit, disabled ? styles.disabled : null, pressed ? styles.glassPressed : null]
-          : [
-              styles.btn,
-              onSheet ? styles.btnOnSheet : null,
-              pressed ? styles.btnPressed : null,
-              lit ? styles.btnProminent : null,
-              disabled ? styles.disabled : null,
-            ]
-      }
-    >
-      {GLASS ? (
-        <GlassView
-          style={styles.btn}
-          glassEffectStyle="regular"
-          colorScheme="dark"
-          tintColor={lit ? T.accent : undefined}
-          isInteractive
-        >
-          {glyph}
-        </GlassView>
-      ) : (
-        glyph
-      )}
-    </Pressable>
-  );
-}
 
 // The one top bar every screen uses. Screens pass data, never their own
 // buttons, so every bar has the same height, spacing and button style.
@@ -90,6 +28,7 @@ export default function ScreenHeader({
   onNav,
   crest,
   actions = [],
+  menu,
   sheet = false,
 }: {
   title: string;
@@ -98,6 +37,8 @@ export default function ScreenHeader({
   onNav?: () => void;
   crest?: ReactNode;
   actions?: HeaderAction[];
+  // A ⋯ button at the far right that opens these items as a menu.
+  menu?: HeaderMenuProps;
   // Inside an iOS sheet the screen starts below the status bar, so no top
   // inset, and the bar is drawn flat on the sheet colour.
   sheet?: boolean;
@@ -143,6 +84,7 @@ export default function ScreenHeader({
           {actions.slice(0, 2).map((a) => (
             <HeaderButton key={a.label} {...a} onSheet={sheet} />
           ))}
+          {menu ? <HeaderMenu {...menu} /> : null}
         </View>
       </View>
       {sheet ? null : (
@@ -168,26 +110,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: SPACE.lg,
   },
-  // Fits two 40px buttons plus the gap between them.
+  // Fits two 40px buttons (actions and/or the menu) plus the gap between them.
   side: { width: SIDE_W, flexDirection: "row", alignItems: "center", gap: SPACE.sm },
   sideLeft: { justifyContent: "flex-start" },
   sideRight: { justifyContent: "flex-end" },
   center: { flex: 1, alignItems: "center", paddingHorizontal: SPACE.xs },
-  btn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: T.surface,
-  },
-  btnOnSheet: { backgroundColor: SHEET.cell },
-  btnPressed: { backgroundColor: T.surfaceAlt },
-  btnProminent: { backgroundColor: T.accent },
-  disabled: { opacity: 0.35 },
-  // With glass, the GlassView is the visible circle; the Pressable just hosts it.
-  glassHit: { width: 40, height: 40, borderRadius: 20 },
-  glassPressed: { opacity: 0.8 },
   titles: { maxWidth: "100%", alignItems: "center" },
   title: { fontSize: 17, fontWeight: "700", color: T.text, textAlign: "center" },
   subtitle: { fontSize: 12, fontWeight: "400", color: T.textDim, textAlign: "center", marginTop: 1 },

@@ -89,13 +89,20 @@ export default function PlayerDetailScreen() {
       <ScreenHeader
         nav="back"
         title="Player"
-        actions={[
-          {
-            icon: "create-outline",
-            label: "Edit player",
-            onPress: () => router.push({ pathname: "/create-player", params: { id: player.id } }),
-          },
-        ]}
+        menu={{
+          label: "Player options",
+          items: [
+            {
+              label: "Edit",
+              sfSymbol: "pencil",
+              onPress: () => router.push({ pathname: "/create-player", params: { id: player.id } }),
+            },
+            player.isMvp
+              ? { label: "Current League MVP", sfSymbol: "star.fill", onPress: () => {}, disabled: true }
+              : { label: "Set as League MVP", sfSymbol: "star", onPress: () => setMvp(player.id) },
+            { label: "Delete Player", sfSymbol: "trash", destructive: true, onPress: confirmDelete },
+          ],
+        }}
       />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
@@ -181,26 +188,6 @@ export default function PlayerDetailScreen() {
           </Section>
         ) : null}
 
-        <Section>
-          <Pressable
-            accessibilityRole="button"
-            disabled={!!player.isMvp}
-            onPress={() => setMvp(player.id)}
-            style={({ pressed }) => [styles.actionRow, pressed ? styles.pressed : null]}
-          >
-            <Text style={[styles.actionTxt, player.isMvp ? styles.actionDone : null]}>
-              {player.isMvp ? "Current League MVP" : "Make League MVP"}
-            </Text>
-            <View style={styles.rowDivider} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={confirmDelete}
-            style={({ pressed }) => [styles.actionRow, pressed ? styles.pressed : null]}
-          >
-            <Text style={[styles.actionTxt, styles.destructive]}>Delete Player</Text>
-          </Pressable>
-        </Section>
       </ScrollView>
     </SafeAreaView>
   );
@@ -270,9 +257,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: T.divider,
   },
-
-  actionRow: { height: 52, justifyContent: "center", paddingHorizontal: SPACE.lg },
-  actionTxt: { fontSize: 17, fontWeight: "400", color: T.accent },
-  actionDone: { color: T.textDim },
-  destructive: { color: T.red },
 });

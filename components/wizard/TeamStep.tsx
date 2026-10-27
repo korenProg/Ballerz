@@ -8,18 +8,25 @@ type TeamStepProps = {
   sideLabel: "Home" | "Away";
   colors: string[];
   name: string; onName: (s: string) => void;
+  // The side's stock name ("Team A"). Tapping the field clears it; leaving
+  // the field empty puts it back.
+  defaultName: string;
+  nameError?: string;
   color: string; onColor: (c: string) => void;
   logo: string | null; onPickLogo: () => void; onClearLogo: () => void;
   players: Player[];
   selectedIds: string[];
+  // Players already picked for the other side, who can't play for this one.
+  takenIds: string[];
+  otherTeamName: string;
   onToggle: (id: string) => void;
   defaultTeamSize: number;
   onAddPlayers: () => void;
 };
 
 export default function TeamStep({
-  sideLabel, colors, name, onName, color, onColor,
-  logo, onPickLogo, onClearLogo, players, selectedIds, onToggle,
+  sideLabel, colors, name, onName, defaultName, nameError, color, onColor,
+  logo, onPickLogo, onClearLogo, players, selectedIds, takenIds, otherTeamName, onToggle,
   defaultTeamSize, onAddPlayers,
 }: TeamStepProps) {
   return (
@@ -28,18 +35,27 @@ export default function TeamStep({
       <Text style={styles.sub}>Set up the {sideLabel.toLowerCase()} side.</Text>
 
       <View style={styles.preview}>
-        <Crest name={name || sideLabel} color={color} logo={logo ?? undefined} size={96} />
-        <Text style={styles.previewName} numberOfLines={1}>{name || sideLabel}</Text>
+        <Crest name={name || defaultName} color={color} logo={logo ?? undefined} size={96} />
+        <Text style={styles.previewName} numberOfLines={1}>{name || defaultName}</Text>
       </View>
 
       <Text style={styles.label}>Team name</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, nameError ? styles.inputError : null]}
         value={name}
         onChangeText={onName}
-        placeholder={sideLabel === "Home" ? "e.g. Reds" : "e.g. Blues"}
+        onFocus={() => {
+          if (name === defaultName) onName("");
+        }}
+        onBlur={() => {
+          if (!name.trim()) onName(defaultName);
+        }}
+        placeholder={defaultName}
         placeholderTextColor={T.textFaint}
+        keyboardAppearance="dark"
+        selectionColor={T.accent}
       />
+      {nameError ? <Text style={styles.error}>{nameError}</Text> : null}
 
       <Text style={styles.label}>Color</Text>
       <View style={styles.swatchRow}>
@@ -82,14 +98,20 @@ export default function TeamStep({
         <View style={styles.chipWrap}>
           {players.map((p) => {
             const on = selectedIds.includes(p.id);
+            const taken = takenIds.includes(p.id);
             return (
               <TouchableOpacity
                 key={p.id}
-                style={[styles.chip, on && { backgroundColor: color, borderColor: color }]}
+                style={[styles.chip, on && { backgroundColor: color, borderColor: color }, taken && styles.chipTaken]}
                 activeOpacity={0.8}
+                disabled={taken}
+                accessibilityState={{ disabled: taken, selected: on }}
                 onPress={() => onToggle(p.id)}
               >
-                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{p.name}</Text>
+                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>
+                  {p.name}
+                  {taken ? <Text style={styles.chipTakenTxt}>{` · ${otherTeamName}`}</Text> : null}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -118,4 +140,8 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: T.surface, borderWidth: 1, borderColor: T.divider },
   chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
   chipTxtOn: { color: "#fff" },
+  chipTaken: { opacity: 0.4 },
+  chipTakenTxt: { fontWeight: "500" },
+  inputError: { borderColor: T.red },
+  error: { fontSize: 12, fontWeight: "500", color: T.red, marginTop: 6 },
 });

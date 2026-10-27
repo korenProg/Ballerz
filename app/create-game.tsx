@@ -9,8 +9,13 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../store";
 import { formatDate, parseDMY } from "../utils/game";
+import {
+  MIN_PLAYERS_FOR_GAME, DEFAULT_HOME_TEAM, DEFAULT_AWAY_TEAM, teamNamesClash,
+} from "../utils/gameRules";
 import { T } from "../constants/theme";
-import { HeaderButton } from "../components/ui/ScreenHeader";
+import { HeaderButton } from "../components/ui/HeaderButton";
+import EmptyState from "../components/ui/EmptyState";
+import Button from "../components/ui/Button";
 import TeamStep from "../components/wizard/TeamStep";
 import DetailsStep from "../components/wizard/DetailsStep";
 
@@ -29,8 +34,8 @@ export default function CreateGameScreen() {
 
   const [step, setStep] = useState(0);
   const [showDate, setShowDate] = useState(false);
-  const [homeTeam, setHomeTeam] = useState(editing?.homeTeam ?? "");
-  const [awayTeam, setAwayTeam] = useState(editing?.awayTeam ?? "");
+  const [homeTeam, setHomeTeam] = useState(editing?.homeTeam ?? DEFAULT_HOME_TEAM);
+  const [awayTeam, setAwayTeam] = useState(editing?.awayTeam ?? DEFAULT_AWAY_TEAM);
   const [homeColor, setHomeColor] = useState(editing?.homeColor ?? league.color);
   const [awayColor, setAwayColor] = useState(editing?.awayColor ?? TEAM_COLORS[1]);
   const [date, setDate] = useState(editing?.date ?? formatDate(new Date()));
@@ -72,6 +77,7 @@ export default function CreateGameScreen() {
   }
 
   function save() {
+    if (namesClash) return;
     const base = {
       league: league.name,
       homeTeam: homeTeam.trim(), awayTeam: awayTeam.trim(),
@@ -103,13 +109,35 @@ export default function CreateGameScreen() {
     router.back();
   }
 
+  const namesClash = teamNamesClash(homeTeam, awayTeam);
+  const nameError = namesClash ? "Both teams can't have the same name." : undefined;
   const canContinue =
-    step === 0 ? homeTeam.trim().length > 0 : step === 1 ? awayTeam.trim().length > 0 : true;
+    !namesClash &&
+    (step === 0 ? homeTeam.trim().length > 0 : step === 1 ? awayTeam.trim().length > 0 : true);
   const dateLabel = parseDMY(date).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 
   function next() {
     if (step < 2) { setStep(step + 1); return; }
     if (canContinue) save();
+  }
+
+  // A new game needs players for both sides; editing an existing one never blocks.
+  if (!editing && players.length < MIN_PLAYERS_FOR_GAME) {
+    const missing = MIN_PLAYERS_FOR_GAME - players.length;
+    return (
+      <SafeAreaView style={styles.main} edges={["top", "bottom"]}>
+        <View style={styles.progressRow}>
+          <HeaderButton icon="close" label="Close new game" onPress={() => router.back()} />
+        </View>
+        <EmptyState
+          icon="people-outline"
+          title={`Add ${missing === 1 ? "one more player" : `${missing} players`} first`}
+          sub={`A game needs at least ${MIN_PLAYERS_FOR_GAME} players in your league, one for each team.`}
+        >
+          <Button icon="person-add-outline" label="Add Player" onPress={() => router.push("/create-player")} />
+        </EmptyState>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -139,18 +167,22 @@ export default function CreateGameScreen() {
           {step === 0 && (
             <TeamStep
               sideLabel="Home" colors={TEAM_COLORS}
-              name={homeTeam} onName={setHomeTeam} color={homeColor} onColor={setHomeColor}
+              name={homeTeam} onName={setHomeTeam} defaultName={DEFAULT_HOME_TEAM} nameError={nameError}
+              color={homeColor} onColor={setHomeColor}
               logo={homeLogo} onPickLogo={() => pickLogo(setHomeLogo)} onClearLogo={() => setHomeLogo(null)}
               players={players} selectedIds={homePlayerIds} onToggle={(pid) => toggle("home", pid)}
+              takenIds={awayPlayerIds} otherTeamName={awayTeam.trim() || DEFAULT_AWAY_TEAM}
               defaultTeamSize={league.defaultTeamSize} onAddPlayers={() => router.push("/create-player")}
             />
           )}
           {step === 1 && (
             <TeamStep
               sideLabel="Away" colors={TEAM_COLORS}
-              name={awayTeam} onName={setAwayTeam} color={awayColor} onColor={setAwayColor}
+              name={awayTeam} onName={setAwayTeam} defaultName={DEFAULT_AWAY_TEAM} nameError={nameError}
+              color={awayColor} onColor={setAwayColor}
               logo={awayLogo} onPickLogo={() => pickLogo(setAwayLogo)} onClearLogo={() => setAwayLogo(null)}
               players={players} selectedIds={awayPlayerIds} onToggle={(pid) => toggle("away", pid)}
+              takenIds={homePlayerIds} otherTeamName={homeTeam.trim() || DEFAULT_HOME_TEAM}
               defaultTeamSize={league.defaultTeamSize} onAddPlayers={() => router.push("/create-player")}
             />
           )}
