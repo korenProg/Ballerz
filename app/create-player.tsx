@@ -1,105 +1,72 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  LayoutChangeEvent,
-  DimensionValue,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import NativeSegmentedControl, {
+  type SegmentedControlProps,
+} from "@react-native-segmented-control/segmented-control";
+import Slider from "@react-native-community/slider";
 import { useStore } from "../store";
 import { calculateOvr } from "../utils/ovr";
-import { T } from "../constants/theme";
+import { T, SPACE } from "../constants/theme";
 import ScreenHeader from "../components/ui/ScreenHeader";
+import RatingBadge from "../components/ui/RatingBadge";
 
 const POSITIONS = ["GK", "DEF", "MID", "FWD"] as const;
 type Position = (typeof POSITIONS)[number];
+const FEET = ["L", "R"] as const;
 
 const ATTR_ROWS = [
-  ["pac", "PAC"],
-  ["sho", "SHO"],
-  ["pas", "PAS"],
-  ["dri", "DRI"],
-  ["def", "DEF"],
-  ["phy", "PHY"],
+  ["pac", "Pace"],
+  ["sho", "Shooting"],
+  ["pas", "Passing"],
+  ["dri", "Dribbling"],
+  ["def", "Defending"],
+  ["phy", "Physical"],
 ] as const;
-
 type AttrKey = (typeof ATTR_ROWS)[number][0];
+type Attrs = Record<AttrKey, number>;
 
-const THUMB = 22;
+// The package types its default export through a mixin that loses `props`
+// under React 19's JSX types; the runtime component is unchanged.
+const SegmentedControl = NativeSegmentedControl as unknown as ComponentType<SegmentedControlProps>;
 
-function Slider({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  const widthRef = useRef(0);
-  const onChangeRef = useRef(onChange);
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  const setFromX = (x: number) => {
-    const w = widthRef.current;
-    if (!w) return;
-    const ratio = Math.max(0, Math.min(1, x / w));
-    onChangeRef.current(Math.round(ratio * 99));
-  };
-
-  const onLayout = (e: LayoutChangeEvent) => {
-    widthRef.current = e.nativeEvent.layout.width;
-  };
-
-  const pct = `${(value / 99) * 100}%` as DimensionValue;
-
-  return (
-    <View
-      style={styles.sliderArea}
-      onLayout={onLayout}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
-      onResponderGrant={(e) => setFromX(e.nativeEvent.locationX)}
-      onResponderMove={(e) => setFromX(e.nativeEvent.locationX)}
-    >
-      <View style={styles.sliderBar} pointerEvents="none" />
-      <View style={[styles.sliderFill, { width: pct }]} pointerEvents="none" />
-      <View
-        style={[styles.sliderThumb, { left: pct, marginLeft: -THUMB / 2 }]}
-        pointerEvents="none"
-      />
-    </View>
-  );
+// iOS grouped-inset section: a rounded card on the black page.
+function Group({ children, padded = false }: { children: ReactNode; padded?: boolean }) {
+  return <View style={[styles.group, padded ? styles.groupPadded : null]}>{children}</View>;
 }
 
+// Presented as an iOS sheet (app/_layout.tsx: presentation "modal") — it
+// slides up over the current screen and swipes down to close, like WhatsApp's
+// "New contact".
 export default function CreatePlayerScreen() {
   const router = useRouter();
-  // An `id` param turns this screen into the edit form for that player.
+  const insets = useSafeAreaInsets();
+  // An `id` param turns this sheet into the edit form for that player.
   const { id } = useLocalSearchParams<{ id?: string }>();
   const editing = useStore((s) => s.players.find((p) => p.id === id) ?? null);
   const addPlayer = useStore((s) => s.addPlayer);
   const updatePlayer = useStore((s) => s.updatePlayer);
 
-  const [photo, setPhoto] = useState<string | null>(editing?.photo ?? null);
-  const [name, setName] = useState(editing?.name ?? "");
-  const [nameFocused, setNameFocused] = useState(false);
-  const [position, setPosition] = useState<Position>(
-    (editing?.position as Position) ?? "MID"
-  );
-  const [foot, setFoot] = useState<"L" | "R">(editing?.foot ?? "R");
-  const [attrs, setAttrs] = useState<Record<AttrKey, number>>(
-    editing
+  const [initial] = useState(() => ({
+    photo: editing?.photo ?? null,
+    name: editing?.name ?? "",
+    position: ((editing?.position as Position) ?? "MID") as Position,
+    foot: editing?.foot ?? ("R" as const),
+    attrs: (editing
       ? {
           pac: editing.pac,
           sho: editing.sho,
@@ -108,22 +75,23 @@ export default function CreatePlayerScreen() {
           def: editing.def,
           phy: editing.phy,
         }
-      : { pac: 50, sho: 50, pas: 50, dri: 50, def: 50, phy: 50 }
-  );
+      : { pac: 50, sho: 50, pas: 50, dri: 50, def: 50, phy: 50 }) as Attrs,
+  }));
 
-  const setAttr = (key: AttrKey) => (v: number) =>
-    setAttrs((a) => ({ ...a, [key]: v }));
+  const [photo, setPhoto] = useState<string | null>(initial.photo);
+  const [name, setName] = useState(initial.name);
+  const [position, setPosition] = useState<Position>(initial.position);
+  const [foot, setFoot] = useState<"L" | "R">(initial.foot);
+  const [attrs, setAttrs] = useState<Attrs>(initial.attrs);
 
-  const ovr = calculateOvr(
-    attrs.pac,
-    attrs.sho,
-    attrs.pas,
-    attrs.dri,
-    attrs.def,
-    attrs.phy
-  );
-
+  const ovr = calculateOvr(attrs.pac, attrs.sho, attrs.pas, attrs.dri, attrs.def, attrs.phy);
   const canSave = name.trim().length > 0;
+  const dirty =
+    photo !== initial.photo ||
+    name !== initial.name ||
+    position !== initial.position ||
+    foot !== initial.foot ||
+    ATTR_ROWS.some(([key]) => attrs[key] !== initial.attrs[key]);
 
   async function pickFromLibrary() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -141,291 +109,228 @@ export default function CreatePlayerScreen() {
       Alert.alert("Camera unavailable", "Allow camera access to take a photo.");
       return;
     }
-    const res = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+    const res = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!res.canceled) setPhoto(res.assets[0].uri);
   }
 
   function pickPhoto() {
-    Alert.alert("Player photo", "Choose a source", [
+    Alert.alert("Player photo", undefined, [
       { text: "Take Photo", onPress: takePhoto },
       { text: "Choose from Library", onPress: pickFromLibrary },
-      { text: "Cancel", style: "cancel" },
+      ...(photo
+        ? [{ text: "Remove Photo", style: "destructive" as const, onPress: () => setPhoto(null) }]
+        : []),
+      { text: "Cancel", style: "cancel" as const },
+    ]);
+  }
+
+  // Closing with unsaved input asks first, the iOS way.
+  function close() {
+    if (!dirty) {
+      router.back();
+      return;
+    }
+    Alert.alert(editing ? "Discard your changes?" : "Discard this player?", undefined, [
+      { text: "Keep Editing", style: "cancel" },
+      { text: "Discard", style: "destructive", onPress: () => router.back() },
     ]);
   }
 
   function save() {
     if (!canSave) return;
-    const base = {
-      name: name.trim(),
-      photo: photo ?? undefined,
-      position,
-      foot,
-      ovr,
-      ...attrs,
-    };
+    const base = { name: name.trim(), photo: photo ?? undefined, position, foot, ovr, ...attrs };
     if (editing) {
       // Leaves form, goals, assists, mvps and isMvp untouched.
       updatePlayer(editing.id, base);
     } else {
-      addPlayer({
-        ...base,
-        form: "neutral",
-        goals: 0,
-        assists: 0,
-        mvps: 0,
-      });
+      addPlayer({ ...base, form: "neutral", goals: 0, assists: 0, mvps: 0 });
     }
     router.back();
   }
 
   return (
-    <SafeAreaView style={styles.main} edges={["bottom"]}>
-      <ScreenHeader nav="close" title={editing ? "Edit player" : "New player"} />
-      <KeyboardAvoidingView
-        style={[styles.flex, styles.body]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-
+    <View style={styles.main}>
+      {/* With unsaved input, swipe-down is disabled so ✕ can ask first. */}
+      <Stack.Screen options={{ gestureEnabled: !dirty }} />
+      <ScreenHeader
+        sheet
+        nav="close"
+        onNav={close}
+        title={editing ? "Edit player" : "New player"}
+        actions={[
+          {
+            icon: "checkmark",
+            label: editing ? "Save changes" : "Save player",
+            onPress: save,
+            prominent: true,
+            disabled: !canSave,
+          },
+        ]}
+      />
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + SPACE.xxxl }]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.previewRow}>
-            <TouchableOpacity style={styles.photo} activeOpacity={0.8} onPress={pickPhoto}>
+          <View style={styles.photoBlock}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={photo ? "Change player photo" : "Add player photo"}
+              onPress={pickPhoto}
+              style={({ pressed }) => (pressed ? styles.pressed : null)}
+            >
               {photo ? (
-                <Image source={{ uri: photo }} style={styles.photoImg} />
+                <Image source={{ uri: photo }} style={styles.photo} />
               ) : (
-                <>
-                  <Ionicons name="camera-outline" size={24} color={T.textDim} />
-                  <Text style={styles.photoTxt}>Add photo</Text>
-                </>
+                <View style={[styles.photo, styles.photoEmpty]}>
+                  <Ionicons name="person" size={52} color={T.textFaint} />
+                </View>
               )}
-            </TouchableOpacity>
-
-            <View style={styles.ovrBadge}>
-              <Text style={styles.ovrValue}>{ovr}</Text>
-              <Text style={styles.ovrLabel}>OVR</Text>
-              <View style={styles.ovrDivider} />
-              <Text style={styles.ovrPos}>{position}</Text>
-            </View>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={pickPhoto} hitSlop={8}>
+              <Text style={styles.photoLink}>{photo ? "Edit Photo" : "Add Photo"}</Text>
+            </Pressable>
           </View>
 
-          <Text style={styles.fieldLabel}>Name</Text>
-          <View style={[styles.inputWrap, nameFocused && styles.inputWrapFocused]}>
-            <Ionicons
-              name="person-outline"
-              size={18}
-              color={nameFocused ? T.text : T.textFaint}
-            />
+          <Group>
             <TextInput
-              style={styles.inputField}
+              style={styles.nameInput}
               value={name}
               onChangeText={setName}
-              placeholder="e.g. Koren"
+              placeholder="Full name"
               placeholderTextColor={T.textFaint}
-              autoFocus
+              autoFocus={!editing}
+              autoCorrect={false}
+              autoCapitalize="words"
               returnKeyType="done"
-              onFocus={() => setNameFocused(true)}
-              onBlur={() => setNameFocused(false)}
-              onSubmitEditing={save}
+              keyboardAppearance="dark"
+              selectionColor={T.accent}
+              accessibilityLabel="Full name"
             />
-          </View>
+          </Group>
 
-          <Text style={styles.fieldLabel}>Position</Text>
-          <View style={styles.chipRow}>
-            {POSITIONS.map((p) => (
-              <TouchableOpacity
-                key={p}
-                style={[styles.chip, position === p && styles.chipActive]}
-                activeOpacity={0.8}
-                onPress={() => setPosition(p)}
-              >
-                <Text style={[styles.chipTxt, position === p && styles.chipTxtActive]}>
-                  {p}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.groupLabel}>Position</Text>
+          <Group padded>
+            <SegmentedControl
+              values={[...POSITIONS]}
+              selectedIndex={POSITIONS.indexOf(position)}
+              onChange={(e) => setPosition(POSITIONS[e.nativeEvent.selectedSegmentIndex])}
+              appearance="dark"
+              style={styles.segment}
+            />
+          </Group>
 
-          <Text style={styles.fieldLabel}>Strong foot</Text>
-          <View style={styles.chipRow}>
-            {(["L", "R"] as const).map((f) => (
-              <TouchableOpacity
-                key={f}
-                style={[styles.chip, foot === f && styles.chipActive]}
-                activeOpacity={0.8}
-                onPress={() => setFoot(f)}
-              >
-                <Text style={[styles.chipTxt, foot === f && styles.chipTxtActive]}>
-                  {f === "L" ? "Left" : "Right"}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.groupLabel}>Preferred foot</Text>
+          <Group padded>
+            <SegmentedControl
+              values={["Left", "Right"]}
+              selectedIndex={FEET.indexOf(foot)}
+              onChange={(e) => setFoot(FEET[e.nativeEvent.selectedSegmentIndex])}
+              appearance="dark"
+              style={styles.segment}
+            />
+          </Group>
 
-          <Text style={styles.fieldLabel}>Attributes</Text>
-          <View style={styles.attrCard}>
-            {ATTR_ROWS.map(([key, label]) => (
+          <View style={styles.groupHead}>
+            <Text style={[styles.groupLabel, styles.groupLabelInline]}>Attributes</Text>
+            <View style={styles.ovr}>
+              <Text style={styles.ovrLabel}>OVR</Text>
+              <RatingBadge value={ovr} />
+            </View>
+          </View>
+          <Group>
+            {ATTR_ROWS.map(([key, label], i) => (
               <View key={key} style={styles.attrRow}>
                 <Text style={styles.attrLabel}>{label}</Text>
-                <Slider value={attrs[key]} onChange={setAttr(key)} />
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={99}
+                  step={1}
+                  value={attrs[key]}
+                  onValueChange={(v) => setAttrs((a) => ({ ...a, [key]: Math.round(v) }))}
+                  minimumTrackTintColor={T.accent}
+                  maximumTrackTintColor={T.surfaceAlt}
+                  thumbTintColor={Platform.OS === "ios" ? undefined : T.accent}
+                  accessibilityLabel={label}
+                />
                 <Text style={styles.attrValue}>{attrs[key]}</Text>
+                {i < ATTR_ROWS.length - 1 ? <View style={styles.rowDivider} /> : null}
               </View>
             ))}
-          </View>
+          </Group>
         </ScrollView>
-
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
-            activeOpacity={0.8}
-            disabled={!canSave}
-            onPress={save}
-          >
-            <Text style={[styles.saveBtnTxt, !canSave && styles.saveBtnTxtDisabled]}>Save Player</Text>
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  main: { flex: 1, backgroundColor: T.bg, paddingBottom: 12 },
-  body: { paddingHorizontal: 24 },
+  main: { flex: 1, backgroundColor: T.bg },
   flex: { flex: 1 },
+  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md },
+  pressed: { opacity: 0.7 },
 
+  photoBlock: { alignItems: "center", gap: SPACE.md, marginBottom: SPACE.xxl },
+  photo: { width: 104, height: 104, borderRadius: 52 },
+  photoEmpty: { backgroundColor: T.surfaceAlt, alignItems: "center", justifyContent: "center" },
+  photoLink: { fontSize: 16, fontWeight: "500", color: T.accent },
 
-  scrollContent: { paddingTop: 20, paddingBottom: 24 },
-
-  previewRow: {
+  group: { backgroundColor: T.surface, borderRadius: 12, overflow: "hidden" },
+  groupPadded: { padding: SPACE.md },
+  groupLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: T.textDim,
+    marginTop: SPACE.xxl,
+    marginBottom: SPACE.sm,
+    marginLeft: SPACE.lg,
+  },
+  groupHead: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: SPACE.xxl,
+    marginBottom: SPACE.sm,
   },
-  photo: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.divider,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    overflow: "hidden",
-  },
-  photoImg: { width: "100%", height: "100%" },
-  photoTxt: { fontSize: 11, fontWeight: "700", color: T.textDim },
+  groupLabelInline: { marginTop: 0, marginBottom: 0 },
+  ovr: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, marginRight: SPACE.xs },
+  ovrLabel: { fontSize: 13, fontWeight: "500", color: T.textDim },
 
-  ovrBadge: {
-    width: 88,
-    height: 104,
-    borderRadius: 18,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.divider,
-    alignItems: "center",
-    justifyContent: "center",
+  nameInput: {
+    height: 48,
+    paddingHorizontal: SPACE.lg,
+    fontSize: 17,
+    color: T.text,
+    outlineWidth: 0,
   },
-  ovrValue: { fontSize: 42, fontWeight: "700", color: T.text, lineHeight: 44, fontVariant: ["tabular-nums"] },
-  ovrLabel: { fontSize: 11, fontWeight: "700", color: T.textDim, letterSpacing: 3 },
-  ovrDivider: { width: 26, height: 1, backgroundColor: T.divider, marginVertical: 7 },
-  ovrPos: { fontSize: 12, fontWeight: "700", color: T.textDim, letterSpacing: 1 },
+  segment: { height: 34 },
 
-  fieldLabel: { fontSize: 12, fontWeight: "700", color: T.textDim, marginTop: 22, marginBottom: 8 },
-  inputWrap: {
+  attrRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    backgroundColor: T.surface,
-    borderWidth: 1.5,
-    borderColor: T.divider,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
+    gap: SPACE.md,
+    height: 52,
+    paddingHorizontal: SPACE.lg,
   },
-  inputWrapFocused: {
-    borderColor: T.text,
-    backgroundColor: T.bg,
-  },
-  inputField: {
-    flex: 1,
-    paddingVertical: 13,
-    fontSize: 16,
+  attrLabel: { width: 84, fontSize: 15, fontWeight: "400", color: T.text },
+  slider: { flex: 1, height: 40 },
+  attrValue: {
+    width: 28,
+    textAlign: "right",
+    fontSize: 15,
     fontWeight: "600",
     color: T.text,
+    fontVariant: ["tabular-nums"],
   },
-
-  chipRow: { flexDirection: "row", gap: 8 },
-  chip: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 999,
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.divider,
-    alignItems: "center",
-  },
-  chipActive: { backgroundColor: T.accent },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: T.textDim },
-  chipTxtActive: { color: "#000", fontWeight: "700" },
-
-  attrCard: {
-    backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.divider,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  attrRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 10 },
-  attrLabel: { width: 38, fontSize: 12, fontWeight: "700", color: T.textDim },
-  attrValue: { width: 26, fontSize: 14, fontWeight: "700", color: T.text, textAlign: "right", fontVariant: ["tabular-nums"] },
-
-  sliderArea: { flex: 1, height: 24, justifyContent: "center" },
-  sliderBar: {
+  rowDivider: {
     position: "absolute",
-    left: 0,
+    left: SPACE.lg,
     right: 0,
-    top: 9,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: T.bg,
+    bottom: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: T.divider,
   },
-  sliderFill: {
-    position: "absolute",
-    left: 0,
-    top: 9,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: T.accent,
-  },
-  sliderThumb: {
-    position: "absolute",
-    top: 1,
-    width: THUMB,
-    height: THUMB,
-    borderRadius: THUMB / 2,
-    backgroundColor: T.accent,
-    borderWidth: 3,
-    borderColor: T.bg,
-  },
-
-  footer: { flexDirection: "row", marginTop: 12 },
-  saveBtn: {
-    flex: 1,
-    backgroundColor: T.accent,
-    paddingVertical: 15,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  saveBtnDisabled: { backgroundColor: T.surfaceAlt },
-  saveBtnTxtDisabled: { color: T.textFaint },
-  saveBtnTxt: { fontSize: 14, fontWeight: "700", color: T.bg },
 });

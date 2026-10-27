@@ -55,7 +55,7 @@ function AppStack({ colorScheme }: { colorScheme: ReturnType<typeof useColorSche
           />
           <Stack.Screen
             name="create-player"
-            options={{ headerShown: false }}
+            options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
             name="create-game"

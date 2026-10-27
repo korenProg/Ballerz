@@ -9,7 +9,14 @@ import { T, SPACE } from "../../constants/theme";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
-export type HeaderAction = { icon: IoniconName; label: string; onPress: () => void };
+export type HeaderAction = {
+  icon: IoniconName;
+  label: string;
+  onPress: () => void;
+  // The confirming action (e.g. a sheet's ✓): accent-tinted.
+  prominent?: boolean;
+  disabled?: boolean;
+};
 
 export const HEADER_H = 56;
 const SIDE_W = 88;
@@ -25,22 +32,42 @@ const GLASS = isLiquidGlassAvailable();
 
 // The round button used for every top-bar action. Exported so screens
 // without a top bar (the step wizards) can still offer a matching close.
-export function HeaderButton({ icon, label, onPress }: HeaderAction) {
-  const glyph = <Ionicons name={icon} size={20} color={T.text} />;
+export function HeaderButton({
+  icon,
+  label,
+  onPress,
+  prominent = false,
+  disabled = false,
+}: HeaderAction) {
+  const lit = prominent && !disabled;
+  const glyph = <Ionicons name={icon} size={20} color={lit ? "#000" : T.text} />;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       hitSlop={6}
       onPress={onPress}
       style={({ pressed }) =>
         GLASS
-          ? [styles.glassHit, pressed ? styles.glassPressed : null]
-          : [styles.btn, pressed ? styles.btnPressed : null]
+          ? [styles.glassHit, disabled ? styles.disabled : null, pressed ? styles.glassPressed : null]
+          : [
+              styles.btn,
+              pressed ? styles.btnPressed : null,
+              lit ? styles.btnProminent : null,
+              disabled ? styles.disabled : null,
+            ]
       }
     >
       {GLASS ? (
-        <GlassView style={styles.btn} glassEffectStyle="regular" colorScheme="dark" isInteractive>
+        <GlassView
+          style={styles.btn}
+          glassEffectStyle="regular"
+          colorScheme="dark"
+          tintColor={lit ? T.accent : undefined}
+          isInteractive
+        >
           {glyph}
         </GlassView>
       ) : (
@@ -61,6 +88,7 @@ export default function ScreenHeader({
   onNav,
   crest,
   actions = [],
+  sheet = false,
 }: {
   title: string;
   subtitle?: string;
@@ -68,11 +96,13 @@ export default function ScreenHeader({
   onNav?: () => void;
   crest?: ReactNode;
   actions?: HeaderAction[];
+  // Inside an iOS sheet the screen starts below the status bar, so no top inset.
+  sheet?: boolean;
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top }]}>
+    <View style={[styles.wrap, { paddingTop: sheet ? SPACE.sm : insets.top }]}>
       <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
       {/* Both side slots are always SIDE_W wide, even when empty, so the
           title block sits on the screen's true centre line. */}
@@ -104,7 +134,7 @@ export default function ScreenHeader({
         </View>
         <View style={[styles.side, styles.sideRight]}>
           {actions.slice(0, 2).map((a) => (
-            <HeaderButton key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} />
+            <HeaderButton key={a.label} {...a} />
           ))}
         </View>
       </View>
@@ -142,6 +172,8 @@ const styles = StyleSheet.create({
     backgroundColor: T.surface,
   },
   btnPressed: { backgroundColor: T.surfaceAlt },
+  btnProminent: { backgroundColor: T.accent },
+  disabled: { opacity: 0.35 },
   // With glass, the GlassView is the visible circle; the Pressable just hosts it.
   glassHit: { width: 40, height: 40, borderRadius: 20 },
   glassPressed: { opacity: 0.8 },
