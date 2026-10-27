@@ -3,18 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActionSheetIOS,
 } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NativeSegmentedControl, {
@@ -23,10 +19,11 @@ import NativeSegmentedControl, {
 import Slider from "@react-native-community/slider";
 import { useStore } from "../store";
 import { calculateOvr } from "../utils/ovr";
-import { initials } from "../utils/initials";
 import { T, SPACE, SHEET } from "../constants/theme";
 import ScreenHeader from "../components/ui/ScreenHeader";
 import RatingBadge from "../components/ui/RatingBadge";
+import PlayerAvatar from "../components/PlayerAvatar";
+import { chooseAction } from "../components/ui/chooseAction";
 
 // The package types its default export through a mixin that loses `props`
 // under React 19's JSX types; the runtime component is unchanged.
@@ -47,32 +44,7 @@ const ATTR_ROWS = [
 type AttrKey = (typeof ATTR_ROWS)[number][0];
 type Attrs = Record<AttrKey, number>;
 
-// iOS Contacts' grey avatar gradient.
-const AVATAR_FADE = ["#A0A0A6", "#6E6E74"] as const;
 const AVATAR = 112;
-
-type Choice = { text: string; style?: "destructive" | "cancel"; onPress?: () => void };
-
-// iOS gets the native action sheet that rises from the bottom; other
-// platforms fall back to an alert with the same choices.
-function choose(message: string | undefined, choices: Choice[]) {
-  if (Platform.OS === "ios") {
-    const cancel = choices.findIndex((c) => c.style === "cancel");
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        message,
-        options: choices.map((c) => c.text),
-        cancelButtonIndex: cancel === -1 ? undefined : cancel,
-        destructiveButtonIndex: choices.flatMap((c, i) => (c.style === "destructive" ? [i] : [])),
-        userInterfaceStyle: "dark",
-        tintColor: T.accent,
-      },
-      (i) => choices[i]?.onPress?.(),
-    );
-    return;
-  }
-  Alert.alert("", message, choices);
-}
 
 // iOS inset-grouped section: optional uppercase header, rounded cells, and
 // an optional grey footnote underneath.
@@ -133,7 +105,6 @@ export default function CreatePlayerScreen() {
 
   const ovr = calculateOvr(attrs.pac, attrs.sho, attrs.pas, attrs.dri, attrs.def, attrs.phy);
   const canSave = name.trim().length > 0;
-  const monogram = initials(name);
   const dirty =
     photo !== initial.photo ||
     name !== initial.name ||
@@ -162,7 +133,7 @@ export default function CreatePlayerScreen() {
   }
 
   function pickPhoto() {
-    choose(undefined, [
+    chooseAction(undefined, [
       { text: "Take Photo", onPress: takePhoto },
       { text: "Choose Photo", onPress: pickFromLibrary },
       ...(photo ? [{ text: "Delete Photo", style: "destructive" as const, onPress: () => setPhoto(null) }] : []),
@@ -176,7 +147,7 @@ export default function CreatePlayerScreen() {
       router.back();
       return;
     }
-    choose(
+    chooseAction(
       editing
         ? "Are you sure you want to discard your changes?"
         : "Are you sure you want to discard this new player?",
@@ -191,10 +162,10 @@ export default function CreatePlayerScreen() {
     if (!canSave) return;
     const base = { name: name.trim(), photo: photo ?? undefined, position, foot, ovr, ...attrs };
     if (editing) {
-      // Leaves form, goals, assists, mvps and isMvp untouched.
+      // Leaves form, mvps and isMvp untouched.
       updatePlayer(editing.id, base);
     } else {
-      addPlayer({ ...base, form: "neutral", goals: 0, assists: 0, mvps: 0 });
+      addPlayer({ ...base, form: "neutral", mvps: 0 });
     }
     router.back();
   }
@@ -232,17 +203,7 @@ export default function CreatePlayerScreen() {
               onPress={pickPhoto}
               style={({ pressed }) => (pressed ? styles.pressed : null)}
             >
-              {photo ? (
-                <Image source={{ uri: photo }} style={styles.avatar} />
-              ) : (
-                <LinearGradient colors={AVATAR_FADE} style={styles.avatar}>
-                  {monogram ? (
-                    <Text style={styles.monogram}>{monogram}</Text>
-                  ) : (
-                    <Ionicons name="person" size={60} color="#FFFFFF" />
-                  )}
-                </LinearGradient>
-              )}
+              <PlayerAvatar name={name} photo={photo} size={AVATAR} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -336,15 +297,6 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.6 },
 
   photoBlock: { alignItems: "center", gap: SPACE.md, marginBottom: SPACE.xl },
-  avatar: {
-    width: AVATAR,
-    height: AVATAR,
-    borderRadius: AVATAR / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  monogram: { fontSize: 44, fontWeight: "600", color: "#FFFFFF" },
   photoButton: {
     backgroundColor: SHEET.cell,
     borderRadius: 999,

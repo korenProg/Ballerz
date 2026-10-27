@@ -4,8 +4,6 @@ export type Player = {
   name: string;
   ovr: number;
   position: string;
-  goals: number;
-  assists: number;
   mvps: number;
   isMvp?: boolean;
   foot: "L" | "R";
