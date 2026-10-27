@@ -1,9 +1,27 @@
+import type { ReactNode } from "react";
 import { View, TextInput, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { T, SPACE, RADIUS } from "../../constants/theme";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { T, SPACE } from "../../constants/theme";
 
-// Rounded search input with a leading magnifier and a clear (✕) button that
-// appears once there is text.
+// iOS 26+ draws the field as a real Liquid Glass capsule, matching the glass
+// header buttons; older iOS, Android and web get the same capsule in grey.
+const GLASS = isLiquidGlassAvailable();
+const HEIGHT = 44;
+
+function Capsule({ children }: { children: ReactNode }) {
+  if (GLASS) {
+    return (
+      <GlassView style={styles.field} glassEffectStyle="regular" colorScheme="dark" isInteractive>
+        {children}
+      </GlassView>
+    );
+  }
+  return <View style={[styles.field, styles.solid]}>{children}</View>;
+}
+
+// iOS-style search capsule: leading magnifier, and a filled ✕ that appears
+// once there is text.
 export default function SearchField({
   value,
   onChangeText,
@@ -14,32 +32,34 @@ export default function SearchField({
   placeholder: string;
 }) {
   return (
-    <View style={styles.field}>
-      <Ionicons name="search" size={18} color={T.textFaint} />
+    <Capsule>
+      <Ionicons name="search" size={17} color={T.textDim} />
       <TextInput
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={T.textFaint}
+        placeholderTextColor={T.textDim}
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
         clearButtonMode="never"
+        keyboardAppearance="dark"
+        selectionColor={T.accent}
         accessibilityLabel={placeholder}
       />
       {value.length > 0 ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Clear search"
-          hitSlop={8}
+          hitSlop={10}
           onPress={() => onChangeText("")}
-          style={({ pressed }) => [styles.clear, pressed ? styles.clearPressed : null]}
+          style={({ pressed }) => (pressed ? styles.clearPressed : null)}
         >
-          <Ionicons name="close" size={14} color={T.bg} />
+          <Ionicons name="close-circle" size={18} color={T.textFaint} />
         </Pressable>
       ) : null}
-    </View>
+    </Capsule>
   );
 }
 
@@ -48,20 +68,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: SPACE.sm,
-    height: 44,
-    paddingHorizontal: SPACE.md,
-    borderRadius: RADIUS.control,
-    backgroundColor: T.surface,
+    height: HEIGHT,
+    paddingHorizontal: 14,
+    borderRadius: HEIGHT / 2,
+    overflow: "hidden",
   },
+  solid: { backgroundColor: T.surface },
   // outlineWidth: 0 drops the browser's focus rectangle on web; it is a no-op on native.
-  input: { flex: 1, height: 44, fontSize: 15, fontWeight: "500", color: T.text, outlineWidth: 0 },
-  clear: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: T.textFaint,
-  },
+  input: { flex: 1, height: HEIGHT, fontSize: 16, fontWeight: "400", color: T.text, outlineWidth: 0 },
   clearPressed: { opacity: 0.6 },
 });
