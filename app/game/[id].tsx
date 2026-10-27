@@ -20,9 +20,18 @@ import { chooseAction } from "../../components/ui/chooseAction";
 import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
 import { shortDate, parseDMY } from "../../utils/game";
 import { MIN_MEETINGS } from "../../utils/rivalries";
-import { ATTRS, teamProfile, winProbability, type TeamProfile, type WinProbability } from "../../utils/matchPreview";
+import {
+  ATTRS,
+  LINE_WEIGHTS,
+  lineStrengths,
+  teamProfile,
+  winProbability,
+  type LineKey,
+  type TeamProfile,
+  type WinProbability,
+} from "../../utils/matchPreview";
 import { usePlayerRivalries } from "../../store/selectors";
-import type { Game } from "../../types/games";
+import type { Game, GamePlayer } from "../../types/games";
 import type { Player } from "../../types/players";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
@@ -34,6 +43,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 const MAX_RIVALRIES = 5;
 const RADAR_LABELS = ATTRS.map((k) => k.toUpperCase());
+const LINE_ORDER: readonly LineKey[] = ["FWD", "MID", "DEF", "GK"];
 
 function ScoreStepper({ team, onMinus, onPlus }: { team: string; onMinus: () => void; onPlus: () => void }) {
   return (
@@ -234,6 +244,83 @@ function TeamAttributes({
   );
 }
 
+// One FotMob-style comparison row: value pills either side (the stronger
+// side lit in its colour), the line's name and head-count in the middle, and
+// a bar split by the two ratings.
+function LineCompare({
+  label,
+  sub,
+  home,
+  away,
+  colors,
+}: {
+  label: string;
+  sub: string;
+  home: number | null;
+  away: number | null;
+  colors: [string, string];
+}) {
+  const h = home ?? 0;
+  const a = away ?? 0;
+  const pill = (v: number | null, lit: boolean, color: string) => (
+    <View style={[styles.linePill, lit ? { backgroundColor: color } : null]}>
+      <Text style={[styles.linePillTxt, lit ? styles.linePillTxtLit : null]}>{v ?? "–"}</Text>
+    </View>
+  );
+  return (
+    <View style={styles.lineRow}>
+      <View style={styles.lineTop}>
+        {pill(home, h > a, colors[0])}
+        <View style={styles.lineMid}>
+          <Text style={styles.lineLabel}>{label}</Text>
+          <Text style={styles.lineSub}>{sub}</Text>
+        </View>
+        {pill(away, a > h, colors[1])}
+      </View>
+      {h + a > 0 ? (
+        <View style={styles.lineBar}>
+          {h > 0 ? <View style={{ flex: h, backgroundColor: colors[0] }} /> : null}
+          {a > 0 ? <View style={{ flex: a, backgroundColor: colors[1] }} /> : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+// How the two sides compare line by line, front to back. Lines neither side
+// fills are left out.
+function TeamByPosition({
+  home,
+  away,
+  roster,
+  colors,
+}: {
+  home: readonly GamePlayer[];
+  away: readonly GamePlayer[];
+  roster: readonly Player[];
+  colors: [string, string];
+}) {
+  const h = lineStrengths(home, roster);
+  const a = lineStrengths(away, roster);
+  const lines = LINE_ORDER.filter((k) => h[k].count > 0 || a[k].count > 0);
+  return (
+    <Section divider title="Team by position" padded>
+      <View style={styles.lines}>
+        {lines.map((k) => (
+          <LineCompare
+            key={k}
+            label={LINE_WEIGHTS[k].label}
+            sub={`${h[k].count} v ${a[k].count}`}
+            home={h[k].rating}
+            away={a[k].rating}
+            colors={colors}
+          />
+        ))}
+      </View>
+    </Section>
+  );
+}
+
 export default function GameDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -325,6 +412,9 @@ export default function GameDetailScreen() {
             {chance ? <WinChance game={game} chance={chance} colors={colors} /> : null}
             {homeProfile.size > 0 && awayProfile.size > 0 ? (
               <TeamAttributes game={game} home={homeProfile} away={awayProfile} colors={colors} />
+            ) : null}
+            {home.length > 0 && away.length > 0 ? (
+              <TeamByPosition home={home} away={away} roster={roster} colors={colors} />
             ) : null}
             {home.length > 0 && away.length > 0 ? (
               <PlayerHeadToHead game={game} roster={roster} onOpen={openPlayer} />
@@ -420,4 +510,23 @@ const styles = StyleSheet.create({
   legendName: { flexShrink: 1, fontSize: 14, fontWeight: "600", color: T.text },
   legendOvr: { fontSize: 14, fontWeight: "700", color: T.textDim, fontVariant: ["tabular-nums"] },
   radar: { alignItems: "center" },
+
+  lines: { gap: SPACE.lg },
+  lineRow: { gap: SPACE.sm },
+  lineTop: { flexDirection: "row", alignItems: "center" },
+  lineMid: { flex: 1, alignItems: "center" },
+  lineLabel: { fontSize: 14, fontWeight: "600", color: T.text },
+  lineSub: { fontSize: 12, fontWeight: "500", color: T.textFaint, fontVariant: ["tabular-nums"] },
+  linePill: {
+    minWidth: 40,
+    height: 28,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: T.surfaceAlt,
+  },
+  linePillTxt: { fontSize: 15, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"] },
+  linePillTxtLit: { color: "#FFFFFF" },
+  lineBar: { flexDirection: "row", height: 4, borderRadius: 2, overflow: "hidden", gap: 2 },
 });

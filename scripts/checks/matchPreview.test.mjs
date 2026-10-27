@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { teamProfile, winProbability } from "../../utils/matchPreview.ts";
+import { teamProfile, winProbability, lineStrengths } from "../../utils/matchPreview.ts";
 
 const player = (id, ovr) => ({ id, ovr, pac: ovr, sho: ovr, pas: ovr, dri: ovr, def: ovr, phy: ovr });
 const roster = [player("a", 80), player("b", 70), player("c", 60), player("d", 60), player("e", 90)];
@@ -44,4 +44,14 @@ test("the stronger lineup is the favourite", () => {
 test("no prediction until both sides have players", () => {
   const side = teamProfile([line("a", "GK")], roster, []);
   assert.equal(winProbability(side, teamProfile([], roster, [])), null);
+});
+
+test("each line is rated from its own players' key attributes", () => {
+  const striker = { id: "s", ovr: 0, pac: 90, sho: 80, pas: 0, dri: 70, def: 0, phy: 0 };
+  const lines = lineStrengths([{ id: "s", position: "FWD" }, { id: "x", position: "DEF" }], [striker]);
+  // 0.4 * 80 + 0.3 * 90 + 0.3 * 70 = 80
+  assert.deepEqual(lines.FWD, { count: 1, rating: 80 });
+  // A defender who's no longer on the roster counts, but can't be rated.
+  assert.deepEqual(lines.DEF, { count: 1, rating: null });
+  assert.deepEqual(lines.GK, { count: 0, rating: null });
 });

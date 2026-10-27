@@ -102,3 +102,35 @@ export function winProbability(home: TeamProfile, away: TeamProfile): WinProbabi
   const a = Math.round((1 - draw) * (1 - pHome) * 100);
   return { home: h, draw: 100 - h - a, away: a };
 }
+
+// Pitch lines from front to back, with the attributes that make a good one.
+// There is no goalkeeping attribute, so a keeper is judged on defending,
+// physique and passing (distribution).
+export const LINE_WEIGHTS = {
+  FWD: { label: "Attack", weights: { sho: 0.4, pac: 0.3, dri: 0.3 } },
+  MID: { label: "Midfield", weights: { pas: 0.4, dri: 0.3, phy: 0.3 } },
+  DEF: { label: "Defence", weights: { def: 0.5, phy: 0.3, pac: 0.2 } },
+  GK: { label: "Goalkeeper", weights: { def: 0.5, phy: 0.3, pas: 0.2 } },
+} as const satisfies Record<string, { label: string; weights: Partial<Record<AttrKey, number>> }>;
+
+export type LineKey = keyof typeof LINE_WEIGHTS;
+export type LineStrength = { count: number; rating: number | null };
+
+// Each line's rating: its players' weighted attributes, averaged. A line with
+// nobody in it (or only deleted players) rates null. Unknown positions play
+// in midfield.
+export function lineStrengths(
+  lineup: readonly LineupPlayer[],
+  roster: readonly RosterPlayer[],
+): Record<LineKey, LineStrength> {
+  const byId = new Map(roster.map((p) => [p.id, p]));
+  const out = {} as Record<LineKey, LineStrength>;
+  for (const key of Object.keys(LINE_WEIGHTS) as LineKey[]) {
+    const inLine = lineup.filter((p) => (p.position in LINE_WEIGHTS ? p.position : "MID") === key);
+    const live = inLine.map((p) => byId.get(p.id)).filter((p): p is RosterPlayer => !!p);
+    const weights = Object.entries(LINE_WEIGHTS[key].weights) as [AttrKey, number][];
+    const scores = live.map((p) => weights.reduce((sum, [attr, w]) => sum + p[attr] * w, 0));
+    out[key] = { count: inLine.length, rating: scores.length ? Math.round(mean(scores)) : null };
+  }
+  return out;
+}
