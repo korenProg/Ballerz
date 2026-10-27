@@ -11,7 +11,7 @@ const STATUS_LABEL = { FT: "Full time", Live: "Live", Pending: "Upcoming" } as c
 function Side({ name, color, logo }: { name: string; color: string; logo?: string }) {
   return (
     <View style={styles.side}>
-      <Crest name={name} color={color} logo={logo} size={52} />
+      <Crest name={name} color={color} logo={logo} size={56} />
       <Text style={styles.team} numberOfLines={2}>
         {name}
       </Text>
@@ -20,7 +20,8 @@ function Side({ name, color, logo }: { name: string; color: string; logo?: strin
 }
 
 // Card-less match header: crests either side, big tabular score, status under it.
-export default function GameScoreboard({ game }: { game: Game }) {
+// `showMvp` adds the MVP line underneath; the match page shows MVP in its own card.
+export default function GameScoreboard({ game, showMvp = true }: { game: Game; showMvp?: boolean }) {
   const pending = game.status === "Pending";
   const live = game.status === "Live";
   return (
@@ -40,7 +41,7 @@ export default function GameScoreboard({ game }: { game: Game }) {
         </View>
         <Side name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} />
       </View>
-      {game.status === "FT" && game.mvp?.name ? (
+      {showMvp && game.status === "FT" && game.mvp?.name ? (
         <View style={styles.mvp}>
           <Ionicons name="star" size={13} color={T.yellow} />
           <Text style={styles.mvpTxt} numberOfLines={1}>
@@ -57,9 +58,9 @@ const styles = StyleSheet.create({
   wrap: { gap: SPACE.md, paddingVertical: SPACE.lg },
   row: { flexDirection: "row", alignItems: "flex-start" },
   side: { flex: 1, alignItems: "center", gap: SPACE.sm },
-  team: { fontSize: 15, fontWeight: "600", color: T.text, textAlign: "center" },
+  team: { fontSize: 14, fontWeight: "600", color: T.text, textAlign: "center" },
   center: { minWidth: 120, alignItems: "center", paddingTop: 4, gap: 4 },
-  score: TYPE.score,
+  score: { ...TYPE.score, fontSize: 36 },
   date: { fontSize: 24, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"], paddingTop: 8 },
   status: { fontSize: 13, fontWeight: "500", color: T.textDim },
   live: { color: T.accent },

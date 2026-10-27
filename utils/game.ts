@@ -107,3 +107,37 @@ export function computeRivalry<G extends RivalryGame>(games: readonly G[]): Riva
   }
   return best;
 }
+
+export type HeadToHead<G> = {
+  played: number;
+  winsA: number;
+  winsB: number;
+  draws: number;
+  // Finished meetings of the two teams, newest first.
+  meetings: G[];
+};
+
+// Every finished game between team A and team B, either way round, with wins
+// credited by name. Names match ignoring case and outer spaces.
+export function computeHeadToHead<G extends RivalryGame>(
+  games: readonly G[],
+  teamA: string,
+  teamB: string
+): HeadToHead<G> {
+  const a = teamKey(teamA);
+  const b = teamKey(teamB);
+  const h: HeadToHead<G> = { played: 0, winsA: 0, winsB: 0, draws: 0, meetings: [] };
+  for (const g of games) {
+    if (g.status !== "FT") continue;
+    const home = teamKey(g.homeTeam);
+    const away = teamKey(g.awayTeam);
+    if (!((home === a && away === b) || (home === b && away === a))) continue;
+    h.played++;
+    h.meetings.push(g);
+    if (g.homeScore === g.awayScore) h.draws++;
+    else if (teamKey(g.homeScore > g.awayScore ? g.homeTeam : g.awayTeam) === a) h.winsA++;
+    else h.winsB++;
+  }
+  h.meetings.sort((x, y) => parseGameDate(y.date) - parseGameDate(x.date));
+  return h;
+}
