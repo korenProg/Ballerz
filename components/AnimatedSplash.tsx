@@ -9,6 +9,7 @@ import { T } from "../constants/theme";
 const LOGO = 200;
 const MIN_MS = 2000;
 const EXIT_MS = 500;
+const GLOW = "#FFFFFF";
 
 // Every loop starts and ends on its resting frame, so frame 0 equals the
 // static native splash and the loop seam is invisible.
@@ -34,11 +35,11 @@ const float = css.keyframes({
   "100%": { transform: [{ translateY: 0 }] },
 });
 
-// A barely-there accent halo breathing with the logo.
+// A soft white halo breathing with the logo.
 const glow = css.keyframes({
-  "0%": { opacity: 0.16, transform: [{ scale: 0.92 }] },
-  "50%": { opacity: 0.32, transform: [{ scale: 1.08 }] },
-  "100%": { opacity: 0.16, transform: [{ scale: 0.92 }] },
+  "0%": { opacity: 0.14, transform: [{ scale: 0.92 }] },
+  "50%": { opacity: 0.28, transform: [{ scale: 1.08 }] },
+  "100%": { opacity: 0.14, transform: [{ scale: 0.92 }] },
 });
 
 export default function AnimatedSplash({
@@ -155,16 +156,16 @@ const styles = StyleSheet.create({
   },
   stage: { alignItems: "center", justifyContent: "center" },
   logo: { width: LOGO, height: LOGO },
-  // A small core with a wide, heavily blurred shadow: a soft halo with no hard
-  // edge (a plain circle at low opacity would read as a flat green disc).
+  // The glow is ONLY a blurred shadow around a 4px point, so it has no edge
+  // anywhere. A bigger solid core showed as a visible disc inside the halo.
   glow: {
     position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: T.accent,
-    boxShadow: `0 0 110px 80px ${T.accent}`,
-    opacity: 0.16,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: GLOW,
+    boxShadow: `0 0 120px 90px ${GLOW}`,
+    opacity: 0.14,
   },
-  glowStill: { opacity: 0.22 },
+  glowStill: { opacity: 0.2 },
 });
