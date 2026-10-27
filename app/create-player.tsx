@@ -10,9 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActionSheetIOS,
 } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NativeSegmentedControl, {
@@ -21,9 +23,14 @@ import NativeSegmentedControl, {
 import Slider from "@react-native-community/slider";
 import { useStore } from "../store";
 import { calculateOvr } from "../utils/ovr";
-import { T, SPACE } from "../constants/theme";
+import { initials } from "../utils/initials";
+import { T, SPACE, SHEET } from "../constants/theme";
 import ScreenHeader from "../components/ui/ScreenHeader";
 import RatingBadge from "../components/ui/RatingBadge";
+
+// The package types its default export through a mixin that loses `props`
+// under React 19's JSX types; the runtime component is unchanged.
+const SegmentedControl = NativeSegmentedControl as unknown as ComponentType<SegmentedControlProps>;
 
 const POSITIONS = ["GK", "DEF", "MID", "FWD"] as const;
 type Position = (typeof POSITIONS)[number];
@@ -40,13 +47,53 @@ const ATTR_ROWS = [
 type AttrKey = (typeof ATTR_ROWS)[number][0];
 type Attrs = Record<AttrKey, number>;
 
-// The package types its default export through a mixin that loses `props`
-// under React 19's JSX types; the runtime component is unchanged.
-const SegmentedControl = NativeSegmentedControl as unknown as ComponentType<SegmentedControlProps>;
+// iOS Contacts' grey avatar gradient.
+const AVATAR_FADE = ["#A0A0A6", "#6E6E74"] as const;
+const AVATAR = 112;
 
-// iOS grouped-inset section: a rounded card on the black page.
-function Group({ children, padded = false }: { children: ReactNode; padded?: boolean }) {
-  return <View style={[styles.group, padded ? styles.groupPadded : null]}>{children}</View>;
+type Choice = { text: string; style?: "destructive" | "cancel"; onPress?: () => void };
+
+// iOS gets the native action sheet that rises from the bottom; other
+// platforms fall back to an alert with the same choices.
+function choose(message: string | undefined, choices: Choice[]) {
+  if (Platform.OS === "ios") {
+    const cancel = choices.findIndex((c) => c.style === "cancel");
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        message,
+        options: choices.map((c) => c.text),
+        cancelButtonIndex: cancel === -1 ? undefined : cancel,
+        destructiveButtonIndex: choices.flatMap((c, i) => (c.style === "destructive" ? [i] : [])),
+        userInterfaceStyle: "dark",
+        tintColor: T.accent,
+      },
+      (i) => choices[i]?.onPress?.(),
+    );
+    return;
+  }
+  Alert.alert("", message, choices);
+}
+
+// iOS inset-grouped section: optional uppercase header, rounded cells, and
+// an optional grey footnote underneath.
+function Section({ header, footer, children }: { header?: string; footer?: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      {header ? <Text style={styles.sectionHeader}>{header.toUpperCase()}</Text> : null}
+      <View style={styles.group}>{children}</View>
+      {footer ? <Text style={styles.sectionFooter}>{footer}</Text> : null}
+    </View>
+  );
+}
+
+// One cell. Every cell but the last draws the hairline iOS insets under its label.
+function Row({ children, last = false, tall = false }: { children: ReactNode; last?: boolean; tall?: boolean }) {
+  return (
+    <View style={[styles.row, tall ? styles.rowTall : null]}>
+      {children}
+      {last ? null : <View style={styles.separator} />}
+    </View>
+  );
 }
 
 // Presented as an iOS sheet (app/_layout.tsx: presentation "modal") — it
@@ -86,6 +133,7 @@ export default function CreatePlayerScreen() {
 
   const ovr = calculateOvr(attrs.pac, attrs.sho, attrs.pas, attrs.dri, attrs.def, attrs.phy);
   const canSave = name.trim().length > 0;
+  const monogram = initials(name);
   const dirty =
     photo !== initial.photo ||
     name !== initial.name ||
@@ -114,13 +162,11 @@ export default function CreatePlayerScreen() {
   }
 
   function pickPhoto() {
-    Alert.alert("Player photo", undefined, [
+    choose(undefined, [
       { text: "Take Photo", onPress: takePhoto },
-      { text: "Choose from Library", onPress: pickFromLibrary },
-      ...(photo
-        ? [{ text: "Remove Photo", style: "destructive" as const, onPress: () => setPhoto(null) }]
-        : []),
-      { text: "Cancel", style: "cancel" as const },
+      { text: "Choose Photo", onPress: pickFromLibrary },
+      ...(photo ? [{ text: "Delete Photo", style: "destructive" as const, onPress: () => setPhoto(null) }] : []),
+      { text: "Cancel", style: "cancel" },
     ]);
   }
 
@@ -130,10 +176,15 @@ export default function CreatePlayerScreen() {
       router.back();
       return;
     }
-    Alert.alert(editing ? "Discard your changes?" : "Discard this player?", undefined, [
-      { text: "Keep Editing", style: "cancel" },
-      { text: "Discard", style: "destructive", onPress: () => router.back() },
-    ]);
+    choose(
+      editing
+        ? "Are you sure you want to discard your changes?"
+        : "Are you sure you want to discard this new player?",
+      [
+        { text: "Discard Changes", style: "destructive", onPress: () => router.back() },
+        { text: "Keep Editing", style: "cancel" },
+      ],
+    );
   }
 
   function save() {
@@ -182,67 +233,77 @@ export default function CreatePlayerScreen() {
               style={({ pressed }) => (pressed ? styles.pressed : null)}
             >
               {photo ? (
-                <Image source={{ uri: photo }} style={styles.photo} />
+                <Image source={{ uri: photo }} style={styles.avatar} />
               ) : (
-                <View style={[styles.photo, styles.photoEmpty]}>
-                  <Ionicons name="person" size={52} color={T.textFaint} />
-                </View>
+                <LinearGradient colors={AVATAR_FADE} style={styles.avatar}>
+                  {monogram ? (
+                    <Text style={styles.monogram}>{monogram}</Text>
+                  ) : (
+                    <Ionicons name="person" size={60} color="#FFFFFF" />
+                  )}
+                </LinearGradient>
               )}
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={pickPhoto} hitSlop={8}>
-              <Text style={styles.photoLink}>{photo ? "Edit Photo" : "Add Photo"}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={pickPhoto}
+              hitSlop={6}
+              style={({ pressed }) => [styles.photoButton, pressed ? styles.pressed : null]}
+            >
+              <Text style={styles.photoButtonText}>{photo ? "Edit" : "Add Photo"}</Text>
             </Pressable>
           </View>
 
-          <Group>
-            <TextInput
-              style={styles.nameInput}
-              value={name}
-              onChangeText={setName}
-              placeholder="Full name"
-              placeholderTextColor={T.textFaint}
-              autoFocus={!editing}
-              autoCorrect={false}
-              autoCapitalize="words"
-              returnKeyType="done"
-              keyboardAppearance="dark"
-              selectionColor={T.accent}
-              accessibilityLabel="Full name"
-            />
-          </Group>
+          <Section>
+            <Row last>
+              <TextInput
+                style={styles.nameInput}
+                value={name}
+                onChangeText={setName}
+                placeholder="Full name"
+                placeholderTextColor={SHEET.label}
+                autoFocus={!editing}
+                autoCorrect={false}
+                autoCapitalize="words"
+                returnKeyType="done"
+                keyboardAppearance="dark"
+                selectionColor={T.accent}
+                clearButtonMode="while-editing"
+                accessibilityLabel="Full name"
+              />
+            </Row>
+          </Section>
 
-          <Text style={styles.groupLabel}>Position</Text>
-          <Group padded>
-            <SegmentedControl
-              values={[...POSITIONS]}
-              selectedIndex={POSITIONS.indexOf(position)}
-              onChange={(e) => setPosition(POSITIONS[e.nativeEvent.selectedSegmentIndex])}
-              appearance="dark"
-              style={styles.segment}
-            />
-          </Group>
+          <Section header="Details">
+            <Row>
+              <Text style={styles.rowLabel}>Position</Text>
+              <SegmentedControl
+                values={[...POSITIONS]}
+                selectedIndex={POSITIONS.indexOf(position)}
+                onChange={(e) => setPosition(POSITIONS[e.nativeEvent.selectedSegmentIndex])}
+                appearance="dark"
+                style={styles.segmentWide}
+              />
+            </Row>
+            <Row last>
+              <Text style={styles.rowLabel}>Foot</Text>
+              <SegmentedControl
+                values={["Left", "Right"]}
+                selectedIndex={FEET.indexOf(foot)}
+                onChange={(e) => setFoot(FEET[e.nativeEvent.selectedSegmentIndex])}
+                appearance="dark"
+                style={styles.segmentNarrow}
+              />
+            </Row>
+          </Section>
 
-          <Text style={styles.groupLabel}>Preferred foot</Text>
-          <Group padded>
-            <SegmentedControl
-              values={["Left", "Right"]}
-              selectedIndex={FEET.indexOf(foot)}
-              onChange={(e) => setFoot(FEET[e.nativeEvent.selectedSegmentIndex])}
-              appearance="dark"
-              style={styles.segment}
-            />
-          </Group>
-
-          <View style={styles.groupHead}>
-            <Text style={[styles.groupLabel, styles.groupLabelInline]}>Attributes</Text>
-            <View style={styles.ovr}>
-              <Text style={styles.ovrLabel}>OVR</Text>
+          <Section header="Attributes" footer="Overall is the average of the six attributes.">
+            <Row>
+              <Text style={styles.rowLabel}>Overall</Text>
               <RatingBadge value={ovr} />
-            </View>
-          </View>
-          <Group>
+            </Row>
             {ATTR_ROWS.map(([key, label], i) => (
-              <View key={key} style={styles.attrRow}>
+              <Row key={key} tall last={i === ATTR_ROWS.length - 1}>
                 <Text style={styles.attrLabel}>{label}</Text>
                 <Slider
                   style={styles.slider}
@@ -252,69 +313,92 @@ export default function CreatePlayerScreen() {
                   value={attrs[key]}
                   onValueChange={(v) => setAttrs((a) => ({ ...a, [key]: Math.round(v) }))}
                   minimumTrackTintColor={T.accent}
-                  maximumTrackTintColor={T.surfaceAlt}
+                  maximumTrackTintColor={SHEET.separator}
                   thumbTintColor={Platform.OS === "ios" ? undefined : T.accent}
                   accessibilityLabel={label}
                 />
                 <Text style={styles.attrValue}>{attrs[key]}</Text>
-                {i < ATTR_ROWS.length - 1 ? <View style={styles.rowDivider} /> : null}
-              </View>
+              </Row>
             ))}
-          </Group>
+          </Section>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
 }
 
+const ROW_H = 50;
+
 const styles = StyleSheet.create({
-  main: { flex: 1, backgroundColor: T.bg },
+  main: { flex: 1, backgroundColor: SHEET.bg },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md },
-  pressed: { opacity: 0.7 },
+  scroll: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.sm },
+  pressed: { opacity: 0.6 },
 
-  photoBlock: { alignItems: "center", gap: SPACE.md, marginBottom: SPACE.xxl },
-  photo: { width: 104, height: 104, borderRadius: 52 },
-  photoEmpty: { backgroundColor: T.surfaceAlt, alignItems: "center", justifyContent: "center" },
-  photoLink: { fontSize: 16, fontWeight: "500", color: T.accent },
+  photoBlock: { alignItems: "center", gap: SPACE.md, marginBottom: SPACE.xl },
+  avatar: {
+    width: AVATAR,
+    height: AVATAR,
+    borderRadius: AVATAR / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  monogram: { fontSize: 44, fontWeight: "600", color: "#FFFFFF" },
+  photoButton: {
+    backgroundColor: SHEET.cell,
+    borderRadius: 999,
+    paddingHorizontal: SPACE.lg,
+    paddingVertical: 7,
+  },
+  photoButtonText: { fontSize: 15, fontWeight: "600", color: T.text },
 
-  group: { backgroundColor: T.surface, borderRadius: 12, overflow: "hidden" },
-  groupPadded: { padding: SPACE.md },
-  groupLabel: {
+  section: { marginBottom: SPACE.xxl },
+  sectionHeader: {
     fontSize: 13,
-    fontWeight: "500",
-    color: T.textDim,
-    marginTop: SPACE.xxl,
-    marginBottom: SPACE.sm,
+    fontWeight: "400",
+    color: SHEET.label,
+    marginBottom: 6,
     marginLeft: SPACE.lg,
   },
-  groupHead: {
+  sectionFooter: {
+    fontSize: 13,
+    fontWeight: "400",
+    color: SHEET.label,
+    marginTop: 6,
+    marginHorizontal: SPACE.lg,
+  },
+  group: { backgroundColor: SHEET.cell, borderRadius: 16, overflow: "hidden" },
+
+  row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: SPACE.xxl,
-    marginBottom: SPACE.sm,
+    gap: SPACE.md,
+    minHeight: ROW_H,
+    paddingHorizontal: SPACE.lg,
   },
-  groupLabelInline: { marginTop: 0, marginBottom: 0 },
-  ovr: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, marginRight: SPACE.xs },
-  ovrLabel: { fontSize: 13, fontWeight: "500", color: T.textDim },
+  rowTall: { minHeight: 54 },
+  separator: {
+    position: "absolute",
+    left: SPACE.lg,
+    right: 0,
+    bottom: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: SHEET.separator,
+  },
+  rowLabel: { fontSize: 17, fontWeight: "400", color: T.text },
 
   nameInput: {
-    height: 48,
-    paddingHorizontal: SPACE.lg,
+    flex: 1,
+    height: ROW_H,
     fontSize: 17,
     color: T.text,
     outlineWidth: 0,
   },
-  segment: { height: 34 },
+  segmentWide: { flex: 1, maxWidth: 220, height: 32 },
+  segmentNarrow: { width: 140, height: 32 },
 
-  attrRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACE.md,
-    height: 52,
-    paddingHorizontal: SPACE.lg,
-  },
   attrLabel: { width: 84, fontSize: 15, fontWeight: "400", color: T.text },
   slider: { flex: 1, height: 40 },
   attrValue: {
@@ -324,13 +408,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: T.text,
     fontVariant: ["tabular-nums"],
-  },
-  rowDivider: {
-    position: "absolute",
-    left: SPACE.lg,
-    right: 0,
-    bottom: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: T.divider,
   },
 });

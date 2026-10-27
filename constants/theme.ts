@@ -15,6 +15,15 @@ export const T = {
   yellow: "#F5C518",
 } as const;
 
+// iOS dark-mode colours for content inside a sheet. iOS raises a sheet off the
+// black page with its "elevated" grouped greys, so sheets use these, not T.bg.
+export const SHEET = {
+  bg: "#1C1C1E",
+  cell: "#2C2C2E",
+  separator: "#3D3D41",
+  label: "#8E8E93",
+} as const;
+
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
 export const RADIUS = { card: 16, control: 12, badge: 8, pill: 999 } as const;

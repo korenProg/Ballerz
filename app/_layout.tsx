@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useStore } from '@/store';
-import { T } from '@/constants/theme';
+import { T, SHEET } from '@/constants/theme';
 import AnimatedSplash from '@/components/AnimatedSplash';
 
 // Keep the static native splash up until AnimatedSplash has drawn its first
@@ -55,7 +55,11 @@ function AppStack({ colorScheme }: { colorScheme: ReturnType<typeof useColorSche
           />
           <Stack.Screen
             name="create-player"
-            options={{ presentation: 'modal', headerShown: false }}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              contentStyle: { backgroundColor: SHEET.bg },
+            }}
           />
           <Stack.Screen
             name="create-game"

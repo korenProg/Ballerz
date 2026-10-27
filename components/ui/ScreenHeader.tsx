@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { T, SPACE } from "../../constants/theme";
+import { T, SPACE, SHEET } from "../../constants/theme";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -38,7 +38,8 @@ export function HeaderButton({
   onPress,
   prominent = false,
   disabled = false,
-}: HeaderAction) {
+  onSheet = false,
+}: HeaderAction & { onSheet?: boolean }) {
   const lit = prominent && !disabled;
   const glyph = <Ionicons name={icon} size={20} color={lit ? "#000" : T.text} />;
   return (
@@ -54,6 +55,7 @@ export function HeaderButton({
           ? [styles.glassHit, disabled ? styles.disabled : null, pressed ? styles.glassPressed : null]
           : [
               styles.btn,
+              onSheet ? styles.btnOnSheet : null,
               pressed ? styles.btnPressed : null,
               lit ? styles.btnProminent : null,
               disabled ? styles.disabled : null,
@@ -96,14 +98,18 @@ export default function ScreenHeader({
   onNav?: () => void;
   crest?: ReactNode;
   actions?: HeaderAction[];
-  // Inside an iOS sheet the screen starts below the status bar, so no top inset.
+  // Inside an iOS sheet the screen starts below the status bar, so no top
+  // inset, and the bar is drawn flat on the sheet colour.
   sheet?: boolean;
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.wrap, { paddingTop: sheet ? SPACE.sm : insets.top }]}>
-      <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
+    <View style={sheet ? [styles.wrap, styles.wrapSheet] : [styles.wrap, { paddingTop: insets.top }]}>
+      {/* A sheet's bar is flat on the sheet colour, as iOS draws it. */}
+      {sheet ? null : (
+        <LinearGradient colors={BAR_FADE} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      )}
       {/* Both side slots are always SIDE_W wide, even when empty, so the
           title block sits on the screen's true centre line. */}
       <View style={styles.bar}>
@@ -115,6 +121,7 @@ export default function ScreenHeader({
               icon={nav === "close" ? "close" : "chevron-back"}
               label={nav === "close" ? "Close" : "Back"}
               onPress={onNav ?? (() => router.back())}
+              onSheet={sheet}
             />
           ) : (
             crest ?? null
@@ -134,23 +141,26 @@ export default function ScreenHeader({
         </View>
         <View style={[styles.side, styles.sideRight]}>
           {actions.slice(0, 2).map((a) => (
-            <HeaderButton key={a.label} {...a} />
+            <HeaderButton key={a.label} {...a} onSheet={sheet} />
           ))}
         </View>
       </View>
-      <LinearGradient
-        colors={DIVIDER_FADE}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.divider}
-        pointerEvents="none"
-      />
+      {sheet ? null : (
+        <LinearGradient
+          colors={DIVIDER_FADE}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.divider}
+          pointerEvents="none"
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { backgroundColor: T.bg },
+  wrapSheet: { backgroundColor: SHEET.bg, paddingTop: SPACE.sm },
   divider: { height: 1 },
   bar: {
     height: HEADER_H,
@@ -171,6 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: T.surface,
   },
+  btnOnSheet: { backgroundColor: SHEET.cell },
   btnPressed: { backgroundColor: T.surfaceAlt },
   btnProminent: { backgroundColor: T.accent },
   disabled: { opacity: 0.35 },
