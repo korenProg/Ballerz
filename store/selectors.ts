@@ -3,7 +3,8 @@ import { useShallow } from "zustand/react/shallow";
 import { useStore } from "./index";
 import type { Player } from "../types/players";
 import type { Game } from "../types/games";
-import { computeRivalry, parseGameDate, pickNextGame } from "../utils/game";
+import { parseGameDate, pickNextGame } from "../utils/game";
+import { computePlayerRivalries, computeTeamOfLeague } from "../utils/rivalries";
 
 export const useLastGame = () =>
   useStore((s) => {
@@ -29,11 +30,17 @@ export const useAppStats = () =>
     }))
   );
 
-// Most-played pairing with wins credited per team. computeRivalry builds a
-// fresh object, so select the stable games slice and memoize the derivation.
-export const useRivalry = () => {
+// Player pairs who have met on opposite sides 3+ times, most meetings first.
+// Builds a fresh array, so it is memoised over the stable games slice.
+export const usePlayerRivalries = () => {
   const games = useStore((s) => s.games);
-  return useMemo(() => computeRivalry(games), [games]);
+  return useMemo(() => computePlayerRivalries(games), [games]);
+};
+
+// The team with the most wins once it has 3+, or null. Fresh object, so memoised.
+export const useTeamOfLeague = () => {
+  const games = useStore((s) => s.games);
+  return useMemo(() => computeTeamOfLeague(games), [games]);
 };
 
 // Home's "Next match". pickNextGame returns an existing game object (or null),

@@ -2,8 +2,10 @@ import { useState } from "react";
 import { View, ScrollView, Pressable, StyleSheet, RefreshControl } from "react-native";
 import { Text } from "../../components/ui/Text";
 import { Redirect, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useStore } from "../../store";
-import { useLastGame, useNextGame, useRivalry } from "../../store/selectors";
+import { useLastGame, useNextGame, usePlayerRivalries, useTeamOfLeague } from "../../store/selectors";
 import GameScoreboard from "../../components/GameScoreboard";
 import Crest from "../../components/Crest";
 import ScreenHeader from "../../components/ui/ScreenHeader";
@@ -11,9 +13,10 @@ import Section from "../../components/ui/Section";
 import ListRow from "../../components/ui/ListRow";
 import Tabs from "../../components/ui/Tabs";
 import RatingBadge from "../../components/ui/RatingBadge";
-import StatCompare from "../../components/ui/StatCompare";
+import ResultChip from "../../components/ui/ResultChip";
+import RivalryVersus from "../../components/RivalryVersus";
 import Button from "../../components/ui/Button";
-import { T, SPACE } from "../../constants/theme";
+import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
 import { formatDate, parseGameDate } from "../../utils/game";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
@@ -79,37 +82,79 @@ function MatchSection({ title, game }: { title: string; game: Game }) {
   );
 }
 
-function HeadToHead() {
-  const rivalry = useRivalry();
-  if (!rivalry) return null;
-  const { teamA, teamB, winsA, winsB, draws, count, lastGame } = rivalry;
-  const look = (team: string) =>
-    lastGame.homeTeam.toLowerCase().trim() === team.toLowerCase().trim()
-      ? { color: lastGame.homeColor, logo: lastGame.homeLogo }
-      : { color: lastGame.awayColor, logo: lastGame.awayLogo };
-  const a = look(teamA);
-  const b = look(teamB);
+// Hex team colour → a translucent wash for the card's glow; other colour
+// formats simply get no glow.
+const wash = (color?: string) => (color && /^#[0-9a-f]{6}$/i.test(color) ? `${color}59` : null);
+
+function TeamOfTheLeague() {
+  const team = useTeamOfLeague();
+  if (!team) return null;
+  const glow = wash(team.color);
   return (
-    <Section title="Head to head" padded divider>
-      <View style={styles.h2hTeams}>
-        <View style={styles.h2hTeam}>
-          <Crest name={teamA} color={a.color} logo={a.logo} size={28} />
-          <Text style={styles.h2hName} numberOfLines={1}>
-            {teamA}
-          </Text>
+    <View style={styles.totl}>
+      {glow ? (
+        <LinearGradient
+          colors={[glow, "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      ) : null}
+      <View style={styles.totlHead}>
+        <Ionicons name="trophy" size={16} color={T.yellow} />
+        <Text style={styles.totlTitle}>Team of the league</Text>
+      </View>
+      <View style={styles.totlDivider} />
+      <View style={styles.totlBody}>
+        <View style={styles.totlTeam}>
+          <Crest name={team.name} color={team.color ?? T.surfaceAlt} logo={team.logo} size={64} />
+          <View style={styles.totlText}>
+            <Text style={styles.totlName} numberOfLines={1}>
+              {team.name}
+            </Text>
+            <Text style={styles.totlSub}>
+              {team.wins} wins · {team.winRate}% win rate
+            </Text>
+            <View style={styles.totlForm} accessible accessibilityLabel={`Form: ${team.form.join(", ")}`}>
+              {team.form.map((r, i) => (
+                <ResultChip key={i} result={r} />
+              ))}
+            </View>
+          </View>
         </View>
-        <Text style={styles.h2hMeta}>{count} games</Text>
-        <View style={[styles.h2hTeam, styles.h2hTeamRight]}>
-          <Text style={styles.h2hName} numberOfLines={1}>
-            {teamB}
-          </Text>
-          <Crest name={teamB} color={b.color} logo={b.logo} size={28} />
+        <View style={styles.totlStats}>
+          {(
+            [
+              ["Played", team.played],
+              ["Won", team.wins],
+              ["Drawn", team.draws],
+              ["Lost", team.losses],
+            ] as const
+          ).map(([label, value]) => (
+            <View key={label} style={styles.totlStat}>
+              <Text style={styles.totlStatNum}>{value}</Text>
+              <Text style={styles.totlStatLabel}>{label}</Text>
+            </View>
+          ))}
         </View>
       </View>
-      <StatCompare label="Wins" home={winsA} away={winsB} homeColor={a.color} awayColor={b.color} />
-      <Text style={styles.h2hDraws}>
-        {draws} {draws === 1 ? "draw" : "draws"}
-      </Text>
+    </View>
+  );
+}
+
+// The two players who have met most often on opposite sides (3+ games).
+function HeadToHead({ players }: { players: Player[] }) {
+  const router = useRouter();
+  const rivalry = usePlayerRivalries()[0];
+  if (!rivalry) return null;
+  return (
+    <Section title="Head to head" padded divider>
+      <RivalryVersus
+        rivalry={rivalry}
+        roster={players}
+        onOpen={(id) => router.push({ pathname: "/player/[id]", params: { id } })}
+      />
     </Section>
   );
 }
@@ -225,7 +270,8 @@ export default function HomeScreen() {
           </Section>
         ) : null}
 
-        <HeadToHead />
+        <TeamOfTheLeague />
+        <HeadToHead players={players} />
         {hasPlayers ? <Leaders players={players} games={games} /> : null}
       </ScrollView>
     </View>
@@ -247,12 +293,32 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: T.surfaceAlt },
   prompt: { gap: SPACE.md },
   body: { fontSize: 14, fontWeight: "400", color: T.textDim, lineHeight: 20 },
-  h2hTeams: { flexDirection: "row", alignItems: "center", gap: SPACE.sm, marginBottom: SPACE.sm },
-  h2hTeam: { flex: 1, flexDirection: "row", alignItems: "center", gap: SPACE.sm },
-  h2hTeamRight: { justifyContent: "flex-end" },
-  h2hName: { fontSize: 15, fontWeight: "600", color: T.text, flexShrink: 1 },
-  h2hMeta: { fontSize: 12, fontWeight: "500", color: T.textFaint },
-  h2hDraws: { fontSize: 12, fontWeight: "500", color: T.textFaint, textAlign: "center" },
+  totl: { backgroundColor: T.surface, borderRadius: RADIUS.card, overflow: "hidden" },
+  totlHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.md,
+  },
+  totlTitle: TYPE.sectionTitle,
+  totlDivider: { height: StyleSheet.hairlineWidth, backgroundColor: T.divider },
+  totlBody: { padding: SPACE.lg, gap: SPACE.lg },
+  totlTeam: { flexDirection: "row", alignItems: "center", gap: SPACE.lg },
+  totlText: { flex: 1, gap: 4 },
+  totlName: { fontSize: 22, fontWeight: "700", color: T.text },
+  totlSub: { fontSize: 13, fontWeight: "500", color: T.textDim, fontVariant: ["tabular-nums"] },
+  totlForm: { flexDirection: "row", gap: 6, marginTop: SPACE.xs },
+  totlStats: {
+    flexDirection: "row",
+    backgroundColor: "rgba(0,0,0,0.28)",
+    borderRadius: RADIUS.control,
+    paddingVertical: SPACE.md,
+  },
+  totlStat: { flex: 1, alignItems: "center", gap: 2 },
+  totlStatNum: { fontSize: 20, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"] },
+  totlStatLabel: { fontSize: 12, fontWeight: "500", color: T.textFaint },
   rankWrap: { flexDirection: "row", alignItems: "center", gap: SPACE.md },
   rank: {
     width: 14,

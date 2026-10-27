@@ -8,12 +8,13 @@ import ScreenHeader from "../../components/ui/ScreenHeader";
 import Section from "../../components/ui/Section";
 import RatingBadge from "../../components/ui/RatingBadge";
 import EmptyState from "../../components/ui/EmptyState";
+import ResultChip from "../../components/ui/ResultChip";
 import { chooseAction } from "../../components/ui/chooseAction";
 import PlayerAvatar from "../../components/PlayerAvatar";
 import AttributeRadar from "../../components/AttributeRadar";
 import { T, TYPE, SPACE } from "../../constants/theme";
 import { shortDate } from "../../utils/game";
-import { computePlayerStats, recentForm, type Result } from "../../utils/playerStats";
+import { computePlayerStats, recentForm } from "../../utils/playerStats";
 import type { Player } from "../../types/players";
 
 const AXES = [
@@ -27,17 +28,6 @@ const AXES = [
 
 const FOOT_LABEL: Record<Player["foot"], string> = { L: "Left foot", R: "Right foot" };
 const RECENT = 5;
-
-// FotMob-style result chip: green win, grey draw, red loss.
-function ResultChip({ result }: { result: Result }) {
-  return (
-    <View style={[styles.chip, result === "W" ? styles.chipW : result === "L" ? styles.chipL : styles.chipD]}>
-      <Text style={[styles.chipTxt, result === "D" ? styles.chipTxtD : result === "L" ? styles.chipTxtL : null]}>
-        {result}
-      </Text>
-    </View>
-  );
-}
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -229,14 +219,6 @@ const styles = StyleSheet.create({
 
   formRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   formChips: { flexDirection: "row", gap: 6 },
-  chip: { width: 28, height: 28, borderRadius: 7, alignItems: "center", justifyContent: "center" },
-  chipW: { backgroundColor: T.accent },
-  chipD: { backgroundColor: T.surfaceAlt },
-  chipL: { backgroundColor: T.red },
-  chipTxt: { fontSize: 13, fontWeight: "700", color: "#000" },
-  chipTxtD: { color: T.textDim },
-  chipTxtL: { color: "#FFFFFF" },
-
   radar: { alignItems: "center" },
 
   gameRow: {

@@ -10,12 +10,12 @@ npm run android    # Start with Android emulator
 npm run ios        # Start with iOS simulator
 npm run web        # Start web build
 npm run lint       # Run ESLint via expo lint
-npm run check      # Node built-in tests for utils/ (rating bands, next match, head-to-head)
+npm run check      # Node built-in tests for utils/ (rating bands, next match, rivalries, player stats)
 ```
 
 `npx tsc --noEmit` typechecks (not wired to an npm script). `npm run check` runs
 Node's built-in test runner over the pure logic in `utils/` (rating bands, next
-match, head-to-head). There is no UI test suite, so lint + typecheck + check + a
+match, rivalries, player stats). There is no UI test suite, so lint + typecheck + check + a
 successful Metro bundle is the automated safety net — none of which catch
 runtime gesture or animation regressions. See the `running-ballerz` skill for the full verification recipe
 and the Windows Metro traps.
@@ -70,7 +70,7 @@ All app state lives in a single **Zustand** store (`store/index.ts`) persisted t
 All writes go through named store actions (`addPlayer`, `updatePlayer`, `deletePlayer`, `setMvp`, `addGame`, `updateGame`, `deleteGame`, `finishGame`, `setLeague`, `completeOnboarding`, `resetAll`) — never mutate slices directly. New entities get an id from the local `genId()` helper. `setMvp` is exclusive (clears `isMvp` on all other players); `finishGame` is the canonical way to move a game to `"FT"` with score + MVP.
 
 Derived/memoized reads that span multiple slices live in `store/selectors.ts`
-(`useLastGame`, `useMvpPlayer`, `useAppStats`, `useRivalry`, `useLastGameRadar`,
+(`useLastGame`, `useMvpPlayer`, `useAppStats`, `usePlayerRivalries`, `useTeamOfLeague`, `useLastGameRadar`,
 `useGamesByStatus`, `useNextGame`, `usePlayersByPosition`). Use selectors for anything that requires filtering or
 aggregation. Aggregations only count games with `status === "FT"`.
 

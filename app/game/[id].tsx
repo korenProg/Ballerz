@@ -6,10 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../../store";
 import GameScoreboard from "../../components/GameScoreboard";
-import GameCard from "../../components/GameCard";
+import RivalryVersus from "../../components/RivalryVersus";
 import LineupPitch from "../../components/LineupPitch";
 import PlayerAvatar from "../../components/PlayerAvatar";
-import Crest from "../../components/Crest";
 import ScreenHeader from "../../components/ui/ScreenHeader";
 import IconButton from "../../components/ui/IconButton";
 import Section from "../../components/ui/Section";
@@ -18,7 +17,9 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import { chooseAction } from "../../components/ui/chooseAction";
 import { T, TYPE, SPACE, RADIUS } from "../../constants/theme";
-import { shortDate, parseDMY, computeHeadToHead } from "../../utils/game";
+import { shortDate, parseDMY } from "../../utils/game";
+import { MIN_MEETINGS } from "../../utils/rivalries";
+import { usePlayerRivalries } from "../../store/selectors";
 import type { Game } from "../../types/games";
 import type { Player } from "../../types/players";
 
@@ -30,6 +31,7 @@ const TABS = [
   { key: "h2h", label: "H2H" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
+const MAX_RIVALRIES = 5;
 
 function ScoreStepper({ team, onMinus, onPlus }: { team: string; onMinus: () => void; onPlus: () => void }) {
   return (
@@ -124,66 +126,39 @@ function MatchInfo({ game }: { game: Game }) {
   );
 }
 
-function HeadToHead({ game, games, onOpen }: { game: Game; games: readonly Game[]; onOpen: (id: string) => void }) {
-  // Earlier meetings only: this game is the one being looked at.
-  const h = computeHeadToHead(
-    games.filter((g) => g.id !== game.id),
-    game.homeTeam,
-    game.awayTeam,
-  );
-  if (h.played === 0) {
+// Player rivalries inside this game: one player from each side who have met
+// 3+ times on opposite sides (this game included), most meetings first.
+function PlayerHeadToHead({
+  game,
+  roster,
+  onOpen,
+}: {
+  game: Game;
+  roster: readonly Player[];
+  onOpen: (id: string) => void;
+}) {
+  const all = usePlayerRivalries();
+  const home = new Set((game.homePlayers ?? []).map((p) => p.id));
+  const away = new Set((game.awayPlayers ?? []).map((p) => p.id));
+  const here = all
+    .filter((r) => (home.has(r.a.id) && away.has(r.b.id)) || (home.has(r.b.id) && away.has(r.a.id)))
+    .slice(0, MAX_RIVALRIES);
+  if (here.length === 0) {
     return (
       <Section padded>
-        <Text style={styles.h2hEmpty}>First meeting between {game.homeTeam} and {game.awayTeam}.</Text>
+        <Text style={styles.h2hEmpty}>
+          No rivalries in this game yet. Two players become rivals after {MIN_MEETINGS} games on opposite sides.
+        </Text>
       </Section>
     );
   }
-  const segs = [
-    { n: h.winsA, color: game.homeColor },
-    { n: h.draws, color: T.surfaceAlt },
-    { n: h.winsB, color: game.awayColor },
-  ];
   return (
     <>
-      <Section padded>
-        <View style={styles.h2hRow}>
-          <View style={styles.h2hSide}>
-            <Crest name={game.homeTeam} color={game.homeColor} logo={game.homeLogo} size={36} />
-            <Text style={styles.h2hNum}>{h.winsA}</Text>
-            <Text style={styles.h2hLabel}>Wins</Text>
-          </View>
-          <View style={styles.h2hSide}>
-            <View style={styles.h2hDrawGap} />
-            <Text style={styles.h2hNum}>{h.draws}</Text>
-            <Text style={styles.h2hLabel}>Draws</Text>
-          </View>
-          <View style={styles.h2hSide}>
-            <Crest name={game.awayTeam} color={game.awayColor} logo={game.awayLogo} size={36} />
-            <Text style={styles.h2hNum}>{h.winsB}</Text>
-            <Text style={styles.h2hLabel}>Wins</Text>
-          </View>
-        </View>
-        <View style={styles.h2hBar}>
-          {segs
-            .filter((s) => s.n > 0)
-            .map((s, i) => (
-              <View key={i} style={{ flex: s.n, backgroundColor: s.color }} />
-            ))}
-        </View>
-      </Section>
-      <Section title={`Previous meetings · ${h.played}`}>
-        {h.meetings.map((m, i) => (
-          <Pressable
-            key={m.id}
-            accessibilityRole="button"
-            onPress={() => onOpen(m.id)}
-            style={({ pressed }) => (pressed ? styles.pressed : null)}
-          >
-            <GameCard game={m} />
-            {i < h.meetings.length - 1 ? <View style={styles.rowDivider} /> : null}
-          </Pressable>
-        ))}
-      </Section>
+      {here.map((r) => (
+        <Section key={`${r.a.id}|${r.b.id}`} padded>
+          <RivalryVersus rivalry={r} roster={roster} onOpen={onOpen} />
+        </Section>
+      ))}
     </>
   );
 }
@@ -192,7 +167,6 @@ export default function GameDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = useStore((s) => s.games.find((g) => g.id === id) ?? null);
-  const games = useStore((s) => s.games);
   const roster = useStore((s) => s.players);
   const updateGame = useStore((s) => s.updateGame);
   const deleteGame = useStore((s) => s.deleteGame);
@@ -210,7 +184,6 @@ export default function GameDetailScreen() {
   const home = game.homePlayers ?? [];
   const away = game.awayPlayers ?? [];
   const openPlayer = (pid: string) => router.push({ pathname: "/player/[id]", params: { id: pid } });
-  const openGame = (gid: string) => router.push({ pathname: "/game/[id]", params: { id: gid } });
 
   const confirmDelete = () =>
     chooseAction(`Delete ${game.homeTeam} v ${game.awayTeam}? This can't be undone.`, [
@@ -289,7 +262,7 @@ export default function GameDetailScreen() {
           )
         ) : null}
 
-        {tab === "h2h" ? <HeadToHead game={game} games={games} onOpen={openGame} /> : null}
+        {tab === "h2h" ? <PlayerHeadToHead game={game} roster={roster} onOpen={openPlayer} /> : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -339,25 +312,4 @@ const styles = StyleSheet.create({
   infoTxt: { flex: 1, fontSize: 14, fontWeight: "400", color: T.text },
 
   h2hEmpty: { ...TYPE.rowSecondary, textAlign: "center" },
-  h2hRow: { flexDirection: "row" },
-  h2hSide: { flex: 1, alignItems: "center", gap: 4 },
-  h2hDrawGap: { height: 36 },
-  h2hNum: { fontSize: 28, fontWeight: "700", color: T.text, fontVariant: ["tabular-nums"], marginTop: SPACE.xs },
-  h2hLabel: { fontSize: 12, fontWeight: "500", color: T.textFaint },
-  h2hBar: {
-    flexDirection: "row",
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
-    gap: 2,
-    marginTop: SPACE.lg,
-  },
-  rowDivider: {
-    position: "absolute",
-    left: SPACE.lg,
-    right: 0,
-    bottom: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: T.divider,
-  },
 });
