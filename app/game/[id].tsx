@@ -28,8 +28,8 @@ import type { Player } from "../../types/players";
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
 const TABS = [
-  { key: "stats", label: "Stats" },
   { key: "lineups", label: "Lineups" },
+  { key: "stats", label: "Stats" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 const MAX_RIVALRIES = 5;
@@ -67,7 +67,7 @@ function PlayerOfTheMatch({
   const player = (snapshot && roster.find((p) => p.id === snapshot.id)) ?? roster.find((p) => same(p.name));
   const team = inHome ? game.homeTeam : inAway ? game.awayTeam : null;
   return (
-    <Section title="Player of the match">
+    <Section divider title="Player of the match">
       <Pressable
         accessibilityRole={player ? "button" : undefined}
         disabled={!player}
@@ -113,7 +113,7 @@ function MatchInfo({ game }: { game: Game }) {
   if (home || away) items.push({ icon: "people-outline", label: `${home} v ${away}` });
   if (items.length === 0) return null;
   return (
-    <Section title="Match info" padded>
+    <Section divider title="Match info" padded>
       <View style={styles.infoGrid}>
         {items.map((it) => (
           <View key={it.icon} style={styles.infoCell}>
@@ -146,7 +146,7 @@ function PlayerHeadToHead({
     .filter((r) => (home.has(r.a.id) && away.has(r.b.id)) || (home.has(r.b.id) && away.has(r.a.id)))
     .slice(0, MAX_RIVALRIES);
   return (
-    <Section title="Head to head" padded>
+    <Section divider title="Head to head" padded>
       {here.length === 0 ? (
         <Text style={styles.note}>
           No rivalries in this game yet. Two players become rivals after {MIN_MEETINGS} games on opposite sides.
@@ -166,7 +166,7 @@ function WinChance({ game, chance, colors }: { game: Game; chance: WinProbabilit
     { key: "away", pct: chance.away, color: colors[1], label: game.awayTeam, align: styles.chanceRight },
   ];
   return (
-    <Section title="Win probability" padded>
+    <Section divider title="Win probability" padded>
       <View style={styles.chanceRow}>
         {parts.map((p) => (
           <View key={p.key} style={[styles.chanceCell, p.align]}>
@@ -208,7 +208,7 @@ function TeamAttributes({
     { key: "away", name: game.awayTeam, color: colors[1], ovr: away.ovr },
   ];
   return (
-    <Section title="Team attributes" padded>
+    <Section divider title="Team attributes" padded>
       <View style={styles.legend}>
         {teams.map((t) => (
           <View key={t.key} style={styles.legendItem}>
@@ -242,7 +242,7 @@ export default function GameDetailScreen() {
   const games = useStore((s) => s.games);
   const updateGame = useStore((s) => s.updateGame);
   const deleteGame = useStore((s) => s.deleteGame);
-  const [tab, setTab] = useState<TabKey>("stats");
+  const [tab, setTab] = useState<TabKey>("lineups");
 
   if (!game) {
     return (
@@ -306,7 +306,7 @@ export default function GameDetailScreen() {
         {tab === "stats" ? (
           <>
             {game.status === "Live" ? (
-              <Section title="Live score" padded>
+              <Section divider title="Live score" padded>
                 <View style={styles.steppers}>
                   <ScoreStepper
                     team={game.homeTeam}
@@ -322,33 +322,39 @@ export default function GameDetailScreen() {
                 <Button label="Finish" icon="flag" onPress={() => router.push(`/record-result?id=${game.id}` as const)} />
               </Section>
             ) : null}
-            {game.status === "FT" && game.mvp?.name ? (
-              <PlayerOfTheMatch game={game} roster={roster} onOpen={openPlayer} />
-            ) : null}
             {chance ? <WinChance game={game} chance={chance} colors={colors} /> : null}
             {homeProfile.size > 0 && awayProfile.size > 0 ? (
               <TeamAttributes game={game} home={homeProfile} away={awayProfile} colors={colors} />
             ) : null}
             {home.length > 0 && away.length > 0 ? (
               <PlayerHeadToHead game={game} roster={roster} onOpen={openPlayer} />
-            ) : null}
-            <MatchInfo game={game} />
+            ) : (
+              <Section padded>
+                <Text style={styles.note}>Stats appear once both teams have players.</Text>
+              </Section>
+            )}
           </>
         ) : null}
 
         {tab === "lineups" ? (
-          home.length > 0 || away.length > 0 ? (
-            <LineupPitch
-              home={{ name: game.homeTeam, color: game.homeColor, logo: game.homeLogo, players: home }}
-              away={{ name: game.awayTeam, color: game.awayColor, logo: game.awayLogo, players: away }}
-              roster={roster}
-              onPlayerPress={openPlayer}
-            />
-          ) : (
-            <Section padded>
-              <Text style={styles.note}>No lineups were picked for this game.</Text>
-            </Section>
-          )
+          <>
+            {game.status === "FT" && game.mvp?.name ? (
+              <PlayerOfTheMatch game={game} roster={roster} onOpen={openPlayer} />
+            ) : null}
+            {home.length > 0 || away.length > 0 ? (
+              <LineupPitch
+                home={{ name: game.homeTeam, color: game.homeColor, logo: game.homeLogo, players: home }}
+                away={{ name: game.awayTeam, color: game.awayColor, logo: game.awayLogo, players: away }}
+                roster={roster}
+                onPlayerPress={openPlayer}
+              />
+            ) : (
+              <Section padded>
+                <Text style={styles.note}>No lineups were picked for this game.</Text>
+              </Section>
+            )}
+            <MatchInfo game={game} />
+          </>
         ) : null}
 
       </ScrollView>
@@ -377,9 +383,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: SPACE.md,
-    paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.xs,
-    paddingBottom: SPACE.lg,
+    padding: SPACE.lg,
   },
   potmText: { flex: 1, gap: 2 },
   potmName: { fontSize: 17, fontWeight: "600", color: T.text },
