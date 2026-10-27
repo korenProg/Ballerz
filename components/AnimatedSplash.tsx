@@ -36,9 +36,9 @@ const float = css.keyframes({
 
 // A barely-there accent halo breathing with the logo.
 const glow = css.keyframes({
-  "0%": { opacity: 0.06, transform: [{ scale: 0.92 }] },
-  "50%": { opacity: 0.14, transform: [{ scale: 1.05 }] },
-  "100%": { opacity: 0.06, transform: [{ scale: 0.92 }] },
+  "0%": { opacity: 0.16, transform: [{ scale: 0.92 }] },
+  "50%": { opacity: 0.32, transform: [{ scale: 1.08 }] },
+  "100%": { opacity: 0.16, transform: [{ scale: 0.92 }] },
 });
 
 export default function AnimatedSplash({
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
   // edge (a plain circle at low opacity would read as a flat green disc).
   glow: {
     position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: T.accent,
-    boxShadow: `0 0 90px 60px ${T.accent}`,
-    opacity: 0.06,
+    boxShadow: `0 0 110px 80px ${T.accent}`,
+    opacity: 0.16,
   },
-  glowStill: { opacity: 0.08 },
+  glowStill: { opacity: 0.22 },
 });
