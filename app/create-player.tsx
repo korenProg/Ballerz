@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useState, type ComponentType } from "react";
 import {
   View,
   Pressable,
@@ -23,6 +23,7 @@ import ScreenHeader from "../components/ui/ScreenHeader";
 import RatingBadge from "../components/ui/RatingBadge";
 import PlayerAvatar from "../components/PlayerAvatar";
 import { chooseAction } from "../components/ui/chooseAction";
+import { FormSection as Section, FormRow as Row, FORM_ROW_H as ROW_H } from "../components/ui/Form";
 
 // The package types its default export through a mixin that loses `props`
 // under React 19's JSX types; the runtime component is unchanged.
@@ -44,28 +45,6 @@ type AttrKey = (typeof ATTR_ROWS)[number][0];
 type Attrs = Record<AttrKey, number>;
 
 const AVATAR = 112;
-
-// iOS inset-grouped section: optional uppercase header, rounded cells, and
-// an optional grey footnote underneath.
-function Section({ header, footer, children }: { header?: string; footer?: string; children: ReactNode }) {
-  return (
-    <View style={styles.section}>
-      {header ? <Text style={styles.sectionHeader}>{header.toUpperCase()}</Text> : null}
-      <View style={styles.group}>{children}</View>
-      {footer ? <Text style={styles.sectionFooter}>{footer}</Text> : null}
-    </View>
-  );
-}
-
-// One cell. Every cell but the last draws the hairline iOS insets under its label.
-function Row({ children, last = false, tall = false }: { children: ReactNode; last?: boolean; tall?: boolean }) {
-  return (
-    <View style={[styles.row, tall ? styles.rowTall : null]}>
-      {children}
-      {last ? null : <View style={styles.separator} />}
-    </View>
-  );
-}
 
 // Presented as an iOS sheet (app/_layout.tsx: presentation "modal") — it
 // slides up over the current screen and swipes down to close, like WhatsApp's
@@ -291,8 +270,6 @@ export default function CreatePlayerScreen() {
   );
 }
 
-const ROW_H = 50;
-
 const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: SHEET.bg },
   flex: { flex: 1 },
@@ -308,40 +285,7 @@ const styles = StyleSheet.create({
   },
   photoButtonText: { fontSize: 15, fontWeight: "600", color: T.text },
 
-  section: { marginBottom: SPACE.xxl },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: "400",
-    color: SHEET.label,
-    marginBottom: 6,
-    marginLeft: SPACE.lg,
-  },
-  sectionFooter: {
-    fontSize: 13,
-    fontWeight: "400",
-    color: SHEET.label,
-    marginTop: 6,
-    marginHorizontal: SPACE.lg,
-  },
-  group: { backgroundColor: SHEET.cell, borderRadius: 16, overflow: "hidden" },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: SPACE.md,
-    minHeight: ROW_H,
-    paddingHorizontal: SPACE.lg,
-  },
-  rowTall: { minHeight: 54 },
-  separator: {
-    position: "absolute",
-    left: SPACE.lg,
-    right: 0,
-    bottom: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: SHEET.separator,
-  },
   rowLabel: { fontSize: 17, fontWeight: "400", color: T.text },
 
   nameInput: {

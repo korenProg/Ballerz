@@ -63,7 +63,11 @@ function AppStack({ colorScheme }: { colorScheme: ReturnType<typeof useColorSche
           />
           <Stack.Screen
             name="create-game"
-            options={{ headerShown: false }}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              contentStyle: { backgroundColor: SHEET.bg },
+            }}
           />
           <Stack.Screen
             name="record-result"
